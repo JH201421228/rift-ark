@@ -130,10 +130,64 @@
 > 그것들은 비밀은 아니지만 공개 저장소에 두면 남이 자기 앱에 붙여 무효 트래픽을
 > 만들 수 있다. Codemagic 은 private 저장소를 정상 지원한다.
 
-**아직 하지 않은 검증:** 다른 폴더에 `git clone` → `cd FE && npm ci && npm run build`
-가 성공해야 한다. 실패하면 `.gitignore` 가 필요한 파일을 지웠거나 커밋에서 빠진 것이 있다.
-**이 게임은 `prebuild` 가 에셋을 재생성**하므로(`assets:pack` · `assets:audio`),
-`public/assets/` 가 무시되는 것은 정상이다 — 클론 후 첫 빌드가 그것을 다시 만든다.
+#### ✅ 클론 검증 — **실제로 돌렸다** (2026-08-08)
+
+`git clone` → `npm ci` → `npm run build` → `npx cap sync android` → Gradle 설정까지
+빈 폴더에서 전부 통과했다. **`.gitignore` 가 필요한 파일을 지운 곳은 없다.**
+
+| 확인 | 결과 |
+|---|---|
+| `npm ci` | ✅ 405 패키지 · 30초 |
+| `npm run build` | ✅ 10.8초 · `dist/` **27MB** |
+| ★ `prebuild` 가 에셋을 재생성하는가 | ✅ **아틀라스 14개 = 원본과 같은 수.** `public/assets/` 가 `.gitignore` 대상인 것은 정상이다 |
+| ★ `key.properties` 없이 Gradle 이 설정되는가 | ✅ `BUILD SUCCESSFUL` — §1.3 의 `canSignRelease` 가드가 의도대로 동작한다 |
+
+**그리고 두 가지가 걸렸다. 둘 다 CI 설정에 직접 영향이 있다.**
+
+##### ⚠ ① Gradle 은 `npx cap sync android` **뒤에만** 돈다
+
+클론 직후 `./gradlew` 를 바로 부르면 **설정 단계에서** 죽는다:
+
+```
+Script 'FE/android/app/capacitor.build.gradle' line: 10
+> Could not read script '.../capacitor-cordova-android-plugins/cordova.variables.gradle'
+  as it does not exist.
+```
+
+그 파일은 `cap sync` 가 **생성**하고 `.gitignore` 대상이다. **메시지에 "cap sync"
+라는 말이 한 번도 나오지 않고** cordova 파일 이름만 나와서, 처음 보면 플러그인
+설정이 깨진 것으로 읽힌다.
+
+> ★ **그래서 CI 워크플로는 `npm run build:android`(= `build` + `cap sync`)를
+> 반드시 Gradle 앞에 둔다.** `npm ci → gradlew bundleRelease` 로 짜면 CI 첫 실행이
+> 여기서 실패한다 — §6 의 `codemagic.yaml` 이 이 순서를 지켜야 한다.
+
+##### ⚠ ② Windows: 클론 경로가 **125자를 넘으면** 체크아웃이 깨진다
+
+```
+error: unable to create file FE/asset/bosses/Bringer-Of-Death/.../Attack/...png:
+  Filename too long
+```
+
+| | |
+|---|---|
+| 가장 긴 추적 경로 | **134자** (`FE/asset/monsters/Basic Asset Pack/.../AdventurousAdolescent.aseprite`) |
+| Windows `MAX_PATH` | 260 |
+| ⇒ 클론 루트 한계 | **125자** |
+| `core.longpaths` | **로컬·전역 어디에도 설정돼 있지 않다** |
+
+실제로 157자짜리 경로에 클론했다가 `Clone succeeded, but checkout failed` 로 막혔다.
+현재 작업 폴더(`C:\Users\741u7\Desktop\clear\PJT20260801` = 40자)는 여유가 있다.
+
+> ★ **Codemagic 은 영향받지 않는다** — Linux/macOS 빌드 머신에는 `MAX_PATH` 가 없다.
+> **Windows 에서 클론하는 사람만** 걸린다:
+>
+> ```bash
+> git clone -c core.longpaths=true <url> <짧은-경로>
+> ```
+>
+> ⚠ **저장소가 이것을 대신 해 줄 수 없다.** `core.longpaths` 는 클론하는 쪽의
+> 설정이고 `.gitattributes` 로 배포되지 않는다. 그래서 코드가 아니라 **여기에 적는다.**
 
 ### 1.2 릴리스 키스토어 ✅ **완료** (2026-08-08)
 
