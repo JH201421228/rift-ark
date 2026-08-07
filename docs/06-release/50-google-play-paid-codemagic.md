@@ -135,15 +135,24 @@
 **이 게임은 `prebuild` 가 에셋을 재생성**하므로(`assets:pack` · `assets:audio`),
 `public/assets/` 가 무시되는 것은 정상이다 — 클론 후 첫 빌드가 그것을 다시 만든다.
 
-### 1.2 릴리스 키스토어 ★ **아직 없다 — 사용자가 직접 만든다**
+### 1.2 릴리스 키스토어 ✅ **완료** (2026-08-08)
 
-> **2026-08-08 준비 완료.** 아래 셋은 이미 되어 있다. 남은 것은 **명령 한 줄**이다.
->
-> | 준비된 것 | 상태 |
+> | | 상태 |
 > |---|---|
-> | `C:\keys\` 디렉터리 | 생성됨 (저장소 **밖**) |
+> | `C:\keys\riftark-release.jks` | **생성됨** (저장소 **밖** · 4,410 바이트 · 2026-08-08 02:10) |
+> | 형식 | **PKCS12 확인됨** — 파일 첫 4바이트가 `30 82 11 36` (DER SEQUENCE). JKS 였다면 `fe ed fe ed` 로 시작한다 |
 > | `.gitignore` — `*.jks` · `*.keystore` · `*.p12` · **`key.properties`** | 등록됨 (아래 ★★ 참조) |
 > | `FE/android/key.properties.example` | 템플릿 커밋됨 |
+> | `FE/android/key.properties` | ★ **아직 없다.** 비밀번호가 들어가므로 **사용자가 직접 만든다** (§1.3) |
+>
+> ★ **비밀번호 없이 형식을 확인하는 방법이 위 두 번째 행이다.** `keytool -list` 는
+> 비밀번호를 묻지만, **매직 바이트는 묻지 않는다.** 아래 ★ 문단이 경고하는
+> "`\` 뒤 공백 때문에 `-storetype` 이 조용히 무시되는" 사고는 이 한 줄로 걸린다:
+>
+> ```powershell
+> [System.IO.File]::ReadAllBytes('C:\keys\riftark-release.jks')[0..3] |
+>   ForEach-Object { $_.ToString('x2') }
+> ```
 
 #### 실행 (사용자 터미널에서 직접)
 
@@ -184,11 +193,38 @@ keytool -genkeypair -v -keystore C:/keys/riftark-release.jks -alias riftark -key
 > ★ 쓸 수 있는 문자: `A-Z` `a-z` `0-9` 와 `! @ # $ % ^ & * ( ) - _ = + [ ] { }`.
 >   전각 기호·한글·이모지는 전부 안 된다.
 
-> ★ **`-dname` 을 넘겨 인적사항 질문 7개를 건너뛴다.** 넘기지 않으면 이름·조직·
-> 도시·국가를 하나씩 묻는데, 엔터로 넘기면 전부 `Unknown` 이 되고
-> `CN=Unknown, OU=Unknown, ...` 인 인증서가 만들어진다. Google 은 그 값을
-> 검증하지 않으므로 **동작에는 문제가 없지만**, 서명 인증서는 앱 수명 내내
-> 바꿀 수 없으므로 처음에 제대로 넣는다.
+> ### ★★★ `-dname` 을 넘겨 인적사항 질문 7개를 건너뛴다 — **2026-08-08 에 실제로 놓쳤다**
+>
+> 넘기지 않으면 이름·조직·도시·국가를 하나씩 묻는데, 엔터로 넘기면 전부
+> `Unknown` 이 된다. 그리고 **그 사실은 keytool 이 알려 주지 않는다** —
+> 경고도 확인 질문도 없이 그냥 만들어진다.
+>
+> 실제로 만들어진 키가 그랬고, **AAB 를 서명한 뒤 `jarsigner -verify -certs` 로
+> 확인해서야 드러났다:**
+>
+> ```
+> X.509, CN=Unknown, OU=Unknown, O=Unknown, L=Unknown, ST=Unknown, C=Unknown
+> ```
+>
+> **무엇이 실제로 나빠지는가 — 정직하게:**
+>
+> | | |
+> |---|---|
+> | Play 업로드 | ✅ **문제 없다.** Google 은 DN 을 검증하지 않는다 |
+> | 사용자에게 보이는가 | ✗ 보이지 않는다 |
+> | Play App Signing 을 쓰면 | 이 키는 **업로드 키**이고, 배포 서명은 Google 의 키다 (§4.4) — 업로드 키는 **나중에 교체 가능**하다 |
+> | 스토어 밖 직접 배포 시 | `apksigner verify --print-certs` 에 `Unknown` 이 그대로 나온다 |
+>
+> **즉 치명적이지 않다. 다만 첫 업로드 전에는 다시 만드는 값이 0 이다** —
+> `C:\keys\` 를 비우고 `-dname` 을 붙여 §1.2 명령을 다시 돌리면 끝난다.
+> **첫 AAB 를 Play 에 올린 뒤에는 그 값이 0 이 아니다.**
+>
+> ★ **확인 방법은 `keytool -list` 가 아니라 `jarsigner -verify -certs` 가 빠르다** —
+> 키스토어 비밀번호를 묻지 않고 이미 만든 AAB 에서 바로 읽는다:
+>
+> ```bash
+> jarsigner -verify -verbose:summary -certs app/build/outputs/bundle/release/app-release.aab
+> ```
 >
 > ★ **PKCS12 에는 키 비밀번호가 따로 없다.** 저장소 비밀번호 하나가 키까지 보호한다
 > (`Different store and key passwords not supported for PKCS12 KeyStores`).
@@ -241,64 +277,37 @@ cp FE/android/key.properties.example FE/android/key.properties
 > 루트 `.gitignore` 가 이미 막고 있으므로 그대로 두어도 무해하지만, 그 주석만
 > 보고 "막혀 있지 않다"고 판단하지 않는다. **`git check-ignore -v <경로>` 가 권위다.**
 
-### 1.3 `build.gradle` 서명 설정
+### 1.3 `build.gradle` 서명 설정 ✅ **완료** (2026-08-08)
 
-`FE/android/app/build.gradle` — **로컬(`key.properties`)과 CI(환경변수) 양쪽**을 지원한다.
+> ### ★★ 정본은 코드다 — 여기에 스니펫을 복사해 두지 않는다
+>
+> **`FE/android/app/build.gradle`** 이 유일한 출처다. 예전에는 이 자리에 전체
+> 스니펫이 붙어 있었고, 실제 파일이 앞서 나가면서 **문서의 스니펫이 이미 세 군데
+> 달랐다** (`canSignRelease` 분기 · `versionCode` 검증 · `keyPassword` 폴백).
+> 그것이 이 저장소의 단일 실패 유형이다 (`CLAUDE.md`).
+> **아래는 그 파일이 왜 그렇게 생겼는지만 적는다.**
 
-```gradle
-def keystorePropertiesFile = rootProject.file("key.properties")
-def keystoreProperties = new Properties()
-if (keystorePropertiesFile.exists()) {
-    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
-}
+`FE/android/app/build.gradle` 은 자격증명을 **두 곳**에서 받는다 —
+CI 는 Codemagic 의 `CM_*` 환경변수, 로컬은 `key.properties`.
 
-android {
-    ...
-    defaultConfig {
-        ...
-        // Codemagic 이 BUILD_NUMBER 를 자동 증가시킨다. 로컬에서는 1.
-        versionCode System.getenv("BUILD_NUMBER") ? System.getenv("BUILD_NUMBER").toInteger() : 1
-        versionName "1.0.0"
-    }
+| 결정 | 왜 |
+|---|---|
+| 자격증명이 **하나도 없으면 서명을 배선하지 않는다** (`canSignRelease`) | 무조건 `signingConfig` 를 걸면 **키 없는 환경의 `assembleDebug` 까지 설정 단계에서 죽는다.** 클론 직후 첫 빌드가 `storeFile is null` 로 실패하면 안 된다 — 서명이 필요한 것은 `bundleRelease` 뿐이다 |
+| `BUILD_NUMBER` 가 정수가 아니면 **빌드를 멈춘다** | 조용히 `1` 로 떨어지는 쪽이 훨씬 위험하다. `versionCode` 는 **한 번 올린 값보다 커야만** 업로드되므로, 1 을 이미 쓴 뒤에 다시 1 이 나오면 업로드가 거부되고 원인이 CI 환경변수라는 것을 알기까지 한참 걸린다 |
+| `keyPassword` 가 비면 `storePassword` 로 폴백 | PKCS12 는 저장소 비밀번호 하나가 키까지 보호한다. 둘을 다르게 적는 실수가 "키를 못 연다"로 나타나는 것을 막는다 |
+| `minifyEnabled false` 유지 | Phaser 는 씬·플러그인을 **문자열 이름**으로 찾고 Capacitor 플러그인은 리플렉션으로 불린다. R8 이 지우면 **빌드는 성공하고 실행이 죽는다** (§1.4 크기 표의 원인이기도 하다) |
 
-    signingConfigs {
-        release {
-            if (System.getenv("CM_KEYSTORE_PATH")) {
-                // ── CI (Codemagic 이 주입) ──
-                storeFile     file(System.getenv("CM_KEYSTORE_PATH"))
-                storePassword System.getenv("CM_KEYSTORE_PASSWORD")
-                keyAlias      System.getenv("CM_KEY_ALIAS")
-                keyPassword   System.getenv("CM_KEY_PASSWORD")
-            } else if (keystorePropertiesFile.exists()) {
-                // ── 로컬 ──
-                storeFile     file(keystoreProperties['storeFile'])
-                storePassword keystoreProperties['storePassword']
-                keyAlias      keystoreProperties['keyAlias']
-                keyPassword   keystoreProperties['keyPassword']
-            }
-        }
-    }
+#### 사용자가 직접 만들 것 — `FE/android/key.properties`
 
-    buildTypes {
-        release {
-            signingConfig signingConfigs.release
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-        }
-    }
-}
+```bash
+cp FE/android/key.properties.example FE/android/key.properties
+# → 에디터로 열어 storePassword · keyPassword 에 §1.2 에서 입력한 값을 넣는다
 ```
 
-`FE/android/key.properties` (**`.gitignore` 대상**):
+주석과 함정(경로는 슬래시로 · 두 비밀번호는 같은 값)은 **`.example` 파일 안에** 있다.
+**`.gitignore` 대상이므로 커밋되지 않는다** — `git check-ignore -v FE/android/key.properties` 가 권위다.
 
-```properties
-storeFile=C:/keys/riftark-release.jks
-storePassword=...
-keyAlias=riftark
-keyPassword=...
-```
-
-### 1.4 로컬에서 AAB 가 나오는지 먼저 확인한다
+### 1.4 로컬에서 AAB 가 나오는지 먼저 확인한다 ✅ **성공** (2026-08-08)
 
 ```bash
 cd FE && JAVA_HOME="C:/Program Files/Java/jdk-21.0.10" npm run build:android
@@ -306,15 +315,102 @@ cd android && JAVA_HOME="C:/Program Files/Java/jdk-21.0.10" ./gradlew bundleRele
 # → FE/android/app/build/outputs/bundle/release/app-release.aab
 ```
 
+**첫 성공 실측 (2026-08-08 · `BUILD SUCCESSFUL in 2m 14s`):**
+
+| 항목 | 값 |
+|---|---|
+| `app-release.aab` | **32,051,819 바이트** |
+| 서명 | `jar verified` · **4096-bit RSA** · SHA384withRSA · 만료 **2053-12-24** |
+| `versionCode` / `versionName` | **1** / **1.0.0** — `BUILD_NUMBER` 가 없을 때의 설계값 (§1.3) |
+| `targetSdkVersion` / `minSdkVersion` | **35** / 23 |
+| ★ `com.google.android.gms.permission.AD_ID` | **머지된 매니페스트에 있다** — §4.6 이 말하는 자동 주입이 실측으로 확인됐다. 즉 **광고 ID 선언은 이미 신고할 사실이 있는 상태다** |
+| ⚠ 인증서 주체 | `CN=Unknown, ...` — §1.2 의 `-dname` 경고 참조 |
+
+#### 빌드 뒤에 **반드시** 돌리는 확인 세 줄
+
+빌드 성공은 "서명이 됐다"도 "올바른 키로 됐다"도 뜻하지 않는다.
+
+```bash
+# ① 서명됐는가 · 어느 인증서인가
+jarsigner -verify -verbose:summary -certs app/build/outputs/bundle/release/app-release.aab
+
+# ② versionCode 가 의도한 값인가 (CI 에서 특히)
+grep -o 'android:versionCode="[^"]*"' \
+  app/build/intermediates/merged_manifest/release/processReleaseMainManifest/AndroidManifest.xml
+
+# ③ 광고 ID 권한이 실제로 들어갔는가
+grep -o 'com.google.android.gms.permission.AD_ID' \
+  app/build/intermediates/merged_manifest/release/processReleaseMainManifest/AndroidManifest.xml
+```
+
+> ★ **`:app:signReleaseBundle` 이 태스크 목록에 보인다고 서명된 것이 아니다.**
+> `key.properties` 가 없으면 §1.3 의 `canSignRelease` 가 **서명 자체를 배선하지
+> 않고**, 그래도 빌드는 `BUILD SUCCESSFUL` 로 끝난다 — **서명 없는 AAB 가 나온다.**
+> Play 는 그것을 거부하지만, 그 사실을 업로드해 봐야 알게 된다. 위 ①이 그것을 먼저 잡는다.
+
 > **CI 를 붙이기 전에 로컬에서 반드시 성공시킨다.** CI 에서 처음 실패하면
 > "내 코드 문제인가 CI 설정 문제인가"를 구분할 수 없다.
+
+#### ★★★ `Gradle build daemon disappeared unexpectedly` — Gradle 을 의심하지 않는다
+
+**2026-08-08 에 여기서 네 번 막혔다.** `assembleDebug` 는 통과하는데
+`bundleRelease` 가 `:app:bundleReleaseResources` 근처에서 **데몬째로** 사라진다.
+
+메시지에는 **OOM 이라는 단어가 한 번도 나오지 않고**, 데몬이 죽었으니 Gradle 쪽
+스택도 남지 않는다. 그래서 자연스럽게 `org.gradle.jvmargs` 를 의심하게 되고 —
+**그 방향이 틀렸다. 올리면 오히려 나빠진다.**
+
+진짜 원인은 `FE/android/hs_err_pid*.log` **맨 위 세 줄**에 있다:
+
+```
+Native memory allocation (malloc) failed to allocate 1187056 bytes for Chunk::new
+  The system is out of physical RAM or swap space
+```
+
+**힙(`-Xmx`)이 아니라 시스템 커밋 한도가 바닥나 있었다.** 실측 당시:
+
+| | |
+|---|---|
+| 물리 메모리 | 15.7GB (여유 **2.6GB**) |
+| 총 커밋 한도 (물리 + 페이지파일) | 64.9GB (여유 **3.6GB**) |
+| ★ 범인 | **21시간 돌던 `npm run dev` 의 Vite 프로세스 하나가 커밋 48GB** |
+
+Vite 의 작업 세트(working set)는 1.5GB 밖에 안 돼서 **작업 관리자에서는 정상으로
+보인다.** 커밋 차지를 봐야 보인다.
+
+**증상이 나오면 `gradle.properties` 를 만지기 전에 이것부터 본다:**
+
+```powershell
+Get-CimInstance Win32_OperatingSystem | Select-Object FreePhysicalMemory, FreeVirtualMemory
+Get-Process | Sort-Object PrivateMemorySize64 -Descending |
+  Select-Object -First 5 ProcessName, @{n='Commit_MB';e={[int]($_.PrivateMemorySize64/1MB)}}
+```
+
+`FreeVirtualMemory` 가 몇 GB 뿐이면 **범인은 Gradle 이 아니라 다른 프로세스다.**
+
+> ★ **`-Xmx` 를 올리는 것이 이 증상을 악화시키는 이유:** 힙은 JVM 이 미리 커밋하는
+> 양이다. 커밋이 부족한 상태에서 키우면 C2 컴파일러 arena 같은 **네이티브** 할당이
+> 쓸 몫이 오히려 줄어든다. 로그의 실패 지점이 정확히 거기였다 (`C2 CompilerThread1`).
+>
+> ★ **AAB 빌드 전에는 개발 서버를 끈다.** `bundleRelease` 는 이 저장소에서
+> 가장 무거운 작업이고, Vite dev 서버는 오래 띄워 둘수록 커진다.
+>
+> ★ `hs_err_pid*.log` · `replay_pid*.log` 는 크래시 잔재다 (한 쌍에 2MB 넘는다).
+> `FE/android/.gitignore` 의 `*.log` 가 이미 막고 있으니 커밋되지는 않지만,
+> 원인을 확인한 뒤에는 지운다.
 
 #### ★ 광고 SDK 가 들어가면 빌드가 커진다 — 실측
 
 | 언제 | 크기 | 비고 |
 |---|---|---|
 | 광고 SDK 이전 | 약 **33MB** | `55 §3` 이 "32MB"로 적은 그 구성 |
-| **광고 SDK 이후** | **약 38MB** [실측 2026-08-07 — `app-debug.apk` 38,362,049 바이트] | Google Mobile Ads + UMP |
+| **광고 SDK 이후 · 디버그 APK** | **약 38MB** [실측 2026-08-07 — `app-debug.apk` 38,362,049 바이트] | Google Mobile Ads + UMP |
+| ★ **릴리스 AAB** | **32.1MB** [실측 2026-08-08 — `app-release.aab` 32,051,819 바이트] | 디버그 APK 보다 **6MB 작다** — 디버그 심볼·테스트 런타임이 빠진다 |
+
+> ⚠ **위 세 줄은 서로 비교할 수 있는 숫자가 아니다.** 디버그 APK · 릴리스 AAB ·
+> 사용자 다운로드 크기는 **셋 다 다르고**, 작은 순서는 언제나
+> **다운로드 < AAB < 디버그 APK** 다. `55 §3` 의 "32MB" 와 여기 AAB 의 "32.1MB"
+> 가 우연히 비슷한 것을 **같은 것을 잰 값으로 읽지 않는다.**
 
 `56 §2.7` 은 증가분을 **+2~5MB** 로 추정했는데 실측은 **그 상단**에 붙었다.
 이유는 이 저장소의 릴리스 빌드가 **`minifyEnabled false`** 이기 때문이다 —

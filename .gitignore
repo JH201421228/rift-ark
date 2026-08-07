@@ -183,7 +183,19 @@ captures/
 .externalNativeBuild/
 .cxx/
 *.apk
+*.aab
 output.json
+
+# ★ Kotlin 빌드 도구 캐시 (AGP 8 이 만든다). 커밋 대상이 아니다 —
+#   `FE/android/.kotlin/` 이 `git status` 에 계속 떠 있었다 (2026-08-08).
+.kotlin/
+
+# ★ 크래시 잔재. `bash.exe.stackdump` 는 first commit 에 딸려 들어와 있었고
+#   bash 가 죽을 때마다 덮어써져 `git status` 를 계속 더럽혔다 (2026-08-08).
+#   JVM 쪽 잔재(`hs_err_pid*` · `replay_pid*`)는 §1.4 의 데몬 사고 때 나온다.
+*.stackdump
+hs_err_pid*.log
+replay_pid*.log
 
 # IntelliJ
 *.iml
