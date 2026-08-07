@@ -147,13 +147,52 @@
 
 #### 실행 (사용자 터미널에서 직접)
 
+**한 줄로 붙여넣는다.**
+
 ```bash
-keytool -genkeypair -v \
-  -keystore C:/keys/riftark-release.jks \
-  -alias riftark \
-  -keyalg RSA -keysize 4096 -validity 10000 \
-  -storetype PKCS12
+keytool -genkeypair -v -keystore C:/keys/riftark-release.jks -alias riftark -keyalg RSA -keysize 4096 -validity 10000 -storetype PKCS12 -dname "CN=Rift Ark, OU=Development, O=Rift Ark, L=Seoul, ST=Seoul, C=KR"
 ```
+
+물어보는 것은 **비밀번호 두 번뿐**이다.
+
+| 질문 | 무엇을 넣나 |
+|---|---|
+| Enter keystore password | **ASCII 만.** 20자 이상 권장. **반드시 기록** |
+| Re-enter new password | 같은 값 |
+
+> ### ★★★ 비밀번호는 **ASCII 만** 된다 — 2026-08-08 에 실제로 여기서 막혔다
+>
+> ```
+> keytool error: java.security.KeyStoreException: Key protection algorithm not found:
+>   java.security.UnrecoverableKeyException: Encrypt Private Key failed:
+>   getSecretKey failed: Password is not ASCII
+> ```
+>
+> Java 의 PKCS12 구현(`com.sun.crypto.provider.PBEKey`)은 비밀번호의 **모든 문자가
+> 0x80 미만**이어야 한다. 한글이 한 글자라도 섞이면 — 대개 **한/영 키가 한글에
+> 놓인 채로 입력해서** — 위 예외가 난다.
+>
+> **이 오류가 위험한 이유는 메시지가 스택 트레이스이기 때문이다.** 진짜 원인
+> (`Password is not ASCII`)은 40줄짜리 트레이스의 **맨 아래**에 한 번 나오고,
+> 맨 위 줄은 "Key protection algorithm not found" 라고 말한다 — 알고리즘 문제로
+> 읽혀서 `-keyalg` 를 의심하게 만든다.
+>
+> ★ **파일은 남지 않는다.** 실패는 키를 저장소에 넣는 마지막 단계에서 나므로
+> 잔재를 지울 필요 없이 그대로 다시 실행하면 된다. (`C:\keys\` 가 비어 있는지
+> 확인하고 시작하면 확실하다.)
+>
+> ★ 쓸 수 있는 문자: `A-Z` `a-z` `0-9` 와 `! @ # $ % ^ & * ( ) - _ = + [ ] { }`.
+>   전각 기호·한글·이모지는 전부 안 된다.
+
+> ★ **`-dname` 을 넘겨 인적사항 질문 7개를 건너뛴다.** 넘기지 않으면 이름·조직·
+> 도시·국가를 하나씩 묻는데, 엔터로 넘기면 전부 `Unknown` 이 되고
+> `CN=Unknown, OU=Unknown, ...` 인 인증서가 만들어진다. Google 은 그 값을
+> 검증하지 않으므로 **동작에는 문제가 없지만**, 서명 인증서는 앱 수명 내내
+> 바꿀 수 없으므로 처음에 제대로 넣는다.
+>
+> ★ **PKCS12 에는 키 비밀번호가 따로 없다.** 저장소 비밀번호 하나가 키까지 보호한다
+> (`Different store and key passwords not supported for PKCS12 KeyStores`).
+> 그래서 §1.3 의 `key.properties` 에서 `storePassword` 와 `keyPassword` 는 **같은 값**이다.
 
 > ★ **`-storetype` 은 `PKCS12` 다.** 예전 값은 `JKS` 였는데 그것은 **독점 형식이고
 > 사실상 폐기됐다** — `keytool` 이 실행할 때마다 "PKCS12 로 마이그레이션하라"고
@@ -162,19 +201,11 @@ keytool -genkeypair -v \
 >
 > ★★ **비밀번호를 AI 에게 만들게 하거나 알려 주지 않는다** (2026-08-08 사용자 결정).
 > 대화·로그·전송 어디에도 남지 않는 유일한 방법은 **그 자리에서 직접 입력**하는 것이다.
-> `keytool` 은 대화식으로 묻는다.
 
-물어보는 것:
-
-| 질문 | 무엇을 넣나 |
-|---|---|
-| Enter keystore password | **기록해 둘 것.** 최소 6자 (실제로는 20자 이상 권장) |
-| Re-enter new password | 같은 값 |
-| 이름과 성 (CN) | `Rift Ark` — 아무 값이나 되지만 무의미한 값은 넣지 않는다 |
-| 조직 단위 / 조직 (OU / O) | 1인 개발이면 비워도 된다 (엔터) |
-| 시/구, 시/도, 국가 코드 | 아무 값 / 아무 값 / **`KR`** |
-| 맞습니까? | `y` |
-| 키 비밀번호 (`riftark` 용) | **엔터를 치면 키스토어 비밀번호와 같아진다** — 그렇게 하는 편이 관리가 쉽다 |
+> ★ **여러 줄로 나눠 쓸 때는 `\` 뒤에 공백을 남기지 않는다.** 줄바꿈 이스케이프는
+> 백슬래시가 **줄의 마지막 문자**일 때만 성립한다. 공백이 하나라도 붙으면 그 줄에서
+> 명령이 끊겨 `-storetype` 이 통째로 무시되고, **경고 없이 기본 형식으로 만들어진다.**
+> 그래서 이 문서는 한 줄 형태를 정본으로 둔다.
 
 #### 만든 뒤
 

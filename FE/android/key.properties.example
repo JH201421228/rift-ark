@@ -13,7 +13,11 @@
 # ★ 경로는 **슬래시(/)** 로 쓴다. Gradle 은 `\` 를 이스케이프 문자로 읽어
 #   `C:\keys\...` 가 조용히 깨진다 — 파일을 못 찾는다는 오류가 나면 여기부터 본다.
 
+# ★ PKCS12 는 저장소 비밀번호 하나가 키까지 보호한다 — `storePassword` 와
+#   `keyPassword` 는 **같은 값**이다. 다르게 적으면 Gradle 이 키를 못 연다.
+# ★ 비밀번호는 **ASCII 만** 된다 (한글이 섞이면 keytool 이 생성 단계에서 실패한다).
+
 storeFile=C:/keys/riftark-release.jks
 storePassword=여기에_키스토어_비밀번호
 keyAlias=riftark
-keyPassword=여기에_키_비밀번호
+keyPassword=여기에_같은_비밀번호
