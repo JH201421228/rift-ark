@@ -36,7 +36,7 @@
     },
     {
         "id": 8,
-        "ko": "확률형 없음 · 광고 없음 · 인앱결제 없음 · 오프라인",
-        "en": "100 stages. No ads. No IAP. No gacha."
+        "ko": "확률형 없음 · 인앱결제 없음 · 광고는 선택",
+        "en": "100 stages. No IAP. No gacha. Ads are optional."
     }
 ]
