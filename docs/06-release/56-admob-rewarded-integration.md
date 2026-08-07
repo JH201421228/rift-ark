@@ -597,20 +597,37 @@ UMP 는 일부 지역에서 **사용자가 언제든 동의를 바꿀 수 있는
 > 문장은 심사자가 확인하러 갔다가 못 찾으면 그대로 반려 사유이고, 사용자가
 > 그것을 믿고 찾다가 못 찾으면 신뢰의 문제가 된다.
 
-##### §4.5-A ★ 남은 격차 — 동의 철회 수단이 없다
+##### §4.5-A ✅ 동의 철회 수단 — **닫았다 (2026-08-08)**
 
-**EEA·영국에 배포하기 전에 반드시 닫아야 한다.** GDPR 은 동의를 **준 것만큼
-쉽게 철회**할 수 있어야 한다고 요구하고, UMP 는 그 수단으로
-`showPrivacyOptionsForm()` 을 준다. 플러그인 v7.2.0 에 **이미 있다**
-(`consent-definition.interface.d.ts`) — 앱이 부르지 않을 뿐이다.
+GDPR 은 동의를 **준 것만큼 쉽게 철회**할 수 있어야 한다고 요구한다. 그 수단이
+**하나도 없었다** — UMP 폼은 최초 실행 때 한 번 뜨고 끝이었다.
 
-| | |
+| 무엇 | 어디 |
 |---|---|
-| 1.0 (한국 단독) | **차단 요소 아님.** 한국은 EEA 가 아니라 `privacyOptionsRequirementStatus` 가 `NOT_REQUIRED` 로 온다 |
-| 영어권 확대 (`53`) | ★ **차단 요소다.** 설정에 항목을 넣기 전에는 EEA·영국을 켜지 않는다 |
+| `privacyOptionsRequired()` · `openPrivacyOptions()` | `src/native/ads.js` |
+| 설정 > 데이터 > **광고 개인정보 설정** (조건부 렌더) | `SettingsScreen.jsx:PrivacyOptionsGroup` |
+| `settings.groupAdPrivacy` · `noteAdPrivacy` · `btnAdPrivacy` | `i18n/messages/settings.json` (`{ko,en}`) |
+| 검사 11개 | `src/native/ads.test.js` — **이 어댑터를 직접 검사하는 첫 파일이다** |
 
-필요한 것: `native/ads.js` 에 `privacyOptionsRequired()` · `openPrivacyOptions()`
-를 더하고, `SettingsScreen` 에 **필요할 때만 나타나는** 행 하나(+ `{ko,en}` 문구).
+> ★ **화면이 지역으로 판정하지 않는다.** "EEA 면 보여 준다" 를 화면에 적으면 그
+> 목록이 두 번째 출처가 되고 AdMob 콘솔의 메시지 설정이 바뀌어도 따라가지 못한다.
+> 답은 UMP 하나다 (`privacyOptionsRequirementStatus`). **한국에서는 이 절이
+> 아예 그려지지 않는다** (`NOT_REQUIRED`).
+
+> ### ★★★ 그리고 그 테스트가 진짜 버그를 하나 잡았다
+>
+> `preloadRewarded()` 가 `initAds()` 의 **반환값**을 보고 있었다. `initAds` 는
+> `initPromise` 를 캐시하므로 두 번째 호출부터 **처음 결정된 값을 영원히**
+> 돌려준다. 그래서 이 순서에서 조용히 죽었다:
+>
+> 1. EEA 사용자가 최초 동의 폼에서 **거부** → `initAds` 가 false 로 굳는다
+> 2. 나중에 설정에서 **동의로 바꾼다** → `allowed = true` 로 갱신된다
+> 3. 그런데도 `preloadRewarded` 는 캐시된 false 를 보고 **즉시 되돌아간다**
+>
+> **동의했는데 그 세션 내내 광고가 한 번도 안 뜬다.** 예외도 로그도 없다.
+> 지금은 `initAds()` 를 **초기화 보장용**으로만 부르고 허가 판정은 살아 있는
+> `allowed` 가 한다. 철회하면 받아 둔 광고(`loaded`)까지 버린다 — 다음 한 번이
+> 나가면 그것이 위반이다.
 
 #### 영문판 (`https://<계정>.github.io/riftark-privacy/en/`)
 

@@ -12,7 +12,10 @@
  *   이 게임이 서버 없이 완전 오프라인이라는 명제는 광고가 들어와도 유지된다.
  *
  * ★ **전면·배너를 만들지 않는다.** 보상형 하나뿐이다 (CLAUDE.md 하지 말 것).
- *   그래서 공개 API 는 넷뿐이다: `initAds` · `preloadRewarded` · `adReady` · `showRewarded`.
+ *   그래서 광고를 *보여 주는* API 는 넷뿐이다:
+ *   `initAds` · `preloadRewarded` · `adReady` · `showRewarded`.
+ *   여기에 **동의 철회** 둘이 더 있다 (`privacyOptionsRequired` ·
+ *   `openPrivacyOptions`) — 광고를 만드는 수단이 아니라 **끄는 수단**이다.
  *
  * @see docs/06-release/56-admob-rewarded-integration.md
  */
@@ -25,6 +28,16 @@ let initPromise = null;
 let loaded = false;
 /** 광고를 요청해도 되는가 (초기화 완료 + 동의 확보) */
 let allowed = false;
+/**
+ * 이 사용자에게 **동의 철회 입구를 보여 줘야 하는가** (UMP 가 답한다).
+ *
+ * ★★★ GDPR 은 동의를 **준 것만큼 쉽게 철회**할 수 있어야 한다고 요구한다.
+ *   UMP 는 그 수단으로 `showPrivacyOptionsForm()` 을 주고, 보여 줄지 말지는
+ *   `privacyOptionsRequirementStatus` 가 지역·메시지 설정에 따라 답한다.
+ *   **우리가 판단하지 않는다** — 한국은 `NOT_REQUIRED`, EEA·영국은 `REQUIRED` 다.
+ * ★ 기본값 false: 모르면 보여 주지 않는다. 없는 화면으로 가는 버튼보다 낫다.
+ */
+let privacyRequired = false;
 
 const isNative = () => Capacitor.isNativePlatform?.() === true;
 const isTesting = () => import.meta.env.DEV || ADS.testMode === true;
@@ -85,10 +98,13 @@ export function initAds() {
                     ? info.canRequestAds === true
                     : info?.status === AdmobConsentStatus.NOT_REQUIRED ||
                       info?.status === AdmobConsentStatus.OBTAINED;
+            // ★ 동의를 **거부해도** 철회 입구는 필요하다 — allowed 와 독립이다.
+            privacyRequired = info?.privacyOptionsRequirementStatus === "REQUIRED";
             return allowed;
         } catch {
             // 초기화 실패 · 동의 거부 · 네트워크 없음 — 전부 같은 결과다
             allowed = false;
+            privacyRequired = false;
             return false;
         }
     })();
@@ -100,7 +116,23 @@ export function initAds() {
  * ★ **결과 화면에 들어올 때** 부른다. 버튼을 누른 뒤에 받으면 그 사이가 빈 화면이 된다.
  */
 export async function preloadRewarded() {
-    if (!(await initAds())) return false;
+    /**
+     * ★★★ **`initAds()` 의 반환값을 보지 않는다 — `allowed` 를 본다** (2026-08-08).
+     *
+     *   `initAds` 는 `initPromise` 를 캐시하므로 두 번째 호출부터는 **처음 결정된
+     *   값을 영원히** 돌려준다. 그래서 예전 코드(`if (!(await initAds())) return false`)
+     *   는 이런 순서에서 조용히 죽었다:
+     *
+     *     ① EEA 사용자가 최초 동의 폼에서 **거부** → initAds 가 false 로 굳는다
+     *     ② 나중에 설정에서 **동의로 바꾼다** → `openPrivacyOptions` 가 allowed = true 로 갱신
+     *     ③ 그런데도 preloadRewarded 는 캐시된 false 를 보고 **즉시 되돌아간다**
+     *
+     *   결과: 동의했는데 그 세션 내내 광고가 한 번도 안 뜬다. 예외도 로그도 없다.
+     *   `initAds()` 는 **초기화를 보장하려고** 부르고, 허가 판정은 살아 있는
+     *   `allowed` 가 한다 (`openPrivacyOptions` 가 그것을 갱신한다).
+     */
+    await initAds();
+    if (!allowed) return false;
     try {
         await AdMob.prepareRewardVideoAd({
             adId: adUnitId(),
@@ -191,6 +223,49 @@ export async function showRewarded() {
 }
 
 /**
+ * 이 사용자에게 **동의 철회 입구를 그려야 하는가.**
+ *
+ * ★★★ 이 술어가 없으면 개인정보 처리방침이 거짓이 된다 (`56 §4.5-A`).
+ *   GDPR 은 동의를 준 것만큼 쉽게 철회할 수 있어야 한다고 요구하는데,
+ *   2026-08-08 까지 이 앱에는 그 수단이 **하나도 없었다** — UMP 폼은 최초
+ *   실행 때 한 번 뜨고 끝이었다.
+ *
+ * ★ **화면이 지역으로 판정하지 않는다.** "EEA 면 보여 준다" 를 화면에 적으면
+ *   그 목록이 두 번째 출처가 되고 UMP 설정이 바뀌어도 따라가지 못한다.
+ *   답은 UMP 하나다 (`privacyOptionsRequirementStatus`).
+ * ★ `initAds()` 를 먼저 부르지 않았으면 언제나 false 다 — 모르면 안 그린다.
+ */
+export function privacyOptionsRequired() {
+    return AD_ENABLED && isNative() && privacyRequired;
+}
+
+/**
+ * 동의 철회·변경 폼을 연다.
+ *
+ * @returns {Promise<boolean>} 폼이 실제로 열렸는가. 실패해도 **던지지 않는다** —
+ *   설정 화면이 광고 SDK 때문에 깨지면 안 된다 (이 파일의 머리말 원칙).
+ */
+export async function openPrivacyOptions() {
+    if (!privacyOptionsRequired()) return false;
+    try {
+        await AdMob.showPrivacyOptionsForm();
+        /**
+         * ★ 폼을 닫은 뒤 상태를 다시 읽는다. 사용자가 동의를 철회했다면
+         *   `canRequestAds` 가 false 로 바뀌고 **그 순간부터 광고를 요청하면 안 된다.**
+         *   여기서 갱신하지 않으면 이번 세션 내내 옛 판정으로 광고가 나간다 —
+         *   정확히 GDPR 위반이다.
+         */
+        const info = await AdMob.requestConsentInfo();
+        allowed = info?.canRequestAds === true;
+        privacyRequired = info?.privacyOptionsRequirementStatus === "REQUIRED";
+        if (!allowed) loaded = false; // 받아 둔 광고도 더는 보여 주면 안 된다
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+/**
  * 테스트용 모듈 상태 초기화.
  * ★ 프로덕션 경로에서는 부르지 않는다.
  */
@@ -198,4 +273,5 @@ export function __resetAdsForTest() {
     initPromise = null;
     loaded = false;
     allowed = false;
+    privacyRequired = false;
 }
