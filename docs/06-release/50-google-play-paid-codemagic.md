@@ -111,44 +111,104 @@
 
 ## 1. 준비 — 이것이 없으면 아무것도 시작되지 않는다
 
-### 1.1 Git 저장소 ★ 현재 없다
+### 1.1 Git 저장소 ✅ **완료** (2026-08-07)
 
-**Codemagic 은 Git 원격에서만 빌드한다.** 이 프로젝트는 아직 git 저장소가 아니다.
+**Codemagic 은 Git 원격에서만 빌드한다.**
 
-```bash
-cd C:/Users/741u7/Desktop/clear/PJT20260801
-git init -b main
-# .gitignore 를 먼저 만든다 (04-plan/35-remaining-work-roadmap.md §4.1 R-01 에 전문)
-git add .
-git commit -m "chore: 초기 커밋 — RIFT ARK"
-gh repo create riftark --private --source=. --push
-```
+| | |
+|---|---|
+| 원격 | `github.com/JH201421228/rift-ark` (**private**) |
+| 브랜치 | `main` · `stage` · **`dev`**(통합) |
+| 작업 규약 | `dev` 아래 브랜치를 파서 작업 → 커밋 → 푸시 → `dev` 에 `--no-ff` 머지 |
+
+> ★ **CI 가 어느 브랜치를 볼지 정해야 한다.** `dev` 는 통합 브랜치라 자주 깨질 수
+> 있으므로, Codemagic 의 릴리스 워크플로는 **`main`**(또는 태그)에 붙이고
+> `dev` 에는 검증 워크플로만 거는 편이 안전하다 (§6).
 
 > **private 로 만든다.** 에셋 라이선스는 자유 사용이지만 소스를 공개할 이유가 없고,
 > 광고를 붙이면 **AdMob 광고 단위 ID 와 앱 ID 가 저장소에 들어간다** (`56 §2.3`).
 > 그것들은 비밀은 아니지만 공개 저장소에 두면 남이 자기 앱에 붙여 무효 트래픽을
 > 만들 수 있다. Codemagic 은 private 저장소를 정상 지원한다.
 
-**검증:** 다른 폴더에 `git clone` → `cd FE && npm ci && npm run build` 가 성공해야 한다.
-실패하면 `.gitignore` 가 필요한 파일을 지웠거나 커밋에서 빠진 것이 있다.
+**아직 하지 않은 검증:** 다른 폴더에 `git clone` → `cd FE && npm ci && npm run build`
+가 성공해야 한다. 실패하면 `.gitignore` 가 필요한 파일을 지웠거나 커밋에서 빠진 것이 있다.
+**이 게임은 `prebuild` 가 에셋을 재생성**하므로(`assets:pack` · `assets:audio`),
+`public/assets/` 가 무시되는 것은 정상이다 — 클론 후 첫 빌드가 그것을 다시 만든다.
 
-### 1.2 릴리스 키스토어 ★ 현재 없다
+### 1.2 릴리스 키스토어 ★ **아직 없다 — 사용자가 직접 만든다**
+
+> **2026-08-08 준비 완료.** 아래 셋은 이미 되어 있다. 남은 것은 **명령 한 줄**이다.
+>
+> | 준비된 것 | 상태 |
+> |---|---|
+> | `C:\keys\` 디렉터리 | 생성됨 (저장소 **밖**) |
+> | `.gitignore` — `*.jks` · `*.keystore` · `*.p12` · **`key.properties`** | 등록됨 (아래 ★★ 참조) |
+> | `FE/android/key.properties.example` | 템플릿 커밋됨 |
+
+#### 실행 (사용자 터미널에서 직접)
 
 ```bash
 keytool -genkeypair -v \
-  -keystore riftark-release.jks \
+  -keystore C:/keys/riftark-release.jks \
   -alias riftark \
   -keyalg RSA -keysize 4096 -validity 10000 \
-  -storetype JKS
+  -storetype PKCS12
 ```
 
-물어보는 것: 키스토어 비밀번호 · 이름/조직/도시/국가(KR) · 키 비밀번호.
-**아무 값이나 넣어도 되지만 비밀번호는 반드시 기록한다.**
+> ★ **`-storetype` 은 `PKCS12` 다.** 예전 값은 `JKS` 였는데 그것은 **독점 형식이고
+> 사실상 폐기됐다** — `keytool` 이 실행할 때마다 "PKCS12 로 마이그레이션하라"고
+> 경고를 뱉는다. PKCS12 는 표준이고 JDK 9 부터 기본값이며 Gradle · Play 모두
+> 동일하게 받는다. 처음 만들 때 고르면 되는 것을 나중에 변환할 이유가 없다.
+>
+> ★★ **비밀번호를 AI 에게 만들게 하거나 알려 주지 않는다** (2026-08-08 사용자 결정).
+> 대화·로그·전송 어디에도 남지 않는 유일한 방법은 **그 자리에서 직접 입력**하는 것이다.
+> `keytool` 은 대화식으로 묻는다.
+
+물어보는 것:
+
+| 질문 | 무엇을 넣나 |
+|---|---|
+| Enter keystore password | **기록해 둘 것.** 최소 6자 (실제로는 20자 이상 권장) |
+| Re-enter new password | 같은 값 |
+| 이름과 성 (CN) | `Rift Ark` — 아무 값이나 되지만 무의미한 값은 넣지 않는다 |
+| 조직 단위 / 조직 (OU / O) | 1인 개발이면 비워도 된다 (엔터) |
+| 시/구, 시/도, 국가 코드 | 아무 값 / 아무 값 / **`KR`** |
+| 맞습니까? | `y` |
+| 키 비밀번호 (`riftark` 용) | **엔터를 치면 키스토어 비밀번호와 같아진다** — 그렇게 하는 편이 관리가 쉽다 |
+
+#### 만든 뒤
+
+```bash
+# ① 실제로 만들어졌는지 · 별칭과 유효기간 확인 (비밀번호를 묻는다)
+keytool -list -v -keystore C:/keys/riftark-release.jks -alias riftark
+
+# ② 자격증명 파일 만들기 — .example 을 복사해 값만 채운다
+cp FE/android/key.properties.example FE/android/key.properties
+```
+
+확인할 것:
+
+- [ ] `Alias name: riftark`
+- [ ] `Valid from ... until ...` 이 **약 27년 뒤** (`-validity 10000`)
+- [ ] `Subject Public Key Algorithm: 4096-bit RSA key`
+- [ ] `git status` 에 `.jks` 도 `key.properties` 도 **나타나지 않는다**
 
 > ★★★ **이 파일과 비밀번호를 잃으면 이 앱을 영원히 업데이트할 수 없다.**
 > Play App Signing(§4.4)에 등록해 두면 *업로드 키*를 잃어도 Google 에 재설정을
-> 요청할 수 있다 — 그래도 **키스토어 + 비밀번호를 오프라인 2벌**(USB · 종이)로 남긴다.
-> `.gitignore` 에 `*.jks` 가 있는지 확인한다. **저장소에 절대 넣지 않는다.**
+> 요청할 수 있지만, **그것은 앱을 이미 올린 뒤에만 성립한다.** 지금은 그 안전망이
+> 없으므로 **키스토어 + 비밀번호를 오프라인 2벌**(USB · 종이)로 남긴다.
+> 비밀번호 관리자에 넣는다면 **키스토어 파일 자체도 첨부**한다 — 둘 중 하나만
+> 있으면 아무것도 못 한다.
+
+> ★★ **`key.properties` 가 `.gitignore` 에 없었다** (2026-08-08 발견).
+> `*.jks` 는 처음부터 있었는데 그 파일만 빠져 있었다 — **키스토어 비밀번호와
+> 키 비밀번호를 평문으로 담는 파일**이다. 키 파일 없이 비밀번호만 새어도
+> 위험이 절반으로 줄지 않고, 저장소가 private 이어도 협업자·CI 로그·포크로 퍼진다.
+> 지금은 `key.properties` · `**/key.properties` · `*.p12` · `*.pepk` 가 함께 등록돼 있다.
+>
+> `FE/android/.gitignore` 의 `#*.jks` 주석은 Capacitor 스캐폴딩의 잔재다 —
+> 루트 `.gitignore` 가 이미 막고 있으므로 그대로 두어도 무해하지만, 그 주석만
+> 보고 "막혀 있지 않다"고 판단하지 않는다. **`git check-ignore -v <경로>` 가 권위다.**
 
 ### 1.3 `build.gradle` 서명 설정
 
