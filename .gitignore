@@ -195,6 +195,17 @@ render.experimental.xml
 # Keystore files
 *.jks
 *.keystore
+*.p12
+*.pepk
+
+# ★★★ 릴리스 서명 자격증명 — 이것이 커밋되면 그 순간 키를 폐기해야 한다.
+#   `*.jks` 는 원래 있었지만 **`key.properties` 는 없었다** (2026-08-08 발견).
+#   그 파일은 키스토어 비밀번호와 키 비밀번호를 **평문**으로 담는다 —
+#   키 파일 없이 비밀번호만 새어도 위험이 절반으로 줄지 않는다.
+#   저장소가 private 이어도 마찬가지다: 협업자·CI 로그·포크로 퍼진다.
+#   절차: docs/06-release/50-google-play-paid-codemagic.md §1.2
+key.properties
+**/key.properties
 
 # Google Services (e.g. APIs or Firebase)
 google-services.json
