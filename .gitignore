@@ -190,6 +190,12 @@ output.json
 #   `FE/android/.kotlin/` 이 `git status` 에 계속 떠 있었다 (2026-08-08).
 .kotlin/
 
+# ★ 스토어 이미지 재촬영 전 백업 (docs/06-release/57 §4.1 의 절차).
+#   로컬 안전망으로만 둔다 — `store/raw/` 가 이미 git 에 추적되므로
+#   **이전 판의 권위는 git 히스토리**이고, 이걸 커밋하면 한 번에 39MB 가
+#   영구히 얹힌다 (2026-08-08 실측).
+FE/asset/generated/store/_recapture-backup/
+
 # ★ 크래시 잔재. `bash.exe.stackdump` 는 first commit 에 딸려 들어와 있었고
 #   bash 가 죽을 때마다 덮어써져 `git status` 를 계속 더럽혔다 (2026-08-08).
 #   JVM 쪽 잔재(`hs_err_pid*` · `replay_pid*`)는 §1.4 의 데몬 사고 때 나온다.
