@@ -137,6 +137,53 @@ async function checkCopy() {
     }
 }
 
+/**
+ * ★★★ **카피는 캡처 순간 브라우저에 얹혀 원본 PNG 에 구워진다** — 그래서
+ *   `store-copy.json` 을 고친 것만으로는 이미지가 바뀌지 않는다. 그런데 위
+ *   `checkCopy()` 는 **그 JSON 만** 읽는다. 즉 카피를 고치고 재촬영하지 않으면
+ *   **검사기는 통과하고 스토어에는 옛 문장이 올라간다.**
+ *
+ *   2026-08-08 에 실제로 그 상태였다:
+ *     store-copy.json      2026-08-08 00:06   ("광고는 선택" 으로 이미 고쳐짐)
+ *     raw/play-8.png       2026-08-06 20:23   ("광고 없음" 이 구워진 채)
+ *     en/raw/play-8.png    2026-08-07 08:08
+ *   광고를 켠 앱에 "광고 없음" 스크린샷이 함께 올라갈 뻔했다. 스토어 오도성
+ *   표시이자 반려 사유이고, 통과한 검사기가 그것을 보증해 주고 있었다.
+ *
+ * ★ `check-production.mjs` 의 D1(“dist 가 소스보다 오래됐다”)과 같은 규칙이다.
+ *   **검사 대상이 낡으면 통과는 거짓말이다.**
+ */
+async function checkFreshness() {
+    let copyAt;
+    try {
+        copyAt = (await stat(COPY_FILE)).mtimeMs;
+    } catch {
+        return; // checkCopy 가 이미 오류를 냈다
+    }
+    const rawDir = path.join(LANGUAGE_ROOT, "raw");
+    let names;
+    try {
+        names = (await readdir(rawDir)).filter((n) => n.endsWith(".png"));
+    } catch {
+        errors.push(`${path.relative(ROOT, rawDir)} 를 읽지 못했다 — 아직 촬영하지 않았다`);
+        return;
+    }
+    const stale = [];
+    for (const name of names) {
+        const at = (await stat(path.join(rawDir, name))).mtimeMs;
+        // 1초 여유 — 같은 실행 안에서 쓰인 파일들의 타임스탬프 흔들림을 흡수한다
+        if (at + 1000 < copyAt) stale.push(name);
+    }
+    if (stale.length) {
+        errors.push(
+            `카피가 이미지보다 새롭다 — store-copy.json 을 고치고 재촬영하지 않았다. ` +
+                `카피는 **캡처 순간 원본 PNG 에 구워지므로** compose 만 다시 돌려서는 바뀌지 않는다. ` +
+                `\`npm run store:capture${LANG === "en" ? ":en" : ""}\` 부터 다시 돌려라 ` +
+                `(낡은 원본 ${stale.length}장: ${stale.slice(0, 4).join(", ")}${stale.length > 4 ? " …" : ""})`
+        );
+    }
+}
+
 async function checkImage(file, expected) {
     let info;
     let stats;
@@ -168,6 +215,7 @@ async function checkImage(file, expected) {
 }
 
 await checkCopy();
+await checkFreshness();
 
 for (const set of SETS) {
     let names = [];
