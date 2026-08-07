@@ -52,17 +52,19 @@
             "광고를 끄면 괜찮다"가 성립하지 않는다. 플러그인을 의존성에 넣는
             순간부터 이 줄이 필요하다.
 
-          ★★ 지금 값은 **구글 공식 테스트 앱 ID** 다. AdMob 계정을 만들고 실제
-            앱을 등록하면 `ca-app-pub-<계정>~<앱>` 으로 바꾼다.
+          ★★ 지금 값은 **이 앱의 실제 AdMob 앱 ID** 다 (2026-08-08 투입).
+            그 전에는 구글 공식 테스트 앱 ID 였다.
             **광고 단위 ID(`.../…`)가 아니라 앱 ID(`...~…`)다** — 구분자가
             슬래시가 아니라 물결(~)이고, 둘을 바꿔 넣으면 초기화가 실패한다.
             광고 단위 ID 는 `src/game/data/ads.json:units` 가 갖는다.
+            **둘 다 `ca-app-pub-` 로 시작하고 앞 16자리가 같아서 눈으로는
+            구분되지 않는다** — `tools/check-production.mjs` 의 A2·A4 가 대조한다.
 
           절차: docs/06-release/56-admob-rewarded-integration.md §1 · §2
         -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3940256099942544~3347511713" />
+            android:value="ca-app-pub-6178685918745796~5932212438" />
     </application>
 
     <!-- Permissions -->
