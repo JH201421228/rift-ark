@@ -1,0 +1,82 @@
+{
+    "$doc": "네임스페이스 'loadout' — 키는 'i18n.loadout.<키>' 가 아니라 'loadout.<키>' 다 (파일 이름이 곧 네임스페이스). 항목은 반드시 { \"ko\", \"en\" } 두 언어를 함께 갖는다 — 한쪽만 적으면 npm run check:i18n 이 막는다.",
+
+    "$scope": "편성 화면(LoadoutScreen.jsx) + 그 화면 안의 지휘관 탭(CommanderPanel.jsx). 지휘관 패널은 자기 화면이 아니라 편성 화면의 한 탭이므로 네임스페이스를 따로 만들지 않는다 — 탭 하나에 카탈로그 하나를 만들면 파일이 화면 수보다 빨리 늘어난다.",
+
+    "$sentences": "★ 문장은 **통째로** 한 키다. 라벨과 값을 코드에서 이어 붙이면 영어가 깨진다 — 한국어는 '골드 {n}', 영어는 '{n} Gold' 로 순서가 뒤집힌다.",
+
+    "title": { "ko": "편성", "en": "Loadout" },
+
+    "$tabs": "화면 안 탭 2종. 제목과 첫 탭이 한국어로는 둘 다 '편성' 이지만 영어에서는 화면(Loadout)과 탭(Squad)을 구별해야 같은 자리에 같은 단어가 두 번 서지 않는다.",
+    "tabUnits": { "ko": "편성", "en": "Squad" },
+    "tabCommander": { "ko": "지휘관", "en": "Commander" },
+
+    "presetTarget": { "ko": "대상", "en": "Target" },
+    "presetTargetAll": { "ko": "전체", "en": "All" },
+
+    "emptySlot": { "ko": "빈 칸", "en": "Empty" },
+    "autoFill": { "ko": "자동 추천", "en": "Auto-Fill" },
+    "autoFillDone": { "ko": "추천 편성을 적용했습니다", "en": "Recommended loadout applied" },
+    "rosterTitle": { "ko": "보유 동료", "en": "Your Companions" },
+
+    "$analysis": "편성 분석 패널 — 이 화면의 존재 이유다. 경고 문장 자체는 `logic/loadoutAnalysis.js` 가 만든다.",
+    "fitness": { "ko": "편성 적합도", "en": "Loadout Fit" },
+    "avgCost": { "ko": "평균 코스트", "en": "Avg. Cost" },
+    "noIssues": { "ko": "구조적 문제 없음", "en": "No structural gaps" },
+    "sevCritical": { "ko": "치명", "en": "Critical" },
+    "sevWarn": { "ko": "경고", "en": "Warning" },
+    "sevInfo": { "ko": "안내", "en": "Note" },
+
+    "$commander": "── 지휘관 탭 (CommanderPanel.jsx) ──",
+
+    "cmdAtk": { "ko": "평타 공격력", "en": "Attack" },
+    "cmdHp": { "ko": "체력", "en": "Health" },
+    "cmdAtkSpeed": { "ko": "평타 속도", "en": "Attack Speed" },
+    "cmdRiftRegen": { "ko": "균열력 재생", "en": "Rift Regen" },
+    "cmdSpellPower": { "ko": "주문 위력", "en": "Spell Power" },
+    "cmdAuraRadius": { "ko": "오라 반경", "en": "Aura Radius" },
+
+    "cmdLevelUp": { "ko": "레벨업 · 골드 {n}", "en": "Level up · {n} Gold" },
+    "cmdMaxLevel": { "ko": "· 최고 레벨입니다 ({n})", "en": "· Max level reached ({n})" },
+    "cmdGoldShort": { "ko": "· 골드가 부족합니다 (보유 {n})", "en": "· Not enough gold — you hold {n}" },
+
+    "gearEquipped": { "ko": "장착", "en": "Equipped" },
+
+    "spellsTitle": { "ko": "지휘관 주문", "en": "Commander Spells" },
+    "spellsCount": { "ko": "{a}/{b} · 보유 {c}종", "en": "{a}/{b} · {c} unlocked" },
+    "spellTipCost": {
+        "ko": "균열력 {cost} · 재사용 {sec}초",
+        "en": "{cost} Rift · {sec}s cooldown"
+    },
+    "spellEquipped": { "ko": "장착 · {cost}", "en": "Equipped · {cost}" },
+    "spellCost": { "ko": "균열력 {cost}", "en": "{cost} Rift" },
+
+    "spellSwapNote": {
+        "ko": "· 네 칸이 찼을 때 다른 주문을 고르면 가장 먼저 넣은 것과 바뀝니다. 칸을 비워 두고 셋만 들고 나가는 것도 선택입니다.",
+        "en": "· With all four slots full, picking another spell swaps out the one you equipped first. Leaving a slot empty and taking three is a choice too."
+    },
+    "gearNote": {
+        "ko": "· 장구는 확정 지급입니다 — 어떤 스테이지가 무엇을 주는지 위에 적혀 있고, 뽑기도 확률도 없습니다.",
+        "en": "· Gear is granted outright — each stage's reward is listed above. No draws, no chance."
+    },
+    "auraNote": {
+        "ko": "· 오라 반경은 방주의 성소가 올립니다 (현재 Lv.{n}). 지휘관 레벨은 오라를 넓히지 않습니다.",
+        "en": "· Aura radius comes from the Ark's Sanctum (now Lv.{n}). Commander levels never widen it."
+    },
+
+    "cmdLevelTitle": { "ko": "지휘관 레벨을 올리시겠습니까?", "en": "Raise the Commander's level?" },
+    "cmdLevelSubject": {
+        "ko": "지휘관 — Lv.{from} → Lv.{to}",
+        "en": "Commander — Lv.{from} → Lv.{to}"
+    },
+    "cmdConfirmRaise": { "ko": "올린다", "en": "Raise" },
+
+    "$partial": "★★ '3번 중 1번만 오릅니다 — 골드에 걸립니다' 는 한국어에서 조사 '에' 가 조각을 문장에 묶는다. 영어에는 그 조사가 없으므로 조각을 **완결된 절**로 만들고 틀은 대시로 잇는다 — 그래야 두 언어 모두 자연스럽고, 조각이 늘어도 틀을 고칠 일이 없다.",
+    "cmdLevelPartial": {
+        "ko": "{n}번 중 {steps}번만 오릅니다 — {cond}",
+        "en": "Only {steps} of {n} will apply — {cond}"
+    },
+    "cmdLevelPartialMax": { "ko": "최고 레벨에 걸립니다.", "en": "the max level stops it." },
+    "cmdLevelPartialGold": { "ko": "골드가 모자랍니다.", "en": "your gold runs out." },
+    "cmdLevelFull": { "ko": "레벨 {n}단계가 오릅니다.", "en": "Raises the level by {n}." }
+}

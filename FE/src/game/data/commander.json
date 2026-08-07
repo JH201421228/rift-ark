@@ -1,0 +1,225 @@
+{
+    "$comment": [
+        "지휘관 성장 — **골드로 레벨, 스테이지로 장구** (2026-08-05, 사용자 요청).",
+        "",
+        "★★ 2026-08-04 경량화에서 **동료의** 승급·장비·소유 효과를 걷어냈다. 그것들은",
+        "  전부 가챠·상점·강화석에 물려 있었고, 그 셋이 사라지자 재화가 들어올 곳 없는",
+        "  UI 만 남았기 때문이다. 여기 있는 것은 **그 시스템이 아니다**:",
+        "    · 뽑기가 없다 — 어떤 장구가 언제 오는지 이 파일에 **스테이지로 적혀 있다**",
+        "    · 강화가 없다 — 장구는 얻은 그대로다. 확률도 실패도 파괴도 없다",
+        "    · 재화가 하나다 — 레벨은 골드, 장구는 진행. 새 재화를 만들지 않았다",
+        "  즉 되살린 것이 아니라, **확률형이 아닌 방식으로 처음부터 다시 만든 것**이다.",
+        "  근거와 경계: docs/02-design/21-commander-growth.md · docs/04-plan/34-scope-cut.md §2",
+        "",
+        "★ 효과 키는 `logic/commander.js:commanderEffects` 가 합산하고",
+        "  `logic/stageConfig.js` 가 소비한다. **읽는 곳이 없는 키를 두지 않는다** —",
+        "  tools/validate-data.mjs 가 양방향으로 대조한다 (선언했으면 읽혀야 한다).",
+        "",
+        "★ 사거리를 올리는 효과는 **의도적으로 없다.** 지휘관 평타의 사거리(140)가",
+        "  오라 반경(192)보다 짧다는 부등식이 이 게임의 설계 심장이다",
+        "  (docs/02-design/20-commander-combat.md §2.1). 장구로 그것을 뒤집으면",
+        "  '앞에 세워두고 때리기'가 최적해가 된다."
+    ],
+    "version": 1,
+    "level": {
+        "$comment": [
+            "레벨 1 = 보정 0. **하네스가 재는 무과금 곡선을 흔들지 않기 위해서다** —",
+            "밸런스 게이트는 지휘관 레벨 1을 가정하고, 여기서 올린 만큼은 전부",
+            "게이트가 검증한 것보다 쉬워지는 방향이다 (어려워지는 방향이 아니다).",
+            "",
+            "★★★ **공격력은 덧셈이 아니라 곱셈으로 자란다** (2026-08-05, 사용자 제보:",
+            "  '지휘관이 너무 약하게 설계되었어').",
+            "",
+            "  실측이 사용자 말이 맞다고 했다. 덧셈 0.04/레벨이면 만렙 30 에서 +116%,",
+            "  최고 무기까지 껴도 **×2.6** 이 천장이다. 그런데 같은 캠페인에서",
+            "  **동료는 레벨로 ×24** 자란다 (unitAtkGrowth 1.055, 상한 ~50레벨).",
+            "  즉 지휘관은 진행할수록 **동료 한 기의 1/10** 로 줄어들었다 —",
+            "  약하게 **설계된** 것이 아니라 **함께 자라지 않은** 것이다.",
+            "",
+            "  atkGrowth 1.105 는 만렙 30 에서 ×18 이다. 이 값은 손으로 고르지 않았다 —",
+            "  **동료가 방주 훈련장을 절반(45)까지 키웠을 때의 레벨 상한(55)에서 갖는 배율**",
+            "  과 같게 맞춘 것이다. 즉 만렙 지휘관 = **그 시점의 잘 키운 동료 한 기**.",
+            "  그 이상은 주지 않는다: 지휘관은 딜 수단이 아니라 미끼이고",
+            "  (20-commander-combat.md §2.1), 캐리가 되면 '오라를 어디에 둘 것인가'라는",
+            "  이 게임의 실력 천장이 사라진다. `commander.test.js` 가 양쪽 경계를 다 잡는다.",
+            "",
+            "★ HP 는 덧셈 그대로다. 지휘관이 받는 한 방은 **최대 HP 비율로 상한**이 걸려",
+            "  있어(combat.enemyHitCommanderHpRatio) HP 를 올려도 **버티는 타수가 같다.**",
+            "  후반에는 아무 효과가 없는 값을 곱셈으로 키우면 골드만 빨아들인다."
+        ],
+        "max": 30,
+        "costBase": 300,
+        "costGrowth": 1.1,
+        "atkGrowth": 1.105,
+        "hpPctPerLevel": 0.03,
+        "riftRegenPctPerLevel": 0.01
+    },
+    "slots": [
+        {
+            "id": "weapon",
+            "name": { "ko": "무기", "en": "Weapon" },
+            "desc": { "ko": "평타의 무게", "en": "The weight of your strikes" }
+        },
+        {
+            "id": "armor",
+            "name": { "ko": "방어구", "en": "Armor" },
+            "desc": { "ko": "전선에 서 있는 시간", "en": "Time spent on the front line" }
+        },
+        {
+            "id": "relic",
+            "name": { "ko": "유물", "en": "Relic" },
+            "desc": { "ko": "균열력과 주문", "en": "Rift and spells" }
+        }
+    ],
+    "$itemsDoc": [
+        "슬롯마다 4점. **한 번에 한 점만 장착한다** — 모으는 것이 아니라 고르는 것이",
+        "결정이다 (편성이 50 중 6인 것과 같은 규약).",
+        "`stage` 는 **확정 지급** 스테이지다. 노멀 첫 클리어에 지급되며 확률이 없다."
+    ],
+    "items": [
+        {
+            "id": "worn_saber",
+            "slot": "weapon",
+            "name": { "ko": "낡은 사브르", "en": "Worn Saber" },
+            "desc": { "ko": "지휘관 평타 공격력 +20%", "en": "Commander attack power +20%" },
+            "stage": "1-6",
+            "icon": "dmg.physical",
+            "effect": {
+                "commanderAtkPct": 0.2
+            }
+        },
+        {
+            "id": "rift_edge",
+            "slot": "weapon",
+            "name": { "ko": "균열의 칼날", "en": "Rift Edge" },
+            "desc": { "ko": "지휘관 평타 공격력 +45%", "en": "Commander attack power +45%" },
+            "stage": "2-8",
+            "icon": "dmg.arcane",
+            "effect": {
+                "commanderAtkPct": 0.45
+            }
+        },
+        {
+            "id": "swift_baton",
+            "slot": "weapon",
+            "name": { "ko": "신속의 지휘봉", "en": "Swift Baton" },
+            "desc": { "ko": "지휘관 평타 속도 +30%", "en": "Commander attack speed +30%" },
+            "stage": "3-10",
+            "icon": "sigil.reactive",
+            "effect": {
+                "commanderAtkSpeedPct": 0.3
+            }
+        },
+        {
+            "id": "sanction_spear",
+            "slot": "weapon",
+            "name": { "ko": "심판의 창", "en": "Spear of Judgment" },
+            "desc": {
+                "ko": "지휘관 평타 공격력 +35% · 평타 속도 +15%",
+                "en": "Commander attack power +35% · attack speed +15%"
+            },
+            "stage": "4-12",
+            "icon": "dmg.holy",
+            "effect": {
+                "commanderAtkPct": 0.35,
+                "commanderAtkSpeedPct": 0.15
+            }
+        },
+        {
+            "id": "patched_coat",
+            "slot": "armor",
+            "name": { "ko": "기운 외투", "en": "Patched Coat" },
+            "desc": { "ko": "지휘관 HP +25%", "en": "Commander HP +25%" },
+            "stage": "1-12",
+            "icon": "tag.LIVING",
+            "effect": {
+                "commanderHpPct": 0.25
+            }
+        },
+        {
+            "id": "ward_plate",
+            "slot": "armor",
+            "name": { "ko": "결계 판금", "en": "Ward Plate" },
+            "desc": { "ko": "지휘관 HP +50%", "en": "Commander HP +50%" },
+            "stage": "2-16",
+            "icon": "tag.ARMORED",
+            "effect": {
+                "commanderHpPct": 0.5
+            }
+        },
+        {
+            "id": "revenant_mantle",
+            "slot": "armor",
+            "name": { "ko": "귀환자의 망토", "en": "Revenant Mantle" },
+            "desc": { "ko": "지휘관 부활 대기 30% 단축", "en": "Commander respawn delay −30%" },
+            "stage": "3-18",
+            "icon": "tag.REGEN",
+            "effect": {
+                "commanderRespawnPct": 0.3
+            }
+        },
+        {
+            "id": "bulwark_regalia",
+            "slot": "armor",
+            "name": { "ko": "방벽의 예복", "en": "Bulwark Regalia" },
+            "desc": {
+                "ko": "지휘관 HP +40% · 부활 대기 15% 단축",
+                "en": "Commander HP +40% · respawn delay −15%"
+            },
+            "stage": "4-18",
+            "icon": "tag.WARDED",
+            "effect": {
+                "commanderHpPct": 0.4,
+                "commanderRespawnPct": 0.15
+            }
+        },
+        {
+            "id": "cracked_focus",
+            "slot": "relic",
+            "name": { "ko": "금 간 초점석", "en": "Cracked Focus" },
+            "desc": { "ko": "균열력 재생 +15%", "en": "Rift regen +15%" },
+            "stage": "1-18",
+            "icon": "sigil.evolution",
+            "effect": {
+                "riftRegenPct": 0.15
+            }
+        },
+        {
+            "id": "echo_prism",
+            "slot": "relic",
+            "name": { "ko": "메아리 프리즘", "en": "Echo Prism" },
+            "desc": { "ko": "지휘관 주문 위력 +25%", "en": "Commander spell power +25%" },
+            "stage": "2-20",
+            "icon": "reward.chest",
+            "effect": {
+                "spellPowerPct": 0.25
+            }
+        },
+        {
+            "id": "deep_well",
+            "slot": "relic",
+            "name": { "ko": "깊은 우물", "en": "Deep Well" },
+            "desc": { "ko": "균열력 재생 +35%", "en": "Rift regen +35%" },
+            "stage": "3-20",
+            "icon": "tag.SWARM",
+            "effect": {
+                "riftRegenPct": 0.35
+            }
+        },
+        {
+            "id": "commanders_seal",
+            "slot": "relic",
+            "name": { "ko": "지휘관의 인장", "en": "Commander's Seal" },
+            "desc": {
+                "ko": "주문 위력 +20% · 균열력 재생 +20%",
+                "en": "Spell power +20% · Rift regen +20%"
+            },
+            "stage": "5-10",
+            "icon": "stage.trophy",
+            "effect": {
+                "spellPowerPct": 0.2,
+                "riftRegenPct": 0.2
+            }
+        }
+    ]
+}

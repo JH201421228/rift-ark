@@ -1,0 +1,364 @@
+{
+    "$comment": [
+        "아틀라스 패킹 선언. 전량 패킹은 낭비이므로 실제 사용분만 선별한다.",
+        "★ icons/Separated Files/ 는 절대 넣지 않는다 (6,576 낱장 → 빌드 폭발).",
+        "★ effect/ 는 9색상행 중 1행만 넣고 런타임 틴트로 색을 바꾼다 (용량 1/9).",
+        "docs/03-tech/23-asset-pipeline.md §2"
+    ],
+    "$passthrough": [
+        "폴더 통째 복사. 아틀라스에 넣지 않는 큰 이미지용.",
+        "★ 배경은 1280 폭이라 아틀라스에 넣으면 페이지 하나를 통째로 먹는다.",
+        "  게다가 한 전투에 필요한 것은 **한 월드 4장뿐**이다 —",
+        "  40장을 한 아틀라스로 묶으면 월드 1 전투가 월드 10 배경까지 로드한다.",
+        "  개별 파일로 두고 씬에서 월드별 지연 로드한다."
+    ],
+    "passthrough": [
+        {
+            "from": "generated/backgrounds",
+            "to": "bg"
+        },
+        {
+            "from": "generated/structures",
+            "to": "structures"
+        },
+        {
+            "$comment": [
+                "UI 키트는 아틀라스(Phaser 용)와 개별 파일(CSS 용) 둘 다 필요하다.",
+                "★ CSS 의 border-image 는 아틀라스 프레임을 가리킬 수 없다 —",
+                "  9-slice 패널·버튼·슬롯은 개별 png 여야 한다. 전량 40KB 라 중복이 싸다."
+            ],
+            "from": "generated/ui",
+            "to": "ui"
+        },
+        {
+            "$comment": [
+                "타이틀 화면 배경·로고 (2026-08-04).",
+                "★ 아틀라스로 패킹하지 않는다 — 1024×500 한 장은 아틀라스 페이지를 통째로 먹고,",
+                "  CSS background-image 로 쓰므로 프레임 좌표가 필요 없다.",
+                "★ 원본은 codex 가 만든 스토어 아트다 (generated/store/play-feature-graphic.png ·",
+                "  logo-ko.png). 스토어용과 게임 내용도가 갈라질 수 있어 title/ 로 복사해 둔다."
+            ],
+            "from": "generated/title",
+            "to": "title"
+        }
+    ],
+    "copy": [
+        {
+            "$comment": [
+                "균일 그리드 시트는 패킹하지 않고 spritesheet 으로 로드한다.",
+                "원본은 16열 × 137행 = 512×4384 로 GPU 텍스처 상한(2048)을 넘으므로",
+                "읽기 순서를 유지한 채 64열로 재배치한다 → 2048×1120.",
+                "재배치해도 읽기 순서가 보존되므로 프레임 인덱스는 그대로다."
+            ],
+            "from": "icons/Free - Raven Fantasy Icons/Full Spritesheet/32x32.png",
+            "to": "sheets/icons-32.png",
+            "grid": [
+                32,
+                32
+            ],
+            "cols": 64
+        },
+        {
+            "from": "tilemap/mainlevbuild.png",
+            "to": "sheets/tiles-main.png"
+        },
+        {
+            "from": "tilemap/decorative.png",
+            "to": "sheets/tiles-deco.png"
+        },
+        {
+            "$comment": [
+                "지휘관 — FREE_Adventurer. 96×80 × 8프레임 균일 그리드라 아틀라스가 아니라",
+                "spritesheet 으로 로드한다. IDLE·RUN·ATTACK 좌우 6장을 쓴다.",
+                "★★ ATTACK 은 한때 '지휘관은 시뮬에서 공격하지 않으므로' 제외했는데,",
+                "  2026-08-04 지휘관 평타가 생기면서 그 전제가 사라졌다",
+                "  (docs/02-design/20-commander-combat.md). 에셋은 처음부터 있었다."
+            ],
+            "from": "character/FREE_Adventurer 2D Pixel Art/Sprites/IDLE/idle_right.png",
+            "to": "sheets/cmd-idle-right.png"
+        },
+        {
+            "from": "character/FREE_Adventurer 2D Pixel Art/Sprites/IDLE/idle_left.png",
+            "to": "sheets/cmd-idle-left.png"
+        },
+        {
+            "from": "character/FREE_Adventurer 2D Pixel Art/Sprites/RUN/run_right.png",
+            "to": "sheets/cmd-run-right.png"
+        },
+        {
+            "from": "character/FREE_Adventurer 2D Pixel Art/Sprites/RUN/run_left.png",
+            "to": "sheets/cmd-run-left.png"
+        },
+        {
+            "from": "character/FREE_Adventurer 2D Pixel Art/Sprites/ATTACK 1/attack1_right.png",
+            "to": "sheets/cmd-attack-right.png"
+        },
+        {
+            "from": "character/FREE_Adventurer 2D Pixel Art/Sprites/ATTACK 1/attack1_left.png",
+            "to": "sheets/cmd-attack-left.png"
+        }
+    ],
+    "groups": [
+        {
+            "name": "units",
+            "$comment": "몬스터 150종 = 유닛·적 로스터의 근간. 전부 4프레임 아이들 루프. Holy 4종만 16×18.",
+            "maxSize": 1024,
+            "sources": [
+                {
+                    "dir": "monsters",
+                    "type": "strip",
+                    "frame": [
+                        16,
+                        16
+                    ],
+                    "autoHeight": true,
+                    "exclude": [
+                        "Sprites/",
+                        "sprites/"
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "npcs",
+            "$comment": "Lively NPCs 49종. 32px 프레임, 높이 32 또는 34 혼재 → autoHeight.",
+            "maxSize": 2048,
+            "sources": [
+                {
+                    "dir": "npcs/Lively_NPCs_v3.1/sprite sheets",
+                    "type": "strip",
+                    "frame": [
+                        32,
+                        32
+                    ],
+                    "autoHeight": true
+                }
+            ]
+        },
+        {
+            "name": "fx",
+            "$comment": "이펙트 선별. 각 시트는 64×64 의 N열 × 9색상행이며 0행만 사용한다.",
+            "maxSize": 2048,
+            "sources": [
+                {
+                    "dir": "effect/Free/Part 16",
+                    "type": "grid",
+                    "frame": [
+                        64,
+                        64
+                    ],
+                    "rows": [
+                        0
+                    ],
+                    "skipEmpty": true
+                },
+                {
+                    "dir": "effect/Free/Part 19",
+                    "type": "grid",
+                    "frame": [
+                        64,
+                        64
+                    ],
+                    "rows": [
+                        0
+                    ],
+                    "skipEmpty": true
+                },
+                {
+                    "dir": "effect/Free/Part 23",
+                    "type": "grid",
+                    "frame": [
+                        64,
+                        64
+                    ],
+                    "rows": [
+                        0
+                    ],
+                    "skipEmpty": true
+                },
+                {
+                    "dir": "effect/Free/Part 28",
+                    "type": "grid",
+                    "frame": [
+                        64,
+                        64
+                    ],
+                    "rows": [
+                        0
+                    ],
+                    "skipEmpty": true
+                }
+            ]
+        },
+        {
+            "name": "projectiles",
+            "$comment": [
+                "16×16 발사체. 각 시트 40열 × 25행.",
+                "★★ **한 행 = 한 종류가 아니다** (2026-08-04 원본 시트 전수 확인).",
+                "  한 행 안에 종류가 최대 8개 들어 있고 **빈 열이 그 경계**다.",
+                "  길이도 제각각이다 — 5 · 4 · 10 · 8 · 12 · 28 · 2장.",
+                "  예: 행 1 은 [0-4] 화염구체 5프레임, (5 빈칸), [6-9] 가로빔 4프레임, ...",
+                "  그래서 행 전체로 애니메이션을 만들면 다른 탄환이 섞여 깜빡인다.",
+                "  경계 판정은 src/game/projectileAnim.js:clipFrames 가 단일 출처다.",
+                "★★★ **colRanges [[0,9],[26,29]] — 왜 26 열이 필요한가** (2026-08-05).",
+                "  열 0-9 는 구체 · 십자 · 별 · 파열처럼 **거의 전부 좌우 대칭인 방사형**이다.",
+                "  16종 중 좌우 방향이 있는 것은 화살촉(4_0) 하나뿐이고, 3_6 은 45° 대각이라",
+                "  가로로 날아가면 어느 쪽으로 뒤집어도 어긋난다. 그래서 '반대로 쏴도",
+                "  방향이 그대로'였다 — **뒤집을 방향이 애초에 그림에 없었다.**",
+                "  가로로 날아가는 방향성 탄환(볼트 · 화살 · 창 · 포탄 · 로켓)은",
+                "  **열 26-29 에 몰려 있다.** 사이(10-25)를 통째로 담으면 아틀라스가 3배가",
+                "  되므로 두 구간만 띄엄띄엄 담는다. 열 번호가 곧 이름이라 기존 배정은",
+                "  그대로 유효하다.",
+                "★ 열 25 · 30 은 비어 있어 클립 경계가 자동으로 선다 (skipEmpty).",
+                "★★★ **시트 = 색, 열구간 = 모양** (2026-08-05).",
+                "  _00~_07 은 빈칸 패턴도 프레임 크기도 **완전히 동일한 색 변형**이다",
+                "  (7,000칸 전수 대조 결과 불일치 0). 그래서 색은 시트로 고르고",
+                "  모양은 열 구간으로 고른다 — 이 둘은 서로 간섭하지 않는다.",
+                "★★ **런타임 틴트로는 색을 못 바꾼다.** 원본이 채도 높은 주황(#f59b27)이라",
+                "  Phaser 의 곱셈 틴트에 술식 파랑(0x6ab0ff)을 곱하면 rgb(102,107,39) —",
+                "  파랑이 아니라 **탁한 올리브**가 된다. 이펙트(effect/)는 원본이 밝아",
+                "  틴트가 먹히지만 발사체는 먹히지 않는다. 그래서 시트를 세 장 담는다.",
+                "  배정은 src/game/data/fx.json:projectileSheet 가 단일 출처다.",
+                "    _06 은빛  → physical   _02 청록 → arcane   _00 금빛 → holy",
+                "★ _01 을 뺐다. 담겨 있었지만 **참조하는 데이터가 한 곳도 없었고**,",
+                "  주황 계열이라 _00 과 나란히 두어도 색이 갈리지 않았다."
+            ],
+            "maxSize": 1024,
+            "sources": [
+                {
+                    "dir": "projectile",
+                    "type": "grid",
+                    "frame": [
+                        16,
+                        16
+                    ],
+                    "rows": [
+                        0,
+                        1,
+                        2,
+                        3,
+                        4,
+                        5,
+                        6,
+                        7
+                    ],
+                    "colRanges": [
+                        [
+                            0,
+                            9
+                        ],
+                        [
+                            26,
+                            29
+                        ]
+                    ],
+                    "skipEmpty": true,
+                    "$comment_rowInsets": [
+                        "맨 윗줄 1px 이 **위 행 그림의 바닥선**인 칸이 있다. 지우지 않으면",
+                        "탄환 위에 가로 막대가 붙어 나온다.",
+                        "★ 판정 규칙: `윗줄에 픽셀이 있는데 그 아래 줄이 완전히 비었다`.",
+                        "  진짜 그림은 1px 선 뒤에 빈 줄을 두지 않는다. 시트 전수 주사 결과",
+                        "  걸리는 것은 **행 1(열 0-4) 과 행 4(열 6-9) 둘뿐**이고, 아래·좌·우",
+                        "  가장자리는 어느 행도 넘치지 않는다 (시트 세 장 모두 동일).",
+                        "★★ 행 4 는 한때 '13×15 라 칸을 거의 채우므로 일괄 적용 금물' 이라고",
+                        "  적혀 있었는데, **그 13×15 자체가 막대 때문**이었다. 실제 십자는",
+                        "  11×11 이고 y=0 의 12px 막대와 3줄 떨어져 있다. 그래서 '부여의 빛'",
+                        "  계열이 십자 위에 막대를 달고 날아갔다 (2026-08-05 발견).",
+                        "★ 행 4 의 열 0-4 는 y=0~4 가 전부 비어 있어 같이 깎여도 안전하다."
+                    ],
+                    "rowInsets": {
+                        "1": {
+                            "top": 1
+                        },
+                        "4": {
+                            "top": 1
+                        }
+                    },
+                    "include": [
+                        "_00.png",
+                        "_02.png",
+                        "_06.png"
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "ui",
+            "$comment": [
+                "UI 키트 41장. 8~48px 소품이라 아틀라스가 맞다 (배경과 반대).",
+                "★ 태그 아이콘 8종이 여기 있다 — 상성 가독성이 이 게임 설계의 핵심이므로",
+                "  전투 중 상시 표시되며, 이모지 글리프를 대체한다."
+            ],
+            "maxSize": 512,
+            "sources": [
+                {
+                    "dir": "generated/ui",
+                    "type": "single"
+                }
+            ]
+        },
+        {
+            "name": "bosses",
+            "$comment": [
+                "명명 보스 3종의 **아이들 루프만** 뽑는다 (P6-06).",
+                "★ 이 팩들은 공격·사망까지 갖고 있지만 전투 연출은 트윈·틴트로 만든다는",
+                "  결정(19-art §2)이 이미 서 있고, 몬스터 150종이 전부 아이들뿐이라",
+                "  보스만 공격 애니를 갖게 하면 **보스만 다른 게임처럼 움직인다.**",
+                "  아이들만 넣으면 아틀라스가 12프레임 · 한 페이지로 끝난다.",
+                "★ 파일명이 `Idle.png`/`idle.png` 라 그대로 쓰면 팩끼리 충돌한다 —",
+                "  `name` 으로 프레임 접두어를 고정한다 (lib/slice.mjs)."
+            ],
+            "maxSize": 1024,
+            "sources": [
+                {
+                    "$comment": "10×10 그리드 중 0행 = 아이들 4프레임. 나머지 행은 걷기·공격·사망.",
+                    "dir": "bosses/Mecha-stone Golem 0.1/Mecha-stone Golem 0.1/PNG sheet/Character_sheet.png",
+                    "type": "grid",
+                    "frame": [
+                        100,
+                        100
+                    ],
+                    "rows": [
+                        0
+                    ],
+                    "skipEmpty": true,
+                    "name": "MechaGolem"
+                },
+                {
+                    "dir": "bosses/Undead executioner/Undead executioner puppet/png/idle.png",
+                    "type": "strip",
+                    "frame": [
+                        100,
+                        100
+                    ],
+                    "skipEmpty": true,
+                    "name": "UndeadExecutioner"
+                },
+                {
+                    "dir": "bosses/EVil Wizard 2/EVil Wizard 2/Sprites/Idle.png",
+                    "type": "strip",
+                    "frame": [
+                        250,
+                        250
+                    ],
+                    "skipEmpty": true,
+                    "name": "EvilWizard"
+                }
+            ]
+        },
+        {
+            "name": "boss-bringer",
+            "$comment": "Bringer of Death — 개별 프레임 제공. no-effect 판은 자체 이펙트로 교체할 때 쓴다.",
+            "maxSize": 2048,
+            "sources": [
+                {
+                    "dir": "bosses/Bringer-Of-Death/Bringer-Of-Death/Individual Sprite",
+                    "type": "single",
+                    "exclude": [
+                        "No Effect Sprites"
+                    ]
+                }
+            ]
+        }
+    ]
+}

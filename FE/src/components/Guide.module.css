@@ -1,0 +1,193 @@
+/**
+ * 가이드 오버레이 (2026-08-04)
+ *
+ * ★ 화면을 새로 만들지 않고 **모달**로 띄운다. 라우트를 늘리면 탭바·도달 그래프·
+ *   뒤로가기가 전부 따라와야 하는데, 도움말은 "보던 화면 위에 잠깐" 이 맞는 모양이다.
+ */
+
+.backdrop {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: rgba(6, 6, 14, 0.86);
+    z-index: 60;
+}
+
+.panel {
+    display: flex;
+    width: 100%;
+    max-width: 1000px;
+    height: 100%;
+    max-height: 620px;
+    overflow: hidden;
+    background: #10101f;
+    border: 2px solid #3a3a5e;
+    border-radius: 4px;
+}
+
+/* ── 왼쪽 목차 ── */
+
+.nav {
+    flex-shrink: 0;
+    width: 208px;
+    padding: 8px 6px;
+    overflow-y: auto;
+    background: #0b0b18;
+    border-right: 2px solid #24243a;
+}
+
+.groupTitle {
+    margin: 10px 8px 4px;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.04em;
+}
+
+.navItem {
+    display: block;
+    width: 100%;
+    /* ★ 44px 터치 타깃 (18-ux-ui.md §1.2) */
+    min-height: 34px;
+    padding: 8px 10px;
+    font-size: 11px;
+    line-height: 1.3;
+    color: var(--text);
+    text-align: left;
+    background: transparent;
+    border: 0;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.navItem:hover {
+    background: #1a1a2e;
+}
+
+.navItem.on {
+    color: var(--gold);
+    background: #1e1e36;
+}
+
+/* ── 오른쪽 본문 ── */
+
+.body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+    padding: 12px 14px;
+    border-bottom: 2px solid #24243a;
+}
+
+.title {
+    flex: 1;
+    margin: 0;
+    font-size: 15px;
+    color: var(--gold);
+}
+
+.close {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 32px;
+    padding: 6px 12px;
+    font-size: 11px;
+    color: var(--text);
+    background: #1a1a2e;
+    border: 1px solid #3a3a5e;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.close:hover {
+    border-color: var(--gold);
+}
+
+.content {
+    flex: 1;
+    min-height: 0;
+    padding: 14px 16px 18px;
+    overflow-y: auto;
+}
+
+.para {
+    margin: 0 0 10px;
+    font-size: 12px;
+    line-height: 1.75;
+    color: var(--text);
+}
+
+/* ★ 문장 안의 **강조** 는 마크다운이 아니라 <b> 로 온다 (GuideOverlay 참조) */
+.para b {
+    color: var(--gold);
+}
+
+/* ── 데이터에서 읽은 표 ── */
+
+.facts {
+    margin-top: 14px;
+    border-top: 1px solid #24243a;
+    padding-top: 10px;
+}
+
+.factsLabel {
+    margin: 0 0 6px;
+    font-size: 10px;
+    color: var(--text-dim);
+}
+
+.factRow {
+    display: flex;
+    gap: 10px;
+    padding: 5px 0;
+    font-size: 11px;
+    line-height: 1.5;
+    border-bottom: 1px solid #191930;
+}
+
+.factKey {
+    flex-shrink: 0;
+    width: 116px;
+    color: var(--text-dim);
+}
+
+.factVal {
+    flex: 1;
+    min-width: 0;
+    color: var(--text);
+}
+
+/* ── 화면 헤더의 [?] ── */
+
+.helpBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-width: 30px;
+        /* ★ 터치 타깃 40px 하한 — 폰 가로 실측에서 이 값이 30px 였다 (18-ux-ui.md §1.2) */
+    min-height: 40px;
+    padding: 0 8px;
+    font-size: 11px;
+    color: var(--text-dim);
+    background: #16162a;
+    border: 1px solid #2e2e4c;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.helpBtn:hover {
+    color: var(--gold);
+    border-color: var(--gold);
+}

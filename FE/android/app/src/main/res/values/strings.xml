@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">균열의 방주</string>
+    <string name="title_activity_main">균열의 방주</string>
+    <string name="package_name">com.superdimension.app</string>
+    <string name="custom_url_scheme">com.superdimension.app</string>
+</resources>

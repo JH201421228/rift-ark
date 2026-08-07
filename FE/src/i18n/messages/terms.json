@@ -1,0 +1,48 @@
+{
+    "$doc": "네임스페이스 'terms' — 전투 개념의 표기. 키는 'terms.<키>'.",
+    "$why": [
+        "★★ 이 표는 `game/logic/labels.js` 의 한국어판을 그대로 두 언어로 옮긴 것이다.",
+        "  그 파일의 머리말이 말하는 사고 — '프리뷰에서 배운 단어를 전장에서 못 알아본다' —",
+        "  는 언어가 둘이 되면 **두 배로** 일어난다. 태그 이름이 화면마다 다르면 색약",
+        "  사용자에게는 남은 채널이 아예 없다.",
+        "★ 키 이름은 `tags.js:TAG` · `roles.js:ROLE_ORDER` 의 **id 그대로**다.",
+        "  labels.js 가 이 표를 id 로 조회하므로, 이름을 바꾸면 그 자리가 조용히 빈다."
+    ],
+
+    "tag.ARMORED": { "ko": "중장갑", "en": "Armored" },
+    "tag.WARDED": { "ko": "결계", "en": "Warded" },
+    "tag.FLYING": { "ko": "비행", "en": "Flying" },
+    "tag.SWARM": { "ko": "군집", "en": "Swarm" },
+    "tag.CORRUPT": { "ko": "타락", "en": "Corrupt" },
+    "tag.LIVING": { "ko": "생명체", "en": "Living" },
+    "tag.SHIELDED": { "ko": "보호막", "en": "Shielded" },
+    "tag.REGEN": { "ko": "재생", "en": "Regen" },
+    "tag.ANTI_AIR": { "ko": "대공", "en": "Anti-Air" },
+
+    "dmg.physical": { "ko": "물리", "en": "Physical" },
+    "dmg.arcane": { "ko": "술식", "en": "Arcane" },
+    "dmg.holy": { "ko": "신성", "en": "Holy" },
+
+    "$dmgShort": "★★ 색약 모드의 짧은 표기(`물`·`Ph` …)는 **여기 없다.** `game/data/settings.json:damageTypeShort` 가 정본이고 `logic/labels.js:dmgTypeShort()` 가 그것을 읽는다 — 한때 두 곳에 있었고, 카탈로그를 읽는 쪽(설명)과 데이터를 읽는 쪽(HUD 데미지 숫자)이 갈라질 수 있는 상태였다. 색약 모드에서 그 글자는 색을 대신하는 유일한 채널이라 갈라지면 대응이 무의미해진다.",
+
+    "role.BLOCKER": { "ko": "방벽", "en": "Blocker" },
+    "role.MELEE": { "ko": "근접", "en": "Melee" },
+    "role.RANGED": { "ko": "원거리", "en": "Ranged" },
+    "role.CASTER": { "ko": "술사", "en": "Caster" },
+    "role.SUPPORT": { "ko": "지원", "en": "Support" },
+    "role.SIEGE": { "ko": "공성", "en": "Siege" },
+    "role.FLYER": { "ko": "비행", "en": "Flyer" },
+
+    "difficulty.normal": { "ko": "노멀", "en": "Normal" },
+    "difficulty.hard": { "ko": "하드", "en": "Hard" },
+    "difficulty.nightmare": { "ko": "나이트메어", "en": "Nightmare" },
+
+    "$modes": "전투 모드 2종 (2026-08-04 경량화 이후 assault · nemesis 뿐이다).",
+    "mode.assault": { "ko": "격퇴", "en": "Assault" },
+    "mode.nemesis": { "ko": "보스", "en": "Boss" },
+
+    "effective": { "ko": "약점", "en": "Weak" },
+    "resisted": { "ko": "저항", "en": "Resist" },
+    "critical": { "ko": "치명타", "en": "Critical" },
+    "blocked": { "ko": "막힘", "en": "Blocked" }
+}

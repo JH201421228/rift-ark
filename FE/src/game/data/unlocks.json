@@ -1,0 +1,115 @@
+{
+    "$comment": [
+        "캠페인 진행이 **확정 지급**하는 동료 (P8-02).",
+        "",
+        "★★ 이 파일이 존재하는 이유는 15-content-plan.md §1.1 의 설계 규칙이다:",
+        "  '각 월드의 요구 답안 동료는 그 월드가 시작되기 전에 반드시 획득 가능해야 한다.",
+        "   이것이 「벽 = 편성 퍼즐」 명제를 실제로 성립시키는 조건이다.'",
+        "",
+        "★ 그 규칙이 구현되어 있지 않았다. 캠페인 클리어 보상은 골드·강화석뿐이었고",
+        "  (difficulty.js:stageReward — 노멀 첫 클리어 젬도 0),",
+        "  동료 획득 경로는 FTUE 확정 2종 + **가챠 RNG** + 배틀패스 무료 트랙뿐이었다.",
+        "  즉 벽이 편성 퍼즐이 아니라 **뽑기 운**이었다.",
+        "  tools/playthrough.mjs 실측: 30일을 기다려 17종을 모아도 1-9 승률 0%,",
+        "  같은 스테이지를 전체 로스터로 돌리면 33%. 계정 시드에 따라 갈렸다.",
+        "",
+        "★ 지급 시점은 손으로 고르지 않았다 — `recommendedLoadoutForStage` 가",
+        "  각 유닛을 **처음 요구하는 스테이지**에서 역산했다 (전 100 스테이지 실측):",
+        "    1-1  slow_turtle · bold_man_at_arms · elf_sharpshooter",
+        "         halfling_slinger · goblin_archer · merfolk_javelineer",
+        "    1-5  novice_pyromancer  (술식 — ARMORED 의 답)",
+        "    1-10 clucking_chicken",
+        "    3-1  devout_acolyte     (신성 — CORRUPT 의 답)",
+        "    3-8  leaf_ranger        (물리 대공 — FLYING+WARDED 의 답)",
+        "  각 유닛은 **요구되기 전 스테이지에서** 지급된다. 이 성질은 주장이 아니라",
+        "  tools/validate-data.mjs 가 매번 검사한다 — 스테이지 데이터가 바뀌어",
+        "  더 이른 스테이지가 어떤 유닛을 요구하게 되면 빌드가 멈춘다.",
+        "",
+        "★ 확정 지급이지 확률이 아니다 (절대 규칙 6). 가챠는 '더 빨리 · 더 많이'만",
+        "  담당하고, **진행에 필요한 최소 로스터는 플레이로 보장된다.**",
+        "",
+        "★ FTUE 가 이미 주는 2종(slow_turtle · elf_sharpshooter)은 여기 다시 적지 않는다.",
+        "  ftue.json 의 unlocks 가 그 출처이고, 사본을 두면 갈라진다."
+    ],
+    "$note": "unitId 는 units.json 의 id 여야 한다 (validate-data 가 검사).",
+    "$startingUnits": [
+        "★★ **신규 계정이 처음부터 갖는 동료** (2026-08-04).",
+        "",
+        "★ 예전에는 이 둘이 `ftue.json` 의 `unlocks:[\"unit.…\"]` 에서 파생됐다.",
+        "  튜토리얼을 걷어내면서(2026-08-04) 그 출처가 사라졌고, 그대로 두면",
+        "  **신규 계정의 보유 동료가 0종**이 된다 — 편성 화면이 비고, 1-1 이",
+        "  DEFAULT_LOADOUT 하드코딩으로만 굴러가고, `guaranteedUnitsBefore(\"1-1\")`",
+        "  를 전제로 선 검사기 셋(validate-data · check-unlocks · playthrough)이",
+        "  전부 거짓 위에 서게 된다. 그래서 여기로 옮겼다.",
+        "",
+        "★ 둘인 이유: **방벽 하나 + 화력 하나**가 1-1 을 이기는 최소 조합이다.",
+        "  (`recommendedLoadoutForStage(\"1-1\")` 역산 — 위 $comment 참조)"
+    ],
+    "startingUnits": ["slow_turtle", "elf_sharpshooter"],
+    "stageGrants": [
+        {
+            "stage": "1-1",
+            "units": ["bold_man_at_arms"],
+            "why": {
+                "ko": "두 번째 방벽. 레인이 3개인데 방벽이 1기면 나머지 두 레인을 아무도 붙잡지 못한다",
+                "en": "A second Blocker. With three lanes and only one Blocker, two of them hold nothing back."
+            }
+        },
+        {
+            "stage": "1-2",
+            "units": ["halfling_slinger"],
+            "why": {
+                "ko": "후열 화력 도입",
+                "en": "Introduces back-line damage."
+            }
+        },
+        {
+            "stage": "1-3",
+            "units": ["goblin_archer"],
+            "why": {
+                "ko": "후열 2기 — 전선 뒤가 성립한다",
+                "en": "A second back-liner — now there is a line to stand behind."
+            }
+        },
+        {
+            "stage": "1-4",
+            "units": ["novice_pyromancer"],
+            "why": {
+                "ko": "술식. 1-5 가 ARMORED 의 답을 처음 요구한다 — 요구 전에 준다",
+                "en": "Arcane damage. Stage 1-5 is the first to demand an answer to ARMORED, so it arrives before the demand."
+            }
+        },
+        {
+            "stage": "1-6",
+            "units": ["merfolk_javelineer"],
+            "why": {
+                "ko": "6칸이 처음으로 채워진다",
+                "en": "All six loadout slots fill up for the first time."
+            }
+        },
+        {
+            "stage": "1-9",
+            "units": ["clucking_chicken"],
+            "why": {
+                "ko": "1-10(첫 보스)이 요구한다. 1-9 는 설계된 첫 패배이므로 넘은 보상이기도 하다",
+                "en": "Stage 1-10, the first boss, demands it. Stage 1-9 is the designed first defeat, so this doubles as the reward for getting past it."
+            }
+        },
+        {
+            "stage": "2-20",
+            "units": ["devout_acolyte"],
+            "why": {
+                "ko": "신성. 월드 3 이 CORRUPT 를 도입한다 — 월드 3 진입 전에 준다 (15-content-plan §1.1)",
+                "en": "Holy damage. World 3 introduces CORRUPT, so this arrives before you enter it (15-content-plan §1.1)."
+            }
+        },
+        {
+            "stage": "3-7",
+            "units": ["leaf_ranger"],
+            "why": {
+                "ko": "두 번째 물리 대공. 3-8 부터 FLYING+WARDED 가 붙어 나온다 — 근접·술식으로는 닿지 못한다",
+                "en": "A second physical anti-air. From 3-8 on, FLYING and WARDED come paired — melee and arcane cannot reach them."
+            }
+        }
+    ]
+}

@@ -1,0 +1,342 @@
+{
+    "$comment": "메타 진행 데이터 — 방주 시설 4종 · 별 트리. 재화는 골드와 별 둘뿐이다. docs/02-design/13-progression-meta.md",
+    "ark": {
+        "$comment": "시설 4종. 비용은 gold = goldBase × goldGrowth^(lv-1). 강화석·시간 게이트는 없다 (2026-08-04 경량화).",
+        "stages": [
+            {
+                "id": "ruin",
+                "maxLevelSum": 15,
+                "label": {
+                    "ko": "폐허",
+                    "en": "Ruins"
+                }
+            },
+            {
+                "id": "repair",
+                "maxLevelSum": 45,
+                "label": {
+                    "ko": "복구",
+                    "en": "Repaired"
+                }
+            },
+            {
+                "id": "restored",
+                "maxLevelSum": 90,
+                "label": {
+                    "ko": "재건",
+                    "en": "Restored"
+                }
+            },
+            {
+                "id": "expanded",
+                "maxLevelSum": 9999,
+                "label": {
+                    "ko": "확장",
+                    "en": "Expanded"
+                }
+            }
+        ],
+        "facilities": [
+            {
+                "id": "trainingYard",
+                "name": {
+                    "ko": "훈련장",
+                    "en": "Training Yard"
+                },
+                "desc": {
+                    "ko": "동료 레벨 상한을 올린다",
+                    "en": "Raises the companion level cap"
+                },
+                "maxLevel": 90,
+                "unlockStage": 5,
+                "goldBase": 300,
+                "goldGrowth": 1.125,
+                "effect": {
+                    "kind": "unitLevelCap",
+                    "base": 11,
+                    "perLevel": 1
+                },
+                "$maxLevel": "레벨 상한 = 11 + (레벨-1) → 최대 100. 40이면 상한 50이라 후반 100스테이지가 성장 없이 남는다.",
+                "$goldGrowth": "★ 1.28 이었다. maxLevel 90 에서 1.28^89 = 1.6e10 골드 — 도달 불가능한 시설이 된다. 수입 성장률(1.117)에 맞춰 1.125 로 낮췄다."
+            },
+            {
+                "id": "armory",
+                "name": {
+                    "ko": "무기고",
+                    "en": "Armory"
+                },
+                "desc": {
+                    "ko": "모든 동료의 공격력·체력을 올린다",
+                    "en": "Raises attack and health for every companion"
+                },
+                "maxLevel": 20,
+                "unlockStage": 5,
+                "goldBase": 900,
+                "goldGrowth": 1.36,
+                "effect": {
+                    "kind": "unitPower",
+                    "mult": [
+                        1,
+                        1.12,
+                        1.215,
+                        1.384,
+                        1.671,
+                        2.046,
+                        2.471,
+                        2.813,
+                        3.226,
+                        3.903,
+                        4.648,
+                        5.9,
+                        7.1,
+                        7.4,
+                        7.7,
+                        7.95,
+                        8.15,
+                        8.35,
+                        8.55,
+                        8.7,
+                        8.806
+                    ]
+                },
+                "$effect": "★ 장비·승급을 대체한다 (2026-08-04 경량화). 인벤토리도 파편도 없이 골드 한 갈래로 파워를 올린다. mult[lv] 은 옛 rank×gear 곡선을 그대로 승계한 값이라 스테이지 난이도를 다시 잡을 필요가 없었다 — tools/lib/f2p-power.mjs:targetArmory 가 같은 표를 읽는다. 레벨 11–13 은 calibrate-economy 의 파워 게이트(적 HP 대비 0.75)를 스테이지 55–65 구간에서 만족시키려고 실측으로 올렸다 — 옛 승급 5단계가 그 구간에서 만들던 계단이다."
+            },
+            {
+                "id": "sanctum",
+                "name": {
+                    "ko": "성소",
+                    "en": "Sanctum"
+                },
+                "desc": {
+                    "ko": "지휘관 HP·오라 반경",
+                    "en": "Commander health and aura radius"
+                },
+                "maxLevel": 25,
+                "unlockStage": 12,
+                "goldBase": 800,
+                "goldGrowth": 1.32,
+                "effect": {
+                    "kind": "commander",
+                    "hpPerLevel": 0.04,
+                    "auraPerLevel": 2
+                }
+            },
+            {
+                "id": "archive",
+                "name": {
+                    "ko": "기록보관소",
+                    "en": "Archive"
+                },
+                "desc": {
+                    "ko": "각인 선택지·리롤",
+                    "en": "Sigil options and rerolls"
+                },
+                "maxLevel": 25,
+                "unlockStage": 25,
+                "goldBase": 1200,
+                "goldGrowth": 1.34,
+                "$effect": "★ 각인 '수치'는 절대 올리지 않는다. 선택지 수와 리롤만 늘린다 — 그래야 각인 밸런스가 메타 레벨과 독립적으로 유지된다.",
+                "effect": {
+                    "kind": "sigil",
+                    "optionsAt": [
+                        0,
+                        10,
+                        20
+                    ],
+                    "rerollsAt": [
+                        0,
+                        5,
+                        12,
+                        18,
+                        24
+                    ]
+                }
+            }
+        ],
+        "$stages": "시설이 6종에서 4종으로 줄면서(2026-08-04) 레벨 총합의 최대치도 210 → 160 이 됐다. 구간 경계를 그 비율로 다시 잡았다 — 안 그러면 만렙 방주가 \"복구\" 단계에서 멈춘다."
+    },
+    "starTree": {
+        "$comment": "별 = 탈출 밸브. 막힌 플레이어가 이전 스테이지를 하드로 재도전해 별을 벌고 돌아온다.",
+        "nodes": [
+            {
+                "id": "atk_1",
+                "branch": "might",
+                "name": {
+                    "ko": "예리함 I",
+                    "en": "Keen Edge I"
+                },
+                "cost": 3,
+                "maxRank": 5,
+                "requires": [],
+                "effect": {
+                    "kind": "allyAtkPct",
+                    "perRank": 0.02
+                }
+            },
+            {
+                "id": "atk_2",
+                "branch": "might",
+                "name": {
+                    "ko": "예리함 II",
+                    "en": "Keen Edge II"
+                },
+                "cost": 8,
+                "maxRank": 5,
+                "requires": [
+                    "atk_1"
+                ],
+                "effect": {
+                    "kind": "allyAtkPct",
+                    "perRank": 0.03
+                }
+            },
+            {
+                "id": "pierce_1",
+                "branch": "might",
+                "name": {
+                    "ko": "관통",
+                    "en": "Pierce"
+                },
+                "cost": 14,
+                "maxRank": 3,
+                "requires": [
+                    "atk_2"
+                ],
+                "effect": {
+                    "kind": "allyPierce",
+                    "perRank": 2
+                }
+            },
+            {
+                "id": "hp_1",
+                "branch": "endurance",
+                "name": {
+                    "ko": "강인함 I",
+                    "en": "Fortitude I"
+                },
+                "cost": 3,
+                "maxRank": 5,
+                "requires": [],
+                "effect": {
+                    "kind": "allyHpPct",
+                    "perRank": 0.025
+                }
+            },
+            {
+                "id": "ark_hp",
+                "branch": "endurance",
+                "name": {
+                    "ko": "방주 보강",
+                    "en": "Ark Reinforcement"
+                },
+                "cost": 8,
+                "maxRank": 5,
+                "requires": [
+                    "hp_1"
+                ],
+                "effect": {
+                    "kind": "arkHpPct",
+                    "perRank": 0.04
+                }
+            },
+            {
+                "id": "block_1",
+                "branch": "endurance",
+                "name": {
+                    "ko": "굳건한 방벽",
+                    "en": "Steadfast Blockers"
+                },
+                "cost": 16,
+                "maxRank": 2,
+                "requires": [
+                    "ark_hp"
+                ],
+                "effect": {
+                    "kind": "blockerDefFlat",
+                    "perRank": 3
+                }
+            },
+            {
+                "id": "mana_1",
+                "branch": "flow",
+                "name": {
+                    "ko": "마나 순환 I",
+                    "en": "Mana Flow I"
+                },
+                "cost": 4,
+                "maxRank": 5,
+                "requires": [],
+                "effect": {
+                    "kind": "manaRegenPct",
+                    "perRank": 0.03
+                }
+            },
+            {
+                "id": "mana_start",
+                "branch": "flow",
+                "name": {
+                    "ko": "선제 배치",
+                    "en": "Opening Deployment"
+                },
+                "cost": 10,
+                "maxRank": 3,
+                "requires": [
+                    "mana_1"
+                ],
+                "effect": {
+                    "kind": "startManaFlat",
+                    "perRank": 10
+                }
+            },
+            {
+                "id": "cost_down",
+                "branch": "flow",
+                "name": {
+                    "ko": "효율 소환",
+                    "en": "Efficient Summoning"
+                },
+                "cost": 20,
+                "maxRank": 3,
+                "requires": [
+                    "mana_start"
+                ],
+                "effect": {
+                    "kind": "summonCostPct",
+                    "perRank": -0.03
+                }
+            },
+            {
+                "id": "reroll_1",
+                "branch": "insight",
+                "name": {
+                    "ko": "각인 재고",
+                    "en": "Second Look"
+                },
+                "cost": 6,
+                "maxRank": 2,
+                "requires": [],
+                "effect": {
+                    "kind": "sigilRerolls",
+                    "perRank": 1
+                }
+            },
+            {
+                "id": "draft_1",
+                "branch": "insight",
+                "name": {
+                    "ko": "넓은 시야",
+                    "en": "Wider View"
+                },
+                "cost": 18,
+                "maxRank": 1,
+                "requires": [
+                    "reroll_1"
+                ],
+                "effect": {
+                    "kind": "sigilOptions",
+                    "perRank": 1
+                }
+            }
+        ]
+    }
+}

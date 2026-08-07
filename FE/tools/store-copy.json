@@ -1,0 +1,42 @@
+[
+    {
+        "id": 1,
+        "ko": "세 개의 레인과 하늘. 하나도 뚫리면 안 된다",
+        "en": "Three lanes and the sky. Hold them all."
+    },
+    {
+        "id": 2,
+        "ko": "지휘관이 선 자리에서만 특수능력이 켜진다",
+        "en": "Special abilities only work inside your aura."
+    },
+    {
+        "id": 3,
+        "ko": "웨이브마다 각인 셋 중 하나. 매판 다른 빌드",
+        "en": "One of three sigils, every wave."
+    },
+    {
+        "id": 4,
+        "ko": "보스는 페이즈마다 약점이 바뀐다",
+        "en": "Every boss phase changes its weakness."
+    },
+    {
+        "id": 5,
+        "ko": "동료 50종 중 데려가는 건 6종",
+        "en": "50 companions. You take six."
+    },
+    {
+        "id": 6,
+        "ko": "재화는 골드 하나. 성장은 세 갈래",
+        "en": "One currency. Three ways to grow."
+    },
+    {
+        "id": 7,
+        "ko": "100 스테이지 · 노멀 · 하드 · 나이트메어",
+        "en": "Rebuild the ark between runs."
+    },
+    {
+        "id": 8,
+        "ko": "확률형 없음 · 광고 없음 · 인앱결제 없음 · 오프라인",
+        "en": "100 stages. No ads. No IAP. No gacha."
+    }
+]

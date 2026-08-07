@@ -1,0 +1,136 @@
+/*
+ * 진단 배너 — 화면 위쪽 한 줄.
+ * ★ 게임을 가리지 않는다. 전투 중에 모달이 뜨면 그 자체가 판을 망친다.
+ * ★ pointer-events 는 배너에만 준다 — #ui-overlay 는 통과시키는 층이다.
+ */
+.bar {
+    position: absolute;
+    top: calc(env(safe-area-inset-top, 0px) + 4px);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 90;
+    width: min(96%, 620px);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 6px 8px;
+    background: #2a1420;
+    border: 2px solid #6a2a34;
+    border-radius: 3px;
+    pointer-events: auto;
+}
+
+.head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 28px;
+    color: #ff9a9a;
+}
+
+.title {
+    flex: none;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.count {
+    margin-left: 3px;
+    color: var(--text-dim);
+}
+
+/* 긴 메시지는 한 줄로 자른다 — 펼치면 전문이 보인다 */
+.msg {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 11px;
+    color: var(--text);
+}
+
+.link {
+    flex: none;
+    min-height: 28px;
+    padding: 0 6px;
+    font-family: inherit;
+    font-size: 11px;
+    color: var(--text-dim);
+    background: none;
+    border: none;
+}
+
+.link:hover {
+    color: var(--gold);
+}
+
+.icon {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    color: var(--text-dim);
+    background: none;
+    border: none;
+}
+
+.icon:hover {
+    color: var(--gold);
+}
+
+.detail {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-top: 4px;
+    border-top: 1px solid #6a2a34;
+}
+
+.line {
+    margin: 0;
+    font-size: 11px;
+    color: var(--text);
+    word-break: keep-all;
+}
+
+.stack {
+    margin: 0;
+    max-height: 108px;
+    overflow: auto;
+    font-family: inherit;
+    font-size: 10px;
+    line-height: 1.5;
+    color: var(--text-dim);
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+.note {
+    margin: 0;
+    font-size: 11px;
+    line-height: 1.45;
+    color: var(--text-dim);
+    word-break: keep-all;
+}
+
+.btn {
+    align-self: flex-start;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 32px;
+    padding: 2px 10px;
+    font-family: inherit;
+    font-size: 11px;
+    color: var(--text);
+    background: #232342;
+    border: 2px solid #3a3a5e;
+    border-radius: 3px;
+}
+
+.btn:hover {
+    border-color: var(--gold);
+}

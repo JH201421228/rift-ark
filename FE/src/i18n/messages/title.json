@@ -1,0 +1,57 @@
+{
+    "$doc": "네임스페이스 'title' — 키는 'i18n.title.<키>' 가 아니라 'title.<키>' 다 (파일 이름이 곧 네임스페이스). 항목은 반드시 { \"ko\", \"en\" } 두 언어를 함께 갖는다 — 한쪽만 적으면 npm run check:i18n 이 막는다.",
+
+    "$screen": "타이틀(`/`) — 슬롯을 고르기 전의 화면이다. ★ 영어권 신규 사용자가 **처음 보는 화면**이라 여기의 영어가 가장 비싸다. 짧고 단호하게.",
+
+    "tagline": {
+        "ko": "세상이 끝나는 중인데, 내 군대에는 성난 거위가 있다",
+        "en": "The world is ending, and my army includes an angry goose"
+    },
+    "guideLabel": { "ko": "게임 설명", "en": "How to Play" },
+
+    "$when": "★ 상대 시각. 절대 시각을 쓰지 않는 이유는 TitleScreen.jsx:whenLabel 주석에 있다. 영어는 축약형(2h ago)이 표준이고, 슬롯 카드 폭이 좁아 그쪽이 유리하다.",
+    "whenNow": { "ko": "방금", "en": "Just now" },
+    "whenMinutes": { "ko": "{n}분 전", "en": "{n}m ago" },
+    "whenHours": { "ko": "{n}시간 전", "en": "{n}h ago" },
+    "whenDays": { "ko": "{n}일 전", "en": "{n}d ago" },
+
+    "slotNo": { "ko": "슬롯 {n}", "en": "Slot {n}" },
+    "slotEmptyHint": { "ko": "여기서 새로 시작합니다", "en": "Start a new game here" },
+    "lastPlayed": { "ko": "· 마지막 플레이", "en": "· Last played" },
+    "broken": { "ko": "세이브가 손상됐습니다", "en": "Save data is corrupted" },
+    "brokenHint": { "ko": "지우고 새로 시작할 수 있습니다", "en": "Delete it and start over" },
+
+    "$slotMeta": [
+        "슬롯 요약 3칸 (한 줄 · 250px 카드).",
+        "★★ **'{n} stars' 로 두지 않는다.** 이 카탈로그에는 복수형 규칙이 없어서",
+        "  별이 하나뿐인 계정에 '1 stars' 가 뜬다 (실측). 한국어와 같은 **라벨 + 숫자**",
+        "  어순으로 두면 복수 일치 자체가 성립하지 않는다.",
+        "★ 낱말은 짧은 쪽이 아니라 **탭·화면 제목과 같은 쪽**을 쓴다 — 'Allies' 로",
+        "  줄이면 탭에서 'Companions' 를 배운 사람이 여기서 다른 것으로 읽는다.",
+        "  실측: 세 칸 합 206px < 250px 이라 자리는 남는다."
+    ],
+    "slotProgress": { "ko": "진행 {n}/{total}", "en": "{n}/{total} cleared" },
+    "slotStars": { "ko": "별 {n}", "en": "Stars {n}" },
+    "slotUnits": { "ko": "동료 {n}", "en": "Companions {n}" },
+
+    "resume": { "ko": "이어하기", "en": "Continue" },
+    "newGame": { "ko": "게임 시작하기", "en": "New Game" },
+    "noEmptySlot": {
+        "ko": "빈 슬롯이 없습니다 — 슬롯을 하나 지우세요",
+        "en": "No empty slot — delete one first"
+    },
+    "delete": { "ko": "삭제", "en": "Delete" },
+    "ariaDeleteSlot": { "ko": "슬롯 {n} 삭제", "en": "Delete slot {n}" },
+
+    "foot": {
+        "ko": "· 슬롯은 서로 완전히 분리돼 있습니다. 하나를 지워도 나머지는 그대로입니다.",
+        "en": "· Slots are fully separate. Deleting one leaves the others untouched."
+    },
+
+    "deleteConfirm": { "ko": "슬롯 {n} 을(를) 지울까요?", "en": "Delete slot {n}?" },
+    "deleteWarn": {
+        "ko": "그 슬롯의 진행도 · 별 · 동료 · 골드가 전부 사라집니다.",
+        "en": "All progress, stars, companions and gold in that slot are erased."
+    },
+    "deleteIrreversible": { "ko": "되돌릴 수 없습니다.", "en": "This cannot be undone." }
+}

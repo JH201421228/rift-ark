@@ -1,0 +1,412 @@
+/**
+ * 설정 화면 (P7-15)
+ *
+ * ★ 좌측 세로 탭 + 우측 스크롤 패널. 가로 1280×720 에서 설정 항목 20개를
+ *   한 화면에 세로로 쌓으면 스크롤이 화면 높이의 3배가 된다 — 무엇이 있는지
+ *   알 수 없게 된다. 분류를 항상 보이게 두는 편이 탐색 비용이 훨씬 싸다.
+ *
+ * ★ 최소 터치 타깃 44px (18-ux-ui.md §1.2). 세그먼트 버튼도 예외가 아니다.
+ * ★ 한글은 라틴 문자의 약 2배 폭이다 (절대규칙 9). 라벨 열 폭은 한국어를
+ *   기준으로 잡고, 영어가 그 안에 들어오게 한다.
+ */
+
+.screen {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    background: #0b0b18;
+    pointer-events: auto;
+}
+
+.header {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 14px;
+    border-bottom: 2px solid #2a2a44;
+}
+
+.title {
+    margin: 0;
+    font-size: 18px;
+    color: var(--gold);
+}
+
+.version {
+    /* 헤더 오른쪽 끝. 예전에는 이 auto 가 .versionBtn 에 있었다 (아래 주석) */
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--text-dim);
+}
+
+/* ★ 예전에는 이 표기가 버튼이었다 — 7회 누르면 개발자 메뉴가 열렸다 (P7-04).
+     P8-06 에서 걷어냈다. 이유는 SettingsScreen.jsx 의 devVisible 주석 참조. */
+
+/**
+ * ★★ **`overflow: hidden` 이었다 — 아래가 잘린 채 스크롤도 막혀 있었다** (2026-08-04).
+ *   폰 가로(915×412)에서 내용이 45px 넘쳤고, 넘친 만큼은 **볼 방법이 없었다.**
+ *   사용자가 "설정 아래로 스크롤이 안 된다"고 지적한 것이 이것이다.
+ *
+ * ★ 좁으면 좌측 분류가 위로 접히고(그때는 세로가 더 필요하다), 어느 쪽이든 스크롤된다.
+ */
+/**
+ * ★★★ **스크롤은 `.panel` 이 한다. 여기가 아니다** (2026-08-04 재수정).
+ *
+ *   한 번은 여기에 `overflow-y: auto` + `flex-wrap` 을 걸었는데, 그러면 줄 높이가
+ *   내용을 따라가서 **`.panel` 이 더 이상 높이에 갇히지 않는다** — 패널의 자체
+ *   스크롤이 영영 발동하지 않고, 패널은 `overscroll-behavior: contain` 이라
+ *   **그 위에서 시작한 손가락 제스처를 삼킨 뒤 아무 데도 전달하지 않는다.**
+ *   그래서 "설정이 스크롤되지 않는다" 가 고쳐지지 않았다 (프로그램으로는 됐다 —
+ *   `scrollTop` 은 움직였고 그래서 첫 검증을 통과했다. 손가락만 안 됐다).
+ *
+ * ★ 규칙: **내용이 있는 칸이 스크롤한다.** 바깥은 높이를 가둘 뿐이다.
+ */
+.body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    gap: 12px;
+    padding: 10px 14px;
+    overflow: hidden;
+}
+
+/* ── 좌측 분류 ── */
+
+/**
+ * 좌측 분류.
+ * ★ 세로가 좁으면 7개 항목이 화면을 넘긴다 (실측 55px 초과). 가로로 접어
+ *   **가로 스크롤이 아니라 줄바꿈**으로 처리한다 — 가로 스크롤은 폰에서 못 찾는다.
+ */
+/**
+ * 좌측 분류.
+ * ★ 7개 항목이 폰 가로 높이를 넘긴다 (실측 55px 초과). **자기 스크롤을 갖는다** —
+ *   바깥에 맡기면 패널과 스크롤 주체가 둘이 되어 서로를 삼킨다.
+ *
+ * ★★★ **128px → 140px (2026-08-07, 영어 추가).**
+ *
+ *   이 저장소의 폰트(Mulmaru)는 한글:라틴 = 1:0.5 듀오스페이스라, 절대규칙 9
+ *   ("한국어로 만들고 영어를 맞춘다")의 전제가 **여기서는 거꾸로다** — 한글 3자는
+ *   36px 인데 같은 뜻의 영어는 6~13자, 즉 36~78px 이다. 분류 이름 7개를 실측하면
+ *   (12px · 아이콘 14 · gap 7 · padding 20 · border 4 = 크롬 45px):
+ *
+ *     오디오 81 · 그래픽 81 · 접근성 81 · 게임플레이 105 · 데이터 81 · 라이선스 93 · 개발자 81
+ *     Audio 75 · Graphics 93 · Accessibility 123 · Gameplay 93 · Data 69 · Licenses 93 · Developer 99
+ *
+ *   한국어 최장은 105px 이라 128 로 충분했지만 영어 최장은 **123px** 이다.
+ *   5px 여유는 `zoom: var(--ui-scale)` (텍스트 크기 115%·130%) 의 반올림 한 번에
+ *   사라진다. 140 이면 17px 이 남는다.
+ *
+ * ★ "Accessibility" 를 "Access" 로 줄여 128 에 맞추는 길도 있었지만 그러지 않았다 —
+ *   이 화면에서 그 분류를 찾아야 하는 사람이 바로 저시력·색약 사용자다.
+ *   **줄임말로 자리를 버는 것은 그 사람에게서 버는 것이다.**
+ * ★ 한국어에서 잃는 것은 없다: 남는 35px 은 오른쪽 `.panel`(flex: 1)이 가져간다.
+ */
+.nav {
+    flex-shrink: 0;
+    width: 140px;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    overflow-y: auto;
+    touch-action: pan-y;
+    overscroll-behavior: contain;
+}
+
+.navItem {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 44px;
+    padding: 4px 10px;
+    text-align: left;
+    font-family: inherit;
+    font-size: 12px;
+    color: var(--text-dim);
+    background: #14142a;
+    border: 2px solid #2a2a44;
+    border-radius: 3px;
+}
+
+.navItem:hover {
+    color: var(--text);
+}
+
+.navItem.on {
+    color: var(--gold);
+    background: #1c1c38;
+    border-color: var(--gold);
+}
+
+/* ── 우측 패널 ── */
+
+.panel {
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    overflow-y: auto;
+    touch-action: pan-y;
+    overscroll-behavior: contain;
+    padding-right: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 12px;
+    background: #14142a;
+    border: 2px solid #2a2a44;
+    border-radius: 3px;
+}
+
+.groupTitle {
+    margin: 0;
+    font-size: 12px;
+    color: var(--gold);
+}
+
+/* 한 줄 = 라벨 + 컨트롤. 설명은 라벨 아래에 붙는다 */
+.row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+}
+
+.rowLabel {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    font-size: 12px;
+    color: var(--text);
+}
+
+.hint {
+    font-size: 10px;
+    line-height: 1.35;
+    color: var(--text-dim);
+}
+
+/* ── 세그먼트 (열거형) ── */
+
+.seg {
+    display: flex;
+    flex-shrink: 0;
+    gap: 3px;
+}
+
+.segBtn {
+    min-height: 34px;
+    min-width: 52px;
+    padding: 4px 10px;
+    font-family: inherit;
+    font-size: 11px;
+    color: var(--text-dim);
+    background: #191930;
+    border: 2px solid #2a2a44;
+    border-radius: 3px;
+}
+
+.segBtn:hover:not(:disabled) {
+    color: var(--text);
+}
+
+/* ★ 선택 상태를 색만으로 표시하지 않는다 — 색약 사용자에게는 아무 표시가 없는 것과 같다.
+     테두리 강조 + 좌측 체크 아이콘을 함께 쓴다 (18-ux-ui.md §6). */
+.segBtn.on {
+    color: var(--gold);
+    background: #241f10;
+    border-color: var(--gold);
+}
+
+.segBtn.on::before {
+    content: "";
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin-right: 5px;
+    vertical-align: middle;
+    background: var(--gold);
+}
+
+/* ── 슬라이더 ── */
+
+.sliderRow {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 8px;
+}
+
+.slider {
+    width: 148px;
+    height: 22px;
+    accent-color: var(--gold);
+    /* 오버레이가 touch-action:none 이라 슬라이더 드래그가 먹히지 않는다 */
+    touch-action: pan-x;
+}
+
+.slider:disabled {
+    opacity: 0.35;
+}
+
+.pct {
+    width: 42px;
+    text-align: right;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-dim);
+}
+
+.iconBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    color: var(--text-dim);
+    background: #191930;
+    border: 2px solid #2a2a44;
+    border-radius: 3px;
+}
+
+.iconBtn.muted {
+    color: #ff7a7a;
+    border-color: #6a2a34;
+}
+
+/* ── 토글 ── */
+
+/* ★ 켜짐/꺼짐을 색이 아니라 **글자와 위치**로 말한다 */
+.toggle {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    min-width: 72px;
+    min-height: 34px;
+    padding: 4px 10px;
+    font-family: inherit;
+    font-size: 11px;
+    color: var(--text-dim);
+    background: #191930;
+    border: 2px solid #2a2a44;
+    border-radius: 3px;
+}
+
+.toggle.on {
+    color: var(--gold);
+    border-color: var(--gold);
+}
+
+/* ── 버튼 ── */
+
+.btn {
+    align-self: flex-start;
+    min-height: 36px;
+    padding: 4px 14px;
+    font-family: inherit;
+    font-size: 12px;
+    color: var(--text);
+    background: #232342;
+    border: 2px solid #3a3a5e;
+    border-radius: 3px;
+}
+
+.btn:hover:not(:disabled) {
+    border-color: var(--gold);
+}
+
+.btnDanger {
+    color: #ff9a9a;
+    background: #2a1420;
+    border-color: #6a2a34;
+}
+
+.btnDanger:hover:not(:disabled) {
+    border-color: #ff7a7a;
+}
+
+.warnBox {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 8px 10px;
+    font-size: 11px;
+    line-height: 1.45;
+    color: #ff9a9a;
+    background: #22101a;
+    border: 2px solid #6a2a34;
+    border-radius: 3px;
+}
+
+.warnBox > svg {
+    margin-top: 2px;
+}
+
+.note {
+    margin: 0;
+    font-size: 11px;
+    line-height: 1.45;
+    color: var(--text-dim);
+}
+
+/* ── 라이선스 ── */
+
+.credits {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.creditRow {
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+    padding: 4px 0;
+    font-size: 11px;
+    line-height: 1.4;
+    border-bottom: 1px solid #1e1e34;
+}
+
+.creditName {
+    flex: 1;
+    min-width: 0;
+    color: var(--text);
+    /* 긴 트랙 파일명이 패널을 밀어내지 않게 한다 */
+    overflow-wrap: anywhere;
+}
+
+.creditAuthor {
+    flex-shrink: 0;
+    max-width: 44%;
+    text-align: right;
+    color: var(--gold);
+    overflow-wrap: anywhere;
+}
+
+.creditNote {
+    flex-shrink: 0;
+    max-width: 32%;
+    text-align: right;
+    color: var(--text-dim);
+}
+
+.creditLink {
+    color: var(--gold);
+}
+
+.empty {
+    padding: 4px 0;
+    font-size: 11px;
+    color: var(--text-dim);
+}

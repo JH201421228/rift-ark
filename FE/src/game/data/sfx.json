@@ -1,0 +1,936 @@
+{
+    "$comment": [
+        "효과음 정의 — **절차적 합성** (P3-14).",
+        "",
+        "★ 오디오 파일이 하나도 없다. 여기 적힌 파형·주파수·엔벨로프를 런타임에",
+        "  Web Audio 노드 그래프로 조립해 소리를 만든다. 용량 0 · 라이선스 0 · 로딩 0.",
+        "  16×16 굵은 픽셀 톤과 레트로 신스는 같은 계보다 (19-art-audio-direction.md §6.3).",
+        "",
+        "★ 코드는 논리 키(`hit.physical`)만 안다. 파형을 바꾸는 것은 데이터 변경이다",
+        "  (절대규칙 4·5). 키 목록의 단일 출처는 src/game/fx/sfxKeys.js 이며,",
+        "  tools/validate-data.mjs 가 양방향으로 대조한다 — 고아 키도, 정의 없는 키도 오류다.",
+        "",
+        "── 레이어 스키마 ─────────────────────────────────────────────",
+        "  src      'tone' | 'noise'",
+        "  wave     tone 전용. 'sine'|'square'|'sawtooth'|'triangle'",
+        "  freq     tone 전용. 시작 주파수(Hz)",
+        "  freqEnd  tone 전용. 있으면 감쇠 구간 동안 여기로 활강한다",
+        "  gain     레이어 피크 진폭 (0<g<=1)",
+        "  delay    시작 지연(초). 아르페지오·2단 타격은 이것으로 만든다",
+        "  attack   상승 시간(초)",
+        "  hold     피크 유지 시간(초, 생략 가능)",
+        "  decay    감쇠 시간(초)",
+        "  filter   { type, freq, q, freqEnd } — freqEnd 가 있으면 스윕한다",
+        "",
+        "── 재생 제한 ─────────────────────────────────────────────────",
+        "  cooldownMs  같은 키가 이 시간 안에 다시 요청되면 버린다",
+        "  maxVoices   같은 키의 동시 재생 상한",
+        "  pitchVar    피치 흔들림 폭. 0.08 이면 ±8%",
+        "              ★ 난수는 엔티티 id 해시에서 유도한다 — 시뮬 시드 PRNG 를",
+        "                절대 건드리지 않는다 (결정론·리플레이 보호)."
+    ],
+    "version": 1,
+    "$masterDoc": "전체 SFX 버스 게인. 설정의 실효 볼륨(sfxLevel)과 곱해진다. BGM 과 섞였을 때 타격음이 곡을 덮지 않는 지점.",
+    "master": 0.7,
+    "$limiterDoc": [
+        "동시 재생 상한. 광역 공격 한 번에 20마리가 죽으면 소리 20개가 겹쳐 찢어진다.",
+        "키별 상한(maxVoices)과 전역 상한(globalMaxVoices)을 함께 둔다 — 키별만 두면",
+        "서로 다른 12종이 한꺼번에 울리는 경우를 못 막는다.",
+        "",
+        "★ 전역 상한은 설정의 '이펙트 강도'로 함께 조절된다(EffectSystem 과 같은 표).",
+        "  저사양 기기에서 줄여야 하는 것은 개수이지 품질이 아니다 — 이미 울리고 있는",
+        "  소리를 끊지 않고, 예산을 넘긴 **새 요청만** 버린다."
+    ],
+    "limiter": {
+        "cooldownMs": 60,
+        "maxVoices": 3,
+        "globalMaxVoices": 12,
+        "maxDurationSec": 1.5
+    },
+    "sounds": {
+        "hit.physical": {
+            "$doc": "물리 타격 — 마른 노이즈 찰싹 + 저역 툭",
+            "gain": 1,
+            "cooldownMs": 35,
+            "maxVoices": 4,
+            "pitchVar": 0.08,
+            "layers": [
+                {
+                    "src": "noise",
+                    "gain": 0.55,
+                    "attack": 0.001,
+                    "decay": 0.06,
+                    "filter": {
+                        "type": "bandpass",
+                        "freq": 1600,
+                        "q": 1.2
+                    }
+                },
+                {
+                    "src": "tone",
+                    "wave": "square",
+                    "freq": 180,
+                    "freqEnd": 85,
+                    "gain": 0.28,
+                    "attack": 0.001,
+                    "decay": 0.07
+                }
+            ]
+        },
+        "hit.arcane": {
+            "$doc": "술식 타격 — 하강 사인 + 위쪽 반짝. 물리보다 길고 매끈하다",
+            "gain": 0.95,
+            "cooldownMs": 45,
+            "maxVoices": 3,
+            "pitchVar": 0.09,
+            "layers": [
+                {
+                    "src": "tone",
+                    "wave": "sine",
+                    "freq": 900,
+                    "freqEnd": 300,
+                    "gain": 0.4,
+                    "attack": 0.002,
+                    "decay": 0.13
+                },
+                {
+                    "src": "tone",
+                    "wave": "triangle",
+                    "freq": 1400,
+                    "freqEnd": 620,
+                    "gain": 0.16,
+                    "delay": 0.012,
+                    "attack": 0.002,
+                    "decay": 0.09
+                }
+            ]
+        },
+        "hit.holy": {
+            "$doc": "신성 타격 — 종. 5도 위 배음을 얹어 '축복'의 인상을 만든다",
+            "gain": 0.95,
+            "cooldownMs": 50,
+            "maxVoices": 3,
+            "pitchVar": 0.05,
+            "layers": [
+                {
+                    "src": "tone",
+                    "wave": "triangle",
+                    "freq": 700,
+                    "freqEnd": 660,
+                    "gain": 0.32,
+                    "attack": 0.003,
+                    "decay": 0.2
+                },
+                {
+                    "src": "tone",
+                    "wave": "sine",
+                    "freq": 1050,
+                    "gain": 0.2,
+                    "delay": 0.01,
+                    "attack": 0.003,
+                    "decay": 0.16
+                },
+                {
+                    "src": "noise",
+                    "gain": 0.12,
+                    "attack": 0.001,
+                    "decay": 0.05,
+                    "filter": {
+                        "type": "highpass",
+                        "freq": 5000
+                    }
+                }
+            ]
+        },
+        "hit.critical": {
+            "$doc": "치명타(약점 적중) — 상승 스퀘어 + 크랙. 일반 타격 위에 겹쳐 울린다",
+            "gain": 0.85,
+            "cooldownMs": 90,
+            "maxVoices": 2,
+            "pitchVar": 0.06,
+            "layers": [
+                {
+                    "src": "tone",
+                    "wave": "square",
+                    "freq": 260,
+                    "freqEnd": 1150,
+                    "gain": 0.32,
+                    "attack": 0.001,
+                    "hold": 0.01,
+                    "decay": 0.12
+                },
+                {
+                    "src": "noise",
+                    "gain": 0.5,
+                    "attack": 0.001,
+                    "decay": 0.09,
+                    "filter": {
+                        "type": "bandpass",
+                        "freq": 3000,
+                        "q": 0.8
+                    }
+                }
+            ]
+        },
+        "combat.block": {
+            "$doc": "블록 성립(피해 무효) — 금속. 불협 2음이 '튕겨냈다'를 만든다",
+            "gain": 0.7,
+            "cooldownMs": 60,
+            "maxVoices": 3,
+            "pitchVar": 0.06,
+            "layers": [
+                {
+                    "src": "tone",
+                    "wave": "square",
+                    "freq": 940,
+                    "gain": 0.22,
+                    "attack": 0.001,
+                    "decay": 0.055
+                },
+                {
+                    "src": "tone",
+                    "wave": "square",
+                    "freq": 1410,
+                    "gain": 0.14,
+                    "attack": 0.001,
+                    "decay": 0.045
+                },
+                {
+                    "src": "noise",
+                    "gain": 0.3,
+                    "attack": 0.001,
+                    "decay": 0.05,
+                    "filter": {
+                        "type": "bandpass",
+                        "freq": 4200,
+                        "q": 2.5
+                    }
+                }
+            ]
+        },
+        "unit.death_ally": {
+            "$doc": "아군 사망 — 하강 톱니 + 로우패스 닫힘. 적 사망보다 길고 어둡다",
+            "gain": 0.9,
+            "cooldownMs": 70,
+            "maxVoices": 2,
+            "pitchVar": 0.07,
+            "layers": [
+                {
+                    "src": "tone",
+                    "wave": "sawtooth",
+                    "freq": 320,
+                    "freqEnd": 70,
+                    "gain": 0.34,
+                    "attack": 0.004,
+                    "decay": 0.3,
+                    "filter": {
+                        "type": "lowpass",
+                        "freq": 1400,
+                        "freqEnd": 320,
+                        "q": 0.9
+                    }
+                }
+            ]
+        },
+        "unit.death_enemy": {
+            "$doc": "적 사망 — 짧은 퍽. 초당 수십 번 울리므로 가장 짧고 가장 흔들린다",
+            "gain": 0.8,
+            "cooldownMs": 45,
+            "maxVoices": 4,
+            "pitchVar": 0.12,
+            "layers": [
+                {
+                    "src": "noise",
+                    "gain": 0.5,
+                    "attack": 0.001,
+                    "decay": 0.17,
+                    "filter": {
+                        "type": "lowpass",
+                        "freq": 1000,
+                        "freqEnd": 220,
+                        "q": 0.8
+                    }
+                },
+                {
+                    "src": "tone",
+                    "wave": "square",
+                    "freq": 190,
+                    "freqEnd": 60,
+                    "gain": 0.22,
+                    "attack": 0.002,
+                    "decay": 0.13
+                }
+            ]
+        },
+        "ark.hit": {
+            "$doc": "방주 피격(돌파) — 가장 무거운 소리. 이것만은 놓치면 안 된다",
+            "gain": 1,
+            "cooldownMs": 140,
+            "maxVoices": 2,
+            "pitchVar": 0.04,
+            "layers": [
+                {
+                    "src": "tone",
+                    "wave": "sine",
+                    "freq": 95,
+                    "freqEnd": 42,
+                    "gain": 0.6,
+                    "attack": 0.002,
+                    "decay": 0.42
+                },
+                {
+                    "src": "noise",
+                    "gain": 0.4,
+                    "attack": 0.001,
+                    "decay": 0.3,
+                    "filter": {
+                        "type": "lowpass",
+                        "freq": 700,
+                        "freqEnd": 160,
+                        "q": 0.9
+                    }
+                }
+            ]
+        },
+        "boss.telegraph": {
+            "$doc": "보스 슬램 예고 — 상승 사이렌. 회피 가능성이 곧 실력 표현이다 (19 §4)",
+            "gain": 0.9,
+            "cooldownMs": 400,
+            "maxVoices": 1,
+            "pitchVar": 0.02,
+            "layers": [
+                {
+                    "src": "tone",
+                    "wave": "sine",
+                    "freq": 200,
+                    "freqEnd": 760,
+                    "gain": 0.35,
+                    "attack": 0.06,
+                    "hold": 0.1,
+                    "decay": 0.3,
+                    "filter": {
+                        "type": "lowpass",
+                        "freq": 2000,
+                        "q": 0.7
+                    }
+                },
+                {
+                    "src": "tone",
+                    "wave": "triangle",
+                    "freq": 300,
+                    "freqEnd": 1140,
+                    "gain": 0.14,
+                    "attack": 0.08,
+                    "decay": 0.3
+                }
+            ]
+        },
+        "boss.slam": {
+            "$doc": "보스 슬램 착탄 — 전투에서 가장 큰 소리. 상한 1로 겹침을 원천 차단",
+            "gain": 1,
+            "cooldownMs": 250,
+            "maxVoices": 1,
+            "pitchVar": 0.03,
+            "layers": [
+                {
+                    "src": "tone",
+                    "wave": "sine",
+                    "freq": 140,
+                    "freqEnd": 32,
+                    "gain": 0.75,
+                    "attack": 0.002,
+                    "decay": 0.5
+                },
+                {
+                    "src": "noise",
+                    "gain": 0.55,
+                    "attack": 0.001,
+                    "decay": 0.38,
+                    "filter": {
+                        "type": "lowpass",
+                        "freq": 500,
+                        "freqEnd": 110,
+                        "q": 0.9
+                    }
+                },
+                {
+                    "src": "tone",
+                    "wave": "square",
+                    "freq": 90,
+                    "freqEnd": 38,
+                    "gain": 0.25,
+                    "attack": 0.002,
+                    "decay": 0.3
+                }
+            ]
+        },
+        "unit.summon": {
+            "$doc": "아군 소환 — 상승 링. summon_ring 이펙트와 같은 타이밍",
+            "gain": 0.9,
+            "cooldownMs": 50,
+            "maxVoices": 3,
+            "pitchVar": 0.06,
+            "layers": [
+                {
+                    "src": "tone",
+                    "wave": "triangle",
+                    "freq": 440,
+                    "freqEnd": 880,
+                    "gain": 0.3,
+                    "attack": 0.006,
+                    "decay": 0.18
+                },
+                {
+                    "src": "tone",
+                    "wave": "sine",
+                    "freq": 660,
+                    "freqEnd": 1320,
+                    "gain": 0.14,
+                    "delay": 0.03,
+                    "attack": 0.006,
+                    "decay": 0.14
+                },
+                {
+                    "src": "noise",
+                    "gain": 0.12,
+                    "attack": 0.002,
+                    "decay": 0.08,
+                    "filter": {
+                        "type": "highpass",
+                        "freq": 2600
+                    }
+                }
+            ]
+        },
+        "unit.mana_short": {
+            "$doc": "마나 부족 — 짧은 하강 버즈. 거절은 짧고 낮아야 한다",
+            "gain": 0.7,
+            "cooldownMs": 220,
+            "maxVoices": 1,
+            "pitchVar": 0.03,
+            "layers": [
+                {
+                    "src": "tone",
+                    "wave": "square",
+                    "freq": 300,
+                    "freqEnd": 170,
+                    "gain": 0.3,
+                    "attack": 0.002,
+                    "decay": 0.13,
+                    "filter": {
+                        "type": "lowpass",
+                        "freq": 1200,
+                        "q": 0.8
+                    }
+                }
+            ]
+        },
+        "sigil.pick": {
+            "$doc": "각인 선택 — 상승 3화음 아르페지오",
+            "gain": 0.9,
+            "cooldownMs": 200,
+            "maxVoices": 1,
+            "pitchVar": 0,
+            "layers": [
+                {
+                    "src": "tone",
+                    "wave": "sine",
+                    "freq": 523,
+                    "gain": 0.28,
+                    "attack": 0.004,
+                    "decay": 0.16
+                },
+                {
+                    "src": "tone",
+                    "wave": "sine",
+                    "freq": 659,
+                    "gain": 0.28,
+                    "delay": 0.07,
+                    "attack": 0.004,
+                    "decay": 0.16
+                },
+                {
+                    "src": "tone",
+                    "wave": "sine",
+                    "freq": 784,
+                    "gain": 0.28,
+                    "delay": 0.14,
+                    "attack": 0.004,
+                    "decay": 0.24
+                }
+            ]
+        },
+        "sigil.evolve": {
+            "$doc": "각인 진화 — 4음. 선택보다 한 음 더 올라가고 끝에 반짝임이 붙는다",
+            "gain": 0.95,
+            "cooldownMs": 300,
+            "maxVoices": 1,
+            "pitchVar": 0,
+            "layers": [
+                {
+                    "src": "tone",
+                    "wave": "triangle",
+                    "freq": 523,
+                    "gain": 0.26,
+                    "attack": 0.004,
+                    "decay": 0.16
+                },
+                {
+                    "src": "tone",
+                    "wave": "triangle",
+                    "freq": 659,
+                    "gain": 0.26,
+                    "delay": 0.06,
+                    "attack": 0.004,
+                    "decay": 0.16
+                },
+                {
+                    "src": "tone",
+                    "wave": "triangle",
+                    "freq": 784,
+                    "gain": 0.26,
+                    "delay": 0.12,
+                    "attack": 0.004,
+                    "decay": 0.16
+                },
+                {
+                    "src": "tone",
+                    "wave": "triangle",
+                    "freq": 1046,
+                    "gain": 0.3,
+                    "delay": 0.18,
+                    "attack": 0.004,
+                    "decay": 0.3
+                },
+                {
+                    "src": "noise",
+                    "gain": 0.1,
+                    "delay": 0.18,
+                    "attack": 0.002,
+                    "decay": 0.1,
+                    "filter": {
+                        "type": "highpass",
+                        "freq": 4000
+                    }
+                }
+            ]
+        },
+        "meta.level_up": {
+            "$doc": "레벨업 — 스퀘어 3음 + 삼각파 착지음. 8비트 승급 관용구",
+            "gain": 0.9,
+            "cooldownMs": 250,
+            "maxVoices": 1,
+            "pitchVar": 0,
+            "layers": [
+                {
+                    "src": "tone",
+                    "wave": "square",
+                    "freq": 392,
+                    "gain": 0.18,
+                    "attack": 0.003,
+                    "decay": 0.12
+                },
+                {
+                    "src": "tone",
+                    "wave": "square",
+                    "freq": 523,
+                    "gain": 0.18,
+                    "delay": 0.08,
+                    "attack": 0.003,
+                    "decay": 0.12
+                },
+                {
+                    "src": "tone",
+                    "wave": "square",
+                    "freq": 659,
+                    "gain": 0.18,
+                    "delay": 0.16,
+                    "attack": 0.003,
+                    "decay": 0.12
+                },
+                {
+                    "src": "tone",
+                    "wave": "triangle",
+                    "freq": 784,
+                    "gain": 0.26,
+                    "delay": 0.24,
+                    "attack": 0.005,
+                    "decay": 0.34
+                }
+            ]
+        },
+        "ui.tap": {
+            "$doc": "버튼 탭 — 가장 자주 울린다. 30ms 아래로 짧게, 게인도 가장 낮게",
+            "gain": 0.6,
+            "cooldownMs": 30,
+            "maxVoices": 3,
+            "pitchVar": 0.04,
+            "layers": [
+                {
+                    "src": "tone",
+                    "wave": "square",
+                    "freq": 880,
+                    "gain": 0.18,
+                    "attack": 0.001,
+                    "decay": 0.035,
+                    "filter": {
+                        "type": "lowpass",
+                        "freq": 3000,
+                        "q": 0.7
+                    }
+                }
+            ]
+        },
+        "ui.transition": {
+            "$doc": "화면 전환 — 상승 스우시. 톤이 없어야 어느 화면에서든 배경음과 안 부딪친다",
+            "gain": 0.5,
+            "cooldownMs": 150,
+            "maxVoices": 1,
+            "pitchVar": 0.03,
+            "layers": [
+                {
+                    "src": "noise",
+                    "gain": 0.3,
+                    "attack": 0.04,
+                    "decay": 0.2,
+                    "filter": {
+                        "type": "highpass",
+                        "freq": 800,
+                        "freqEnd": 3200,
+                        "q": 0.8
+                    }
+                }
+            ]
+        },
+        "ui.purchase": {
+            "$doc": "구매 성립 — 동전 2음",
+            "gain": 0.7,
+            "cooldownMs": 120,
+            "maxVoices": 2,
+            "pitchVar": 0.02,
+            "layers": [
+                {
+                    "src": "tone",
+                    "wave": "square",
+                    "freq": 988,
+                    "gain": 0.2,
+                    "attack": 0.002,
+                    "decay": 0.07
+                },
+                {
+                    "src": "tone",
+                    "wave": "square",
+                    "freq": 1319,
+                    "gain": 0.18,
+                    "delay": 0.06,
+                    "attack": 0.002,
+                    "decay": 0.12
+                }
+            ]
+        },
+        "ui.reward": {
+            "$doc": "획득 — 밝은 3음. 구매보다 위쪽, 더 길게",
+            "gain": 0.8,
+            "cooldownMs": 150,
+            "maxVoices": 2,
+            "pitchVar": 0.02,
+            "layers": [
+                {
+                    "src": "tone",
+                    "wave": "triangle",
+                    "freq": 784,
+                    "gain": 0.24,
+                    "attack": 0.003,
+                    "decay": 0.12
+                },
+                {
+                    "src": "tone",
+                    "wave": "triangle",
+                    "freq": 1046,
+                    "gain": 0.24,
+                    "delay": 0.07,
+                    "attack": 0.003,
+                    "decay": 0.12
+                },
+                {
+                    "src": "tone",
+                    "wave": "triangle",
+                    "freq": 1318,
+                    "gain": 0.24,
+                    "delay": 0.14,
+                    "attack": 0.003,
+                    "decay": 0.26
+                }
+            ]
+        },
+        "ui.warn": {
+            "$doc": "경고 · 거절 — 낮은 2음 하강. 유일하게 아래로 내려가는 UI 음이다",
+            "gain": 0.7,
+            "cooldownMs": 250,
+            "maxVoices": 1,
+            "pitchVar": 0,
+            "layers": [
+                {
+                    "src": "tone",
+                    "wave": "square",
+                    "freq": 220,
+                    "gain": 0.24,
+                    "attack": 0.002,
+                    "decay": 0.13,
+                    "filter": {
+                        "type": "lowpass",
+                        "freq": 1400,
+                        "q": 0.8
+                    }
+                },
+                {
+                    "src": "tone",
+                    "wave": "square",
+                    "freq": 165,
+                    "gain": 0.24,
+                    "delay": 0.13,
+                    "attack": 0.002,
+                    "decay": 0.2,
+                    "filter": {
+                        "type": "lowpass",
+                        "freq": 1400,
+                        "q": 0.8
+                    }
+                }
+            ]
+        },
+        "result.victory": {
+            "$doc": "승리 — 4음 팡파르. 결과 화면이 뜨는 순간 한 번만",
+            "gain": 1,
+            "cooldownMs": 800,
+            "maxVoices": 1,
+            "pitchVar": 0,
+            "layers": [
+                {
+                    "src": "tone",
+                    "wave": "square",
+                    "freq": 523,
+                    "gain": 0.2,
+                    "attack": 0.004,
+                    "decay": 0.13
+                },
+                {
+                    "src": "tone",
+                    "wave": "square",
+                    "freq": 659,
+                    "gain": 0.2,
+                    "delay": 0.1,
+                    "attack": 0.004,
+                    "decay": 0.13
+                },
+                {
+                    "src": "tone",
+                    "wave": "square",
+                    "freq": 784,
+                    "gain": 0.2,
+                    "delay": 0.2,
+                    "attack": 0.004,
+                    "decay": 0.13
+                },
+                {
+                    "src": "tone",
+                    "wave": "triangle",
+                    "freq": 1046,
+                    "gain": 0.3,
+                    "delay": 0.3,
+                    "attack": 0.006,
+                    "decay": 0.5
+                },
+                {
+                    "src": "noise",
+                    "gain": 0.12,
+                    "delay": 0.3,
+                    "attack": 0.003,
+                    "decay": 0.12,
+                    "filter": {
+                        "type": "highpass",
+                        "freq": 3500
+                    }
+                }
+            ]
+        },
+        "result.defeat": {
+            "$doc": "패배 — 3음 하강. 로우패스가 계속 닫히며 '꺼지는' 인상을 만든다",
+            "gain": 0.9,
+            "cooldownMs": 800,
+            "maxVoices": 1,
+            "pitchVar": 0,
+            "layers": [
+                {
+                    "src": "tone",
+                    "wave": "sawtooth",
+                    "freq": 392,
+                    "freqEnd": 370,
+                    "gain": 0.22,
+                    "attack": 0.006,
+                    "decay": 0.2,
+                    "filter": {
+                        "type": "lowpass",
+                        "freq": 1200,
+                        "freqEnd": 600,
+                        "q": 0.8
+                    }
+                },
+                {
+                    "src": "tone",
+                    "wave": "sawtooth",
+                    "freq": 311,
+                    "freqEnd": 294,
+                    "gain": 0.22,
+                    "delay": 0.18,
+                    "attack": 0.006,
+                    "decay": 0.2,
+                    "filter": {
+                        "type": "lowpass",
+                        "freq": 1100,
+                        "freqEnd": 500,
+                        "q": 0.8
+                    }
+                },
+                {
+                    "src": "tone",
+                    "wave": "sawtooth",
+                    "freq": 233,
+                    "freqEnd": 196,
+                    "gain": 0.26,
+                    "delay": 0.36,
+                    "attack": 0.006,
+                    "decay": 0.55,
+                    "filter": {
+                        "type": "lowpass",
+                        "freq": 900,
+                        "freqEnd": 300,
+                        "q": 0.8
+                    }
+                }
+            ]
+        },
+        "commander.spell": {
+            "$doc": "지휘관 주문 발동 — 균열이 열리는 소리. 낮은 톤이 위로 열리고 그 위에 사인 배음. ★ 2026-08-07 이전에는 주문 성공에 소리가 하나도 없었고, **실패에만** 마나 부족음이 났다. 반응이 실패에만 있는 UI 는 '이 버튼은 작동하지 않는다'로 읽힌다. ★ 소환음(unit.summon)보다 한 옥타브 낮게 잡았다 — 소환은 잦고 주문은 드물어야 하며, 낮은 소리가 '더 큰 사건'으로 들린다.",
+            "gain": 0.95,
+            "cooldownMs": 120,
+            "maxVoices": 2,
+            "pitchVar": 0.03,
+            "layers": [
+                {
+                    "src": "tone",
+                    "wave": "triangle",
+                    "freq": 180,
+                    "freqEnd": 540,
+                    "gain": 0.34,
+                    "attack": 0.005,
+                    "decay": 0.26,
+                    "filter": {
+                        "type": "lowpass",
+                        "freq": 2400,
+                        "q": 0.7
+                    }
+                },
+                {
+                    "src": "tone",
+                    "wave": "sine",
+                    "freq": 540,
+                    "freqEnd": 810,
+                    "gain": 0.16,
+                    "delay": 0.04,
+                    "attack": 0.004,
+                    "decay": 0.2
+                },
+                {
+                    "src": "noise",
+                    "gain": 0.14,
+                    "attack": 0.002,
+                    "decay": 0.12,
+                    "filter": {
+                        "type": "highpass",
+                        "freq": 3200
+                    }
+                }
+            ]
+        },
+        "commander.down": {
+            "$doc": "지휘관 기절 — 8초간 오라가 통째로 사라지는, 전투에서 가장 큰 단일 사건이다. ★ 그런데 2026-08-07 이전에는 EV.COMMANDER_DOWN 의 소비처가 0개라 화면도 소리도 아무 말을 하지 않았다. 방주 피격(ark.hit)과 같은 무게로 아래로 떨어지되, 끝에 오라가 꺼지는 잔향을 남긴다.",
+            "gain": 1.0,
+            "cooldownMs": 400,
+            "maxVoices": 1,
+            "pitchVar": 0,
+            "layers": [
+                {
+                    "src": "tone",
+                    "wave": "sine",
+                    "freq": 320,
+                    "freqEnd": 70,
+                    "gain": 0.5,
+                    "attack": 0.002,
+                    "decay": 0.5
+                },
+                {
+                    "src": "tone",
+                    "wave": "triangle",
+                    "freq": 160,
+                    "freqEnd": 48,
+                    "gain": 0.24,
+                    "delay": 0.03,
+                    "attack": 0.004,
+                    "decay": 0.5
+                },
+                {
+                    "src": "noise",
+                    "gain": 0.3,
+                    "attack": 0.001,
+                    "decay": 0.34,
+                    "filter": {
+                        "type": "lowpass",
+                        "freq": 900,
+                        "freqEnd": 180,
+                        "q": 0.9
+                    }
+                }
+            ]
+        },
+        "commander.up": {
+            "$doc": "지휘관 재출격 — 기절의 반대. 위로 열리고 밝게 끝난다. 오라가 돌아왔다는 것이 이 게임에서 가장 중요한 '다시 시작' 신호다.",
+            "gain": 0.9,
+            "cooldownMs": 400,
+            "maxVoices": 1,
+            "pitchVar": 0,
+            "layers": [
+                {
+                    "src": "tone",
+                    "wave": "triangle",
+                    "freq": 330,
+                    "freqEnd": 880,
+                    "gain": 0.3,
+                    "attack": 0.006,
+                    "decay": 0.28
+                },
+                {
+                    "src": "tone",
+                    "wave": "sine",
+                    "freq": 660,
+                    "freqEnd": 1320,
+                    "gain": 0.16,
+                    "delay": 0.05,
+                    "attack": 0.005,
+                    "decay": 0.22
+                },
+                {
+                    "src": "noise",
+                    "gain": 0.1,
+                    "delay": 0.05,
+                    "attack": 0.002,
+                    "decay": 0.1,
+                    "filter": {
+                        "type": "highpass",
+                        "freq": 4200
+                    }
+                }
+            ]
+        }
+    }
+}

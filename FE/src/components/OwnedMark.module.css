@@ -1,0 +1,29 @@
+/**
+ * 보유 표기.
+ * ★ 색만으로 구분하지 않는다 — 글자("보유 중")와 체크 아이콘이 함께 있다.
+ * ★ 최소 글자 10px (check:a11y A4).
+ */
+
+.mark {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 1px 5px;
+    font-size: 10px;
+    line-height: 1.4;
+    color: #8ee0a6;
+    background: rgba(38, 92, 62, 0.34);
+    border: 1px solid #3a8a5c;
+    border-radius: 2px;
+    white-space: nowrap;
+}
+
+/*
+ * ⛔ `.ownedCard` 는 없앴다 (2026-08-05, 영입 탭 2단 재배치).
+ *
+ *   그 클래스는 `button:disabled { opacity: 0.6 }`(index.css) 이 보유·잠김·골드부족
+ *   **셋을 똑같이 눕히는 것**을 되돌리려고 있었다. 지금 영입 카드는 **아무것도
+ *   disabled 가 아니다** — 카드 탭은 사기가 아니라 고르기이고, 잠긴 것도 보유한 것도
+ *   눌러서 오른쪽에서 읽어야 하기 때문이다. 흐려지는 카드가 없으니 되돌릴 흐림도 없다.
+ *   남겨 두면 "선언했는데 아무도 읽지 않는 것"이 된다 (CLAUDE.md).
+ */

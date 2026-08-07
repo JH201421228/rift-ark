@@ -1,0 +1,271 @@
+/* 전투 결과 — docs/02-design/18-ux-ui.md §2.6 */
+
+.overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(8, 8, 16, 0.82);
+    pointer-events: auto;
+    animation: fadeIn 0.25s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+}
+
+.card {
+    /* 언어 전환 버튼이 모서리에 앉는 기준면 */
+    position: relative;
+    width: min(560px, 88%);
+    padding: 20px 24px;
+    background: #12121f;
+    border: 2px solid #3a3a5e;
+    border-radius: 4px;
+}
+
+/* ── 언어 전환 (2026-08-07) ───────────────────────────────────
+   ★★ 전투 **HUD 에는 두지 않는다.** 한 손으로 소환·주문을 누르는 화면이라
+     오조작 위험이 크고, 상단 한 줄은 이미 여섯 가지를 이고 있다.
+     전투가 멈춘 자리 — 일시정지 모달과 결과 카드 — 가 이 버튼의 자리다.
+   ★ `compact` 라 아이콘 하나(약 24px)이므로 제목 줄을 밀지 않는다.
+     그래도 제목과 겹치지 않게 오른쪽 위 모서리에 띄운다. */
+.lang {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+}
+
+.card.victory {
+    border-color: var(--gold);
+}
+.card.defeat {
+    border-color: #7a2a34;
+}
+
+.title {
+    margin: 0 0 2px;
+    font-size: 24px;
+}
+.victory .title {
+    color: var(--gold);
+}
+.defeat .title {
+    color: #e06070;
+}
+
+.sub {
+    margin: 0 0 14px;
+    font-size: 12px;
+    color: var(--text-dim);
+}
+
+.stars {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 14px;
+}
+/* 미획득 별은 지우지 않고 전용 off 스프라이트로 남긴다
+   — 몇 개짜리 스테이지인지가 보여야 한다 */
+.star.on {
+    animation: pop 0.32s ease-out backwards;
+}
+.star.on:nth-child(2) {
+    animation-delay: 0.12s;
+}
+.star.on:nth-child(3) {
+    animation-delay: 0.24s;
+}
+
+@keyframes pop {
+    from {
+        transform: scale(0.3);
+        opacity: 0;
+    }
+    70% {
+        transform: scale(1.25);
+    }
+}
+
+/* ★ 보상 — 별 바로 아래. 하드가 더 나은 이유가 여기서만 보인다 */
+.reward {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-bottom: 12px;
+    font-size: 14px;
+}
+.rewardItem {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--text);
+}
+.firstClear {
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: var(--accent, #c9a227);
+    color: #1a1a26;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.stats {
+    display: flex;
+    gap: 18px;
+    margin-bottom: 14px;
+    font-size: 12px;
+    color: var(--text-dim);
+}
+.stats b {
+    color: var(--text);
+}
+
+/* ★ 진단 — 이 블록이 "벽 = 편성 퍼즐" 설계를 실제로 작동시킨다 */
+.diagnosis {
+    padding: 12px 14px;
+    margin-bottom: 16px;
+    background: rgba(224, 96, 112, 0.08);
+    border-left: 3px solid #e06070;
+    border-radius: 2px;
+}
+
+.diagTitle {
+    margin: 0 0 6px;
+    font-size: 13px;
+    color: #e06070;
+}
+
+.diagBody {
+    margin: 0 0 8px;
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--text);
+}
+
+.hint {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.6;
+    color: #7ad0a0;
+}
+
+.actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn {
+    flex: 1;
+    min-height: 44px;
+    font-size: 13px;
+    color: var(--text);
+    background: #1e1e34;
+    border: 2px solid #3a3a5e;
+    border-radius: 3px;
+}
+
+.btn.primary {
+    color: #0f0f1e;
+    background: var(--gold);
+    border-color: var(--gold);
+}
+
+.btn.ad {
+    color: #7ad0ff;
+    border-color: #2a5a7e;
+}
+
+/* ── 새 동료 합류 (2026-08-04) ───────────────────────────────
+   ★ 확정 지급은 이미 로스터에 들어가고 있었는데 **알려 주지 않았다.**
+     100 스테이지 중 8곳에서 일어나고, 그중 몇은 다음 스테이지의 답이다. */
+.granted {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 6px 10px;
+    background: rgba(242, 179, 61, 0.1);
+    border: 2px solid var(--gold);
+    border-radius: 3px;
+}
+
+.grantedLabel {
+    font-size: 11px;
+    color: var(--gold);
+}
+
+.grantedItem {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: var(--text);
+}
+
+.grantedRole {
+    font-size: 10px;
+    color: var(--text-dim);
+}
+
+/**
+ * 보상형 광고 줄 (2026-08-07).
+ * ★ 보상 줄과 시각적으로 **구분**한다 — 받은 것과 받을 수 있는 것을 같은 무게로
+ *   그리면 플레이어가 광고를 보상의 일부로 오해한다.
+ * ★ `display: flex` 이므로 여기에 문장을 직접 넣지 않는다 (textLayout.test.js).
+ *   문장은 `.adNote` 안에 들어간다.
+ */
+.adRow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 2px;
+}
+
+.adBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    /* 터치 타깃 40px 하한 (18-ux-ui.md §1.2 · check:a11y) */
+    min-height: 40px;
+    padding: 2px 12px;
+    font-family: inherit;
+    font-size: 12px;
+    color: var(--text);
+    background: #232342;
+    border: 2px solid #3a3a5e;
+    border-radius: 3px;
+}
+
+.adBtn:hover:not(:disabled) {
+    border-color: var(--gold);
+}
+
+.adBtn:disabled {
+    opacity: 0.4;
+}
+
+.adLeft {
+    font-size: 11px;
+    color: var(--text-dim);
+}
+
+/* 받은 뒤에는 버튼 대신 이것만 남는다 — 대가가 눈에 보여야 한다 */
+.adGain {
+    font-size: 13px;
+    color: var(--gold);
+}
+
+/* ★ 문장이 들어가므로 block 이다 (flex 컨테이너 안에서 문장이 토막 나지 않게) */
+.adNote {
+    display: block;
+    flex-basis: 100%;
+    font-size: 11px;
+    color: var(--text-dim);
+}

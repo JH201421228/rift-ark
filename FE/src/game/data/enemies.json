@@ -1,0 +1,2785 @@
+{
+    "$comment": [
+        "적 정의. 세력 5종 — vermin(월드 1) · goblin(2) · undead(3) · lizard(4) · arcane(5).",
+        "★ 태그는 조합된다. ARMORED + FLYING 은 '술식 원거리'라는 2조건 답을 요구한다.",
+        "★ base 값은 스테이지 1 기준이며, stageConfig.js 가 구간별 감쇠 커브로 스케일한다.",
+        "  HP: 1.11^s (s≤30) → 1.075^s (≤80) → 1.055^s. 감쇠가 30–50 벽을 죽이는 구조적 처방이다.",
+        "",
+        "★★ def 와 res 는 스테이지 커브를 **타지 않는다** (stageConfig.js:scaleEnemy 는 hp·atk·speed 만 스케일).",
+        "  그래서 절대값인 DEF(=ARMORED)는 후반 월드로 갈수록 체감이 옅어지고,",
+        "  비율인 RES(=WARDED)와 회피 불가 무효화(SHIELDED)·회복(REGEN)이 실질 방어축이 된다.",
+        "  월드 4–5 가 ARMORED 반복 대신 SHIELDED 실체화 · WARDED+SWARM · 적의 arcane 근접에",
+        "  기대는 이유가 이것이다. ARMORED 태그는 여전히 프리뷰 경고와 추천 편성을 움직인다.",
+        "",
+        "★★ `archetype` 은 지웠다 (2026-08-05). 62/62 에 적혀 있었고 **읽는 코드가 0건**이었다.",
+        "  살릴지 지울지는 '그 분류가 무엇을 새로 말해 주는가'로 갈렸는데, 말해 주는 것이 없었다:",
+        "  runner(속도 34–44)가 swarm(44–72)보다 느렸고 runner 3종은 전부 SWARM 태그를 달고 있어",
+        "  둘을 가르는 근거가 데이터 안에 없었다. breaker 는 1종뿐이고, elite 18 중 12만 giant 다.",
+        "  게다가 스키마 문서가 적어 둔 값 목록(sniper · summoner)은 데이터에 하나도 없었다 —",
+        "  읽는 코드가 없으면 검사기도 없고, 검사기가 없으면 그 필드의 명세부터 썩는다.",
+        "  위협의 모양은 이미 tags(상성) · base.speed/range(사거리·속도) · giant 가 말한다.",
+        "  같은 사실을 손으로 한 번 더 적은 필드였고, 이미 그 사실과 어긋나 있었다.",
+        "",
+        "★★★ `role` 은 **여기 적힌 11종에만 있고, 나머지 51종은 없다(=MELEE)** (2026-08-05).",
+        "  그 전까지 적에게는 role 이 하나도 없어서 stageConfig.js:normalizeDef 가 62/62 를",
+        "  전부 MELEE 로 정규화했다. 그때 roles.js 의 PROJECTILE_ROLES 는 RANGED·CASTER·SIEGE 뿐이라,",
+        "  **사거리 120–190 을 가진 적 11종이 발사체 없이 즉발로 때렸다** — 화면에서",
+        "  원거리 적과 근접 적을 구분할 방법이 없었고, 피해가 도착하기까지의 시간도 없었다.",
+        "",
+        "★ **사거리에서 자동으로 파생시키지 않는다.** 파생 규칙을 두면 '왜 이 적이 원거리인가'를",
+        "  데이터가 아니라 코드가 정하게 되고, 사거리를 68→72 로 튜닝한 순간 그 적이 조용히",
+        "  발사체를 쏘기 시작한다. 여기에 명시하고, validate-data.mjs 가 사거리와 **대조**한다:",
+        "  근접 역할의 사거리 상한은 100 이고 (근접 최장은 창을 든 lizard_spearman 의 72),",
+        "  그 위는 전부 발사체 역할이어야 한다 (최단은 evil_wizard 의 120).",
+        "",
+        "★★ **FLYING 인 셋(floating_eye · ghastly_eye · warp_skull)은 지금 한 발도 쏘지 않는다.**",
+        "  비행 적은 AIR_LANE 으로 스폰되고 engage.js:stepCombat 이 그 레인의 적→아군 루프를",
+        "  통째로 건너뛴다 — 비행 적은 교전하지 않고 방주로 직행한다는 설계다. 그래서 그 셋의",
+        "  base.range 는 전투에서 한 번도 읽히지 않는다. 역할과 발사체를 그래도 적어 두는 이유는,",
+        "  '이 적이 무엇인가'는 그 규칙이 바뀌든 말든 참이고 규칙이 바뀌는 날 데이터가 비어 있으면",
+        "  그때 다시 같은 버그를 겪기 때문이다. **실제로 화면이 달라지는 것은 지상 8종이다.**"
+    ],
+    "enemies": [
+        {
+            "id": "foraging_maggot",
+            "name": {
+                "ko": "먹이찾는 구더기",
+                "en": "Foraging Maggot"
+            },
+            "faction": "vermin",
+            "tags": [
+                "SWARM",
+                "LIVING"
+            ],
+            "dmgType": "physical",
+            "base": {
+                "hp": 36,
+                "atk": 6,
+                "def": 1,
+                "res": 0,
+                "range": 32,
+                "speed": 34,
+                "atkInterval": 900
+            },
+            "breachDamage": 2,
+            "cost": 8,
+            "art": {
+                "atlas": "units",
+                "frame": "ForagingMaggot",
+                "scale": 4
+            }
+        },
+        {
+            "id": "infected_mouse",
+            "name": {
+                "ko": "감염된 쥐",
+                "en": "Infected Mouse"
+            },
+            "faction": "vermin",
+            "tags": [
+                "SWARM",
+                "LIVING"
+            ],
+            "dmgType": "physical",
+            "base": {
+                "hp": 44,
+                "atk": 8,
+                "def": 2,
+                "res": 0,
+                "range": 32,
+                "speed": 44,
+                "atkInterval": 800
+            },
+            "breachDamage": 2,
+            "cost": 10,
+            "art": {
+                "atlas": "units",
+                "frame": "InfectedMouse",
+                "scale": 4
+            }
+        },
+        {
+            "id": "tainted_cockroach",
+            "name": {
+                "ko": "오염된 바퀴벌레",
+                "en": "Tainted Cockroach"
+            },
+            "faction": "vermin",
+            "tags": [
+                "SWARM",
+                "LIVING"
+            ],
+            "dmgType": "physical",
+            "base": {
+                "hp": 52,
+                "atk": 7,
+                "def": 3,
+                "res": 0,
+                "range": 32,
+                "speed": 38,
+                "atkInterval": 850
+            },
+            "breachDamage": 3,
+            "cost": 11,
+            "art": {
+                "atlas": "units",
+                "frame": "TaintedCockroach",
+                "scale": 4
+            }
+        },
+        {
+            "id": "soldier_ant",
+            "name": {
+                "ko": "병정개미",
+                "en": "Soldier Ant"
+            },
+            "faction": "vermin",
+            "tags": [
+                "LIVING"
+            ],
+            "dmgType": "physical",
+            "base": {
+                "hp": 130,
+                "atk": 12,
+                "def": 6,
+                "res": 0,
+                "range": 36,
+                "speed": 26,
+                "atkInterval": 1000
+            },
+            "breachDamage": 4,
+            "cost": 16,
+            "art": {
+                "atlas": "units",
+                "frame": "SoldierAnt",
+                "scale": 4
+            }
+        },
+        {
+            "id": "acid_ant",
+            "name": {
+                "ko": "산성 개미",
+                "en": "Acid Ant"
+            },
+            "faction": "vermin",
+            "$comment": "ARMORED — 물리로는 잘 안 죽는다. 술식(견습 화염술사)이 정답.",
+            "tags": [
+                "ARMORED",
+                "LIVING"
+            ],
+            "dmgType": "physical",
+            "base": {
+                "hp": 150,
+                "atk": 14,
+                "def": 22,
+                "res": 0,
+                "range": 36,
+                "speed": 24,
+                "atkInterval": 1100
+            },
+            "breachDamage": 5,
+            "cost": 20,
+            "art": {
+                "atlas": "units",
+                "frame": "AcidAnt",
+                "scale": 4
+            }
+        },
+        {
+            "id": "swooping_bat",
+            "name": {
+                "ko": "급강하 박쥐",
+                "en": "Swooping Bat"
+            },
+            "faction": "vermin",
+            "$comment": "FLYING — 블로커를 무시하고 지나간다. 대공 수단이 없으면 그대로 방주에 도달한다.",
+            "tags": [
+                "FLYING",
+                "LIVING"
+            ],
+            "dmgType": "physical",
+            "base": {
+                "hp": 60,
+                "atk": 10,
+                "def": 2,
+                "res": 0,
+                "range": 28,
+                "speed": 56,
+                "atkInterval": 1000
+            },
+            "breachDamage": 4,
+            "cost": 14,
+            "art": {
+                "atlas": "units",
+                "frame": "SwoopingBat",
+                "scale": 4
+            }
+        },
+        {
+            "id": "dung_beetle",
+            "name": {
+                "ko": "쇠똥구리",
+                "en": "Dung Beetle"
+            },
+            "faction": "vermin",
+            "$comment": "breachDamage 가 높다 — 반드시 막아야 하는 적.",
+            "tags": [
+                "ARMORED",
+                "LIVING"
+            ],
+            "dmgType": "physical",
+            "base": {
+                "hp": 190,
+                "atk": 16,
+                "def": 18,
+                "res": 0,
+                "range": 36,
+                "speed": 22,
+                "atkInterval": 1200
+            },
+            "breachDamage": 12,
+            "cost": 24,
+            "art": {
+                "atlas": "units",
+                "frame": "DungBeetle",
+                "scale": 4
+            }
+        },
+        {
+            "id": "rhino_beetle",
+            "name": {
+                "ko": "코뿔소 딱정벌레",
+                "en": "Rhino Beetle"
+            },
+            "faction": "vermin",
+            "tags": [
+                "ARMORED",
+                "LIVING"
+            ],
+            "dmgType": "physical",
+            "base": {
+                "hp": 260,
+                "atk": 22,
+                "def": 26,
+                "res": 0,
+                "range": 40,
+                "speed": 20,
+                "atkInterval": 1300
+            },
+            "breachDamage": 15,
+            "cost": 32,
+            "art": {
+                "atlas": "units",
+                "frame": "RhinoBeetle",
+                "scale": 4
+            }
+        },
+        {
+            "id": "giant_rhino_beetle",
+            "name": {
+                "ko": "하수도의 어미",
+                "en": "Mother of the Sewers"
+            },
+            "faction": "vermin",
+            "$comment": "거대화 엘리트 — 별도 스프라이트가 아니라 giant 필드다. 보스 아트 없이도 관문을 만든다.",
+            "giant": {
+                "scale": 4,
+                "hpMult": 27,
+                "atkMult": 3.5,
+                "speedMult": 0.6
+            },
+            "$boss": [
+                "첫 보스 — 페이즈 개념을 가르친다 (P6-05).",
+                "1페이즈에는 슬램이 없다. 태그가 바뀐다는 것 하나만 먼저 배운다.",
+                "ARMORED(술식) → WARDED(물리) → 무방비 폭주(화력).",
+                "",
+                "★ def/res 는 절대값이다. 태그는 표시일 뿐이고 상성을 실제로",
+                "  만드는 것은 이 두 숫자다. ARMORED 인데 def 가 낮으면",
+                "  '갑옷을 입었다고 적혀 있지만 안 입은' 보스가 된다.",
+                "  res 는 0–100 퍼센트다.",
+                "",
+                "★ 마지막 페이즈에서 방어를 버리게 하는 것이 중요하다.",
+                "  ARMORED+WARDED 를 겹치면 '아무것도 안 통하는' 벽이 되고,",
+                "  그건 편성 퍼즐이 아니라 그냥 정지 화면이다."
+            ],
+            "boss": {
+                "phases": [
+                    {
+                        "at": 1,
+                        "name": {
+                            "ko": "갑각",
+                            "en": "Carapace"
+                        },
+                        "tags": [
+                            "ARMORED",
+                            "LIVING"
+                        ],
+                        "def": 26,
+                        "res": 0,
+                        "slamEveryMs": 0
+                    },
+                    {
+                        "at": 0.8,
+                        "name": {
+                            "ko": "탈피",
+                            "en": "Molt"
+                        },
+                        "tags": [
+                            "WARDED",
+                            "LIVING"
+                        ],
+                        "def": 4,
+                        "res": 45,
+                        "atkMult": 1.1,
+                        "speedMult": 1.1,
+                        "slamEveryMs": 10000,
+                        "slamDamageMult": 0.85,
+                        "slamRadius": 88
+                    },
+                    {
+                        "at": 0.5,
+                        "name": {
+                            "ko": "광란",
+                            "en": "Frenzy"
+                        },
+                        "tags": [
+                            "LIVING"
+                        ],
+                        "def": 5,
+                        "res": 10,
+                        "atkMult": 1.35,
+                        "speedMult": 1.45,
+                        "slamEveryMs": 8000,
+                        "slamDamageMult": 1,
+                        "slamRadius": 96
+                    }
+                ]
+            },
+            "tags": [
+                "ARMORED",
+                "LIVING"
+            ],
+            "dmgType": "physical",
+            "base": {
+                "hp": 260,
+                "atk": 22,
+                "def": 26,
+                "res": 0,
+                "range": 48,
+                "speed": 20,
+                "atkInterval": 1600
+            },
+            "breachDamage": 25,
+            "cost": 60,
+            "art": {
+                "atlas": "units",
+                "frame": "RhinoBeetle",
+                "outline": "0xff3344"
+            }
+        },
+        {
+            "id": "goblin_scrapper",
+            "name": {
+                "ko": "고블린 잡졸",
+                "en": "Goblin Scrapper"
+            },
+            "faction": "goblin",
+            "$comment": "월드 2 기본 물량. 하수도 해충보다 빠르고 조금 단단하다.",
+            "tags": [
+                "SWARM",
+                "LIVING"
+            ],
+            "dmgType": "physical",
+            "base": {
+                "hp": 70,
+                "atk": 9,
+                "def": 3,
+                "res": 0,
+                "range": 28,
+                "speed": 52,
+                "atkInterval": 900
+            },
+            "breachDamage": 3,
+            "cost": 9,
+            "art": {
+                "atlas": "units",
+                "frame": "GoblinFighter",
+                "scale": 4
+            }
+        },
+        {
+            "id": "goblin_slinger",
+            "name": {
+                "ko": "고블린 투석수",
+                "en": "Goblin Slinger"
+            },
+            "faction": "goblin",
+            "$comment": "★ 첫 원거리 적. 방벽만 세워두면 뒤에서 계속 맞는다 — 아군 사거리로 먼저 끊어야 한다.",
+            "tags": [
+                "LIVING"
+            ],
+            "role": "RANGED",
+            "dmgType": "physical",
+            "base": {
+                "hp": 64,
+                "atk": 14,
+                "def": 2,
+                "res": 0,
+                "range": 150,
+                "speed": 44,
+                "atkInterval": 1400
+            },
+            "breachDamage": 4,
+            "cost": 13,
+            "art": {
+                "projectile": { "shape": "3_0", "$note": "돌팔매" },
+                "atlas": "units",
+                "frame": "GoblinArcher",
+                "scale": 4
+            }
+        },
+        {
+            "id": "wolf_rider",
+            "name": {
+                "ko": "늑대 기수",
+                "en": "Wolf Rider"
+            },
+            "faction": "goblin",
+            "$comment": "★ 고속 돌진. 블로커가 배치되기 전에 지나간다 — 선배치를 강제한다.",
+            "tags": [
+                "LIVING"
+            ],
+            "dmgType": "physical",
+            "base": {
+                "hp": 130,
+                "atk": 22,
+                "def": 6,
+                "res": 0,
+                "range": 32,
+                "speed": 82,
+                "atkInterval": 1000
+            },
+            "breachDamage": 9,
+            "cost": 20,
+            "art": {
+                "atlas": "units",
+                "frame": "GoblinWolfRider",
+                "scale": 4
+            }
+        },
+        {
+            "id": "red_cap",
+            "name": {
+                "ko": "붉은 모자",
+                "en": "Red Cap"
+            },
+            "faction": "goblin",
+            "tags": [
+                "ARMORED",
+                "LIVING"
+            ],
+            "dmgType": "physical",
+            "base": {
+                "hp": 230,
+                "atk": 30,
+                "def": 24,
+                "res": 0,
+                "range": 36,
+                "speed": 34,
+                "atkInterval": 1500
+            },
+            "breachDamage": 14,
+            "cost": 26,
+            "art": {
+                "atlas": "units",
+                "frame": "RedCap",
+                "scale": 4
+            }
+        },
+        {
+            "id": "goblin_occultist",
+            "name": {
+                "ko": "고블린 주술사",
+                "en": "Goblin Occultist"
+            },
+            "faction": "goblin",
+            "$comment": "★ 첫 WARDED. RES 45 라 술식이 잘 안 통한다 — 물리로 우회해야 한다.",
+            "tags": [
+                "WARDED",
+                "LIVING"
+            ],
+            "role": "CASTER",
+            "dmgType": "arcane",
+            "base": {
+                "hp": 110,
+                "atk": 26,
+                "def": 2,
+                "res": 45,
+                "range": 170,
+                "speed": 36,
+                "atkInterval": 1800
+            },
+            "breachDamage": 8,
+            "cost": 24,
+            "art": {
+                "projectile": { "shape": "7_6", "$note": "주술탄" },
+                "atlas": "units",
+                "frame": "GoblinOccultist",
+                "scale": 4
+            }
+        },
+        {
+            "id": "grinning_gremlin",
+            "name": {
+                "ko": "낄낄대는 그렘린",
+                "en": "Grinning Gremlin"
+            },
+            "faction": "goblin",
+            "$comment": "FLYING+SWARM — 대공 하나로는 처리량이 모자란다.",
+            "tags": [
+                "FLYING",
+                "SWARM",
+                "LIVING"
+            ],
+            "dmgType": "physical",
+            "base": {
+                "hp": 78,
+                "atk": 12,
+                "def": 2,
+                "res": 0,
+                "range": 28,
+                "speed": 66,
+                "atkInterval": 900
+            },
+            "breachDamage": 5,
+            "cost": 15,
+            "art": {
+                "atlas": "units",
+                "frame": "GrinningGremlin",
+                "scale": 4
+            }
+        },
+        {
+            "id": "stone_troll",
+            "name": {
+                "ko": "돌 트롤",
+                "en": "Stone Troll"
+            },
+            "faction": "goblin",
+            "$comment": "★ 첫 REGEN. 찔끔찔끔 때리면 회복이 더 빠르다 — 버스트를 요구한다.",
+            "tags": [
+                "ARMORED",
+                "REGEN",
+                "LIVING"
+            ],
+            "dmgType": "physical",
+            "base": {
+                "hp": 420,
+                "atk": 38,
+                "def": 30,
+                "res": 0,
+                "range": 36,
+                "speed": 24,
+                "atkInterval": 1700
+            },
+            "breachDamage": 22,
+            "cost": 38,
+            "art": {
+                "atlas": "units",
+                "frame": "StoneTroll",
+                "scale": 4
+            }
+        },
+        {
+            "id": "brawny_ogre",
+            "name": {
+                "ko": "우람한 오우거",
+                "en": "Brawny Ogre"
+            },
+            "faction": "goblin",
+            "tags": [
+                "ARMORED",
+                "LIVING"
+            ],
+            "dmgType": "physical",
+            "base": {
+                "hp": 380,
+                "atk": 44,
+                "def": 28,
+                "res": 0,
+                "range": 40,
+                "speed": 26,
+                "atkInterval": 1800
+            },
+            "breachDamage": 26,
+            "cost": 44,
+            "art": {
+                "atlas": "units",
+                "frame": "BrawnyOgre",
+                "scale": 4
+            }
+        },
+        {
+            "id": "humongous_ettin",
+            "name": {
+                "ko": "두 머리 산주인",
+                "en": "Lord of Two Heads"
+            },
+            "faction": "goblin",
+            "$comment": [
+                "★ P6-06 에서 배치를 내렸다 (현재 어느 스테이지에도 서지 않는다).",
+                "  이유는 약해서가 아니라 **giant_rhino_beetle 과 페이즈 시퀀스가 완전히 같아서**다",
+                "  (ARMORED+LIVING → WARDED+LIVING → LIVING). 같은 질문을 두 번 묻는 보스는",
+                "  월드가 하나 늘어나도 콘텐츠가 늘지 않는다.",
+                "  정의는 남긴다 — 월드 4–5(P6-03)에서 태그 시퀀스를 바꿔 재배치할 후보다."
+            ],
+            "$boss": [
+                "두 번째 보스 — 1페이즈부터 슬램이 있다. 예고를 보고 지휘관을 빼는",
+                "조작이 여기서 필수가 된다."
+            ],
+            "boss": {
+                "phases": [
+                    {
+                        "at": 1,
+                        "name": {
+                            "ko": "왼쪽 머리",
+                            "en": "Left Head"
+                        },
+                        "tags": [
+                            "ARMORED",
+                            "LIVING"
+                        ],
+                        "def": 32,
+                        "res": 0,
+                        "slamEveryMs": 11000,
+                        "slamDamageMult": 0.8,
+                        "slamRadius": 88
+                    },
+                    {
+                        "at": 0.8,
+                        "name": {
+                            "ko": "오른쪽 머리",
+                            "en": "Right Head"
+                        },
+                        "tags": [
+                            "WARDED",
+                            "LIVING"
+                        ],
+                        "def": 5,
+                        "res": 46,
+                        "atkMult": 1.15,
+                        "speedMult": 1.15,
+                        "slamEveryMs": 9000,
+                        "slamDamageMult": 0.95,
+                        "slamRadius": 96
+                    },
+                    {
+                        "at": 0.5,
+                        "name": {
+                            "ko": "두 머리",
+                            "en": "Both Heads"
+                        },
+                        "tags": [
+                            "LIVING"
+                        ],
+                        "def": 6,
+                        "res": 12,
+                        "atkMult": 1.45,
+                        "speedMult": 1.5,
+                        "slamEveryMs": 7000,
+                        "slamDamageMult": 1.1,
+                        "slamRadius": 104
+                    }
+                ]
+            },
+            "tags": [
+                "ARMORED",
+                "LIVING"
+            ],
+            "dmgType": "physical",
+            "base": {
+                "hp": 420,
+                "atk": 40,
+                "def": 32,
+                "res": 0,
+                "range": 40,
+                "speed": 22,
+                "atkInterval": 1700
+            },
+            "breachDamage": 30,
+            "cost": 70,
+            "art": {
+                "atlas": "units",
+                "frame": "HumongousEttin",
+                "scale": 4
+            },
+            "giant": {
+                "scale": 4,
+                "hpMult": 29,
+                "atkMult": 3.6,
+                "speedMult": 0.62
+            }
+        },
+        {
+            "id": "decrepit_bones",
+            "name": {
+                "ko": "삭은 뼈",
+                "en": "Decrepit Bones"
+            },
+            "faction": "undead",
+            "$comment": "★ 첫 CORRUPT. 신성 피해가 1.6배 들어간다 — 신성 동료가 갑자기 주력이 된다.",
+            "tags": [
+                "SWARM",
+                "CORRUPT"
+            ],
+            "dmgType": "physical",
+            "base": {
+                "hp": 88,
+                "atk": 11,
+                "def": 6,
+                "res": 0,
+                "range": 28,
+                "speed": 44,
+                "atkInterval": 1000
+            },
+            "breachDamage": 4,
+            "cost": 11,
+            "art": {
+                "atlas": "units",
+                "frame": "DecrepitBones",
+                "scale": 4
+            }
+        },
+        {
+            "id": "bound_cadaver",
+            "name": {
+                "ko": "결박된 시체",
+                "en": "Bound Cadaver"
+            },
+            "faction": "undead",
+            "tags": [
+                "CORRUPT",
+                "ARMORED"
+            ],
+            "dmgType": "physical",
+            "base": {
+                "hp": 280,
+                "atk": 26,
+                "def": 26,
+                "res": 0,
+                "range": 36,
+                "speed": 26,
+                "atkInterval": 1600
+            },
+            "breachDamage": 16,
+            "cost": 24,
+            "art": {
+                "atlas": "units",
+                "frame": "BoundCadaver",
+                "scale": 4
+            }
+        },
+        {
+            "id": "carcass_feeder",
+            "name": {
+                "ko": "시체 포식자",
+                "en": "Carcass Feeder"
+            },
+            "faction": "undead",
+            "tags": [
+                "CORRUPT",
+                "REGEN"
+            ],
+            "dmgType": "physical",
+            "base": {
+                "hp": 200,
+                "atk": 30,
+                "def": 8,
+                "res": 0,
+                "range": 32,
+                "speed": 74,
+                "atkInterval": 1100
+            },
+            "breachDamage": 12,
+            "cost": 22,
+            "art": {
+                "atlas": "units",
+                "frame": "CarcassFeeder",
+                "scale": 4
+            }
+        },
+        {
+            "id": "skittering_hand",
+            "name": {
+                "ko": "기어다니는 손",
+                "en": "Skittering Hand"
+            },
+            "faction": "undead",
+            "tags": [
+                "SWARM",
+                "CORRUPT"
+            ],
+            "dmgType": "physical",
+            "base": {
+                "hp": 56,
+                "atk": 8,
+                "def": 2,
+                "res": 0,
+                "range": 28,
+                "speed": 70,
+                "atkInterval": 700
+            },
+            "breachDamage": 2,
+            "cost": 8,
+            "art": {
+                "atlas": "units",
+                "frame": "SkitteringHand",
+                "scale": 4
+            }
+        },
+        {
+            "id": "vampire_bat",
+            "name": {
+                "ko": "흡혈 박쥐",
+                "en": "Vampire Bat"
+            },
+            "faction": "undead",
+            "$comment": "FLYING+REGEN — 대공이 있어도 화력이 모자라면 계속 회복하며 넘어간다.",
+            "tags": [
+                "FLYING",
+                "CORRUPT",
+                "REGEN"
+            ],
+            "dmgType": "physical",
+            "base": {
+                "hp": 120,
+                "atk": 18,
+                "def": 4,
+                "res": 0,
+                "range": 28,
+                "speed": 70,
+                "atkInterval": 900
+            },
+            "breachDamage": 7,
+            "cost": 19,
+            "art": {
+                "atlas": "units",
+                "frame": "VampireBat",
+                "scale": 4
+            }
+        },
+        {
+            "id": "warp_skull",
+            "name": {
+                "ko": "일그러진 해골",
+                "en": "Warp Skull"
+            },
+            "faction": "undead",
+            "$comment": "★ FLYING+WARDED 2조건. 대공이면서 물리인 답이 필요하다.",
+            "tags": [
+                "FLYING",
+                "WARDED",
+                "CORRUPT"
+            ],
+            "role": "CASTER",
+            "dmgType": "arcane",
+            "base": {
+                "hp": 140,
+                "atk": 30,
+                "def": 4,
+                "res": 50,
+                "range": 190,
+                "speed": 40,
+                "atkInterval": 1900
+            },
+            "breachDamage": 10,
+            "cost": 30,
+            "art": {
+                "projectile": { "shape": "0_6", "$note": "저주 구체" },
+                "atlas": "units",
+                "frame": "WarpSkull",
+                "scale": 4
+            }
+        },
+        {
+            "id": "grave_revenant",
+            "name": {
+                "ko": "무덤의 망령",
+                "en": "Grave Revenant"
+            },
+            "faction": "undead",
+            "tags": [
+                "CORRUPT",
+                "WARDED",
+                "SHIELDED"
+            ],
+            "dmgType": "physical",
+            "base": {
+                "hp": 340,
+                "atk": 40,
+                "def": 14,
+                "res": 40,
+                "range": 36,
+                "speed": 30,
+                "atkInterval": 1500
+            },
+            "breachDamage": 24,
+            "cost": 40,
+            "art": {
+                "atlas": "units",
+                "frame": "GraveRevenant",
+                "scale": 4
+            }
+        },
+        {
+            "id": "sand_ghoul",
+            "name": {
+                "ko": "모래 구울",
+                "en": "Sand Ghoul"
+            },
+            "faction": "undead",
+            "tags": [
+                "CORRUPT"
+            ],
+            "dmgType": "physical",
+            "base": {
+                "hp": 170,
+                "atk": 24,
+                "def": 10,
+                "res": 0,
+                "range": 32,
+                "speed": 78,
+                "atkInterval": 1000
+            },
+            "breachDamage": 10,
+            "cost": 18,
+            "art": {
+                "atlas": "units",
+                "frame": "SandGhoul",
+                "scale": 4
+            }
+        },
+        {
+            "id": "death_slime",
+            "name": {
+                "ko": "죽음의 점액",
+                "en": "Death Slime"
+            },
+            "faction": "undead",
+            "$comment": [
+                "★ P6-06 에서 배치를 내렸다 (현재 어느 스테이지에도 서지 않는다).",
+                "  3-20 자리는 균열의 술사(evil_wizard)가 가져갔다 — 캠페인 1부의 마지막은",
+                "  '유일한 원거리·술식 보스'라는 새 질문이어야지 REGEN 의 반복이면 안 된다.",
+                "  REGEN 축 자체는 3-10 의 무덤의 처형인이 더 날카롭게 이어받았다",
+                "  (재생이 3페이즈에 **되돌아온다**).",
+                "  정의는 남긴다 — 월드 4–5(P6-03) 재배치 후보."
+            ],
+            "$boss": [
+                "세 번째 보스 — CORRUPT 가 전 페이즈에 유지된다. 신성이 상시 특효지만,",
+                "신성은 RES 로 감산되므로 2페이즈(WARDED)에서 혼자서는 부족하다.",
+                "★ 마지막 페이즈에서 REGEN 이 사라진다 — 회복이 멈추는 순간이",
+                "  '지금 몰아쳐라'는 신호이자 보상이다."
+            ],
+            "boss": {
+                "phases": [
+                    {
+                        "at": 1,
+                        "name": {
+                            "ko": "응고",
+                            "en": "Congeal"
+                        },
+                        "tags": [
+                            "CORRUPT",
+                            "ARMORED",
+                            "REGEN"
+                        ],
+                        "def": 30,
+                        "res": 0,
+                        "slamEveryMs": 10000,
+                        "slamDamageMult": 0.85,
+                        "slamRadius": 92
+                    },
+                    {
+                        "at": 0.8,
+                        "name": {
+                            "ko": "분열",
+                            "en": "Split"
+                        },
+                        "tags": [
+                            "CORRUPT",
+                            "WARDED"
+                        ],
+                        "def": 5,
+                        "res": 44,
+                        "atkMult": 1.15,
+                        "speedMult": 1.2,
+                        "slamEveryMs": 8500,
+                        "slamDamageMult": 1,
+                        "slamRadius": 100
+                    },
+                    {
+                        "at": 0.5,
+                        "name": {
+                            "ko": "붕괴",
+                            "en": "Collapse"
+                        },
+                        "tags": [
+                            "CORRUPT"
+                        ],
+                        "def": 5,
+                        "res": 10,
+                        "atkMult": 1.5,
+                        "speedMult": 1.55,
+                        "slamEveryMs": 6500,
+                        "slamDamageMult": 1.15,
+                        "slamRadius": 108
+                    }
+                ],
+                "$note": "REGEN 은 1페이즈에만 둔다 — 방어 페이즈와 겹치면 순DPS가 회복량 아래로 떨어져 보스가 죽지 않는다 (실측)."
+            },
+            "tags": [
+                "CORRUPT",
+                "REGEN",
+                "ARMORED"
+            ],
+            "dmgType": "physical",
+            "base": {
+                "hp": 400,
+                "atk": 36,
+                "def": 30,
+                "res": 0,
+                "range": 40,
+                "speed": 20,
+                "atkInterval": 1800
+            },
+            "breachDamage": 34,
+            "cost": 76,
+            "art": {
+                "atlas": "units",
+                "frame": "DeathSlime",
+                "scale": 4
+            },
+            "giant": {
+                "scale": 4,
+                "hpMult": 32,
+                "atkMult": 3.4,
+                "speedMult": 0.55
+            }
+        },
+        {
+            "id": "royal_scarab_matriarch",
+            "name": {
+                "ko": "황금 갑충 여왕",
+                "en": "Royal Scarab Matriarch"
+            },
+            "faction": "vermin",
+            "$comment": "월드 1 최종 관문. 거대화 엘리트 — 보스 아트 없이 관문을 만든다.",
+            "$boss": [
+                "고유 축: **순서가 뒤집힌다.**",
+                "1-10 의 어미는 ARMORED → WARDED 였다. 그 순서를 외운 플레이어는",
+                "여기서 1페이즈에 물리를 넣어야 하는데 술식을 넣는다.",
+                "★ 이것이 '보스마다 다른 답'의 가장 싼 형태다 — 새 태그를 만들지 않고",
+                "  **이미 아는 두 태그의 순서만 바꿔도** 편성이 아니라 운영이 달라진다.",
+                "★ 1페이즈부터 슬램이 있다. 월드 1 졸업 시험이므로 회피도 함께 본다."
+            ],
+            "boss": {
+                "phases": [
+                    {
+                        "at": 1,
+                        "name": {
+                            "ko": "금빛 갑피",
+                            "en": "Gilded Shell"
+                        },
+                        "tags": [
+                            "WARDED",
+                            "LIVING"
+                        ],
+                        "def": 6,
+                        "res": 48,
+                        "slamEveryMs": 10000,
+                        "slamDamageMult": 0.85,
+                        "slamRadius": 92
+                    },
+                    {
+                        "at": 0.75,
+                        "name": {
+                            "ko": "갑피 경화",
+                            "en": "Chitin Lock"
+                        },
+                        "tags": [
+                            "ARMORED",
+                            "LIVING"
+                        ],
+                        "def": 36,
+                        "res": 0,
+                        "atkMult": 1.15,
+                        "speedMult": 1.15,
+                        "slamEveryMs": 8500,
+                        "slamDamageMult": 0.95,
+                        "slamRadius": 100
+                    },
+                    {
+                        "at": 0.45,
+                        "name": {
+                            "ko": "산란 폭주",
+                            "en": "Spawn Surge"
+                        },
+                        "tags": [
+                            "LIVING"
+                        ],
+                        "def": 6,
+                        "res": 10,
+                        "atkMult": 1.5,
+                        "speedMult": 1.55,
+                        "atkIntervalMult": 0.85,
+                        "slamEveryMs": 6500,
+                        "slamDamageMult": 1.1,
+                        "slamRadius": 110
+                    }
+                ]
+            },
+            "tags": [
+                "WARDED",
+                "LIVING"
+            ],
+            "dmgType": "physical",
+            "base": {
+                "hp": 300,
+                "atk": 26,
+                "def": 6,
+                "res": 48,
+                "range": 44,
+                "speed": 20,
+                "atkInterval": 1500
+            },
+            "breachDamage": 28,
+            "cost": 66,
+            "art": {
+                "atlas": "units",
+                "frame": "GiantRoyalScarab",
+                "outline": "0xffcc44"
+            },
+            "giant": {
+                "scale": 4,
+                "hpMult": 70,
+                "atkMult": 4.3,
+                "speedMult": 0.6
+            }
+        },
+        {
+            "id": "crushing_cyclops",
+            "name": {
+                "ko": "짓뭉개는 외눈거인",
+                "en": "Crushing Cyclops"
+            },
+            "faction": "goblin",
+            "$comment": "월드 2 첫 보스. 거대화 엘리트 — 고블린이 부린 용병 거인.",
+            "$boss": [
+                "고유 축: **무방비 구간이 없다.**",
+                "다른 보스는 마지막 페이즈에서 방어를 완전히 버리지만 이 녀석은",
+                "얇아진 장갑(24)을 끝까지 걸치고 있다. 대신 슬램 반경이 전 보스 중 최대다.",
+                "★ 그래서 답이 '몰아치기'가 아니라 **'끝까지 술식을 유지하면서 슬램을 피하기'** 다.",
+                "  화력을 아꼈다가 마지막에 터뜨리는 운영이 여기서는 통하지 않는다.",
+                "★ 마지막 def 24 는 최대 def 38 보다 낮다 — 처치 창구는 열리되 좁다."
+            ],
+            "boss": {
+                "phases": [
+                    {
+                        "at": 1,
+                        "name": {
+                            "ko": "바위 껍질",
+                            "en": "Stone Hide"
+                        },
+                        "tags": [
+                            "ARMORED",
+                            "LIVING"
+                        ],
+                        "def": 38,
+                        "res": 0,
+                        "slamEveryMs": 9500,
+                        "slamDamageMult": 0.9,
+                        "slamRadius": 110
+                    },
+                    {
+                        "at": 0.7,
+                        "name": {
+                            "ko": "외눈 각성",
+                            "en": "Eye Awakens"
+                        },
+                        "tags": [
+                            "WARDED",
+                            "LIVING"
+                        ],
+                        "def": 6,
+                        "res": 50,
+                        "atkMult": 1.2,
+                        "speedMult": 1.1,
+                        "slamEveryMs": 8000,
+                        "slamDamageMult": 1,
+                        "slamRadius": 120
+                    },
+                    {
+                        "at": 0.4,
+                        "name": {
+                            "ko": "최후의 일격",
+                            "en": "Final Blow"
+                        },
+                        "tags": [
+                            "ARMORED",
+                            "LIVING"
+                        ],
+                        "def": 24,
+                        "res": 0,
+                        "atkMult": 1.45,
+                        "speedMult": 1.35,
+                        "atkIntervalMult": 0.85,
+                        "slamEveryMs": 6000,
+                        "slamDamageMult": 1.2,
+                        "slamRadius": 132
+                    }
+                ]
+            },
+            "tags": [
+                "ARMORED",
+                "LIVING"
+            ],
+            "dmgType": "physical",
+            "base": {
+                "hp": 400,
+                "atk": 42,
+                "def": 38,
+                "res": 0,
+                "range": 44,
+                "speed": 22,
+                "atkInterval": 1750
+            },
+            "breachDamage": 30,
+            "cost": 72,
+            "art": {
+                "atlas": "units",
+                "frame": "CrushingCyclops",
+                "outline": "0xff8844"
+            },
+            "giant": {
+                "scale": 4,
+                "hpMult": 36,
+                "atkMult": 3.5,
+                "speedMult": 0.6
+            }
+        },
+        {
+            "id": "mecha_golem",
+            "name": {
+                "ko": "고철 거신",
+                "en": "Mecha Golem"
+            },
+            "faction": "goblin",
+            "$comment": [
+                "월드 2 최종 보스. 고블린이 파낸 고대 병기 — **전용 보스 아트**를 쓴다.",
+                "★ giant.scale 은 1 이다. 100×100 원본이라 몬스터 16×16 처럼 ×16 하면 화면을 덮는다.",
+                "  거대함은 스케일이 아니라 hpMult·atkMult 가 만든다 (giant 필드는 '보스다'의 표식이기도 하다)."
+            ],
+            "$boss": [
+                "고유 축: **살아 있지 않다.**",
+                "LIVING 도 CORRUPT 도 없는 유일한 보스다. 신성은 여기서 특효(×1.6)도",
+                "페널티(×0.7)도 받지 않는다 — 신성 편성이 처음으로 '평범해지는' 상대다.",
+                "★ 두 번째 축: **마지막 페이즈가 가장 위험하다.**",
+                "  1페이즈는 슬램조차 없는 느린 장갑 덩어리지만, 3페이즈는 HP 35% 구간에서",
+                "  공격 1.9배 · 이동 1.75배 · 슬램 4.5초다. 처치 창구와 전멸 창구가 같은 구간이다.",
+                "  '아꼈다가 마지막에' 가 아니라 '2페이즈에 최대한 깎아둔다' 가 답이 된다."
+            ],
+            "boss": {
+                "phases": [
+                    {
+                        "at": 1,
+                        "name": {
+                            "ko": "가동",
+                            "en": "Startup"
+                        },
+                        "tags": [
+                            "ARMORED"
+                        ],
+                        "def": 48,
+                        "res": 0,
+                        "speedMult": 0.85,
+                        "atkIntervalMult": 1.1,
+                        "slamEveryMs": 0
+                    },
+                    {
+                        "at": 0.7,
+                        "name": {
+                            "ko": "냉각 실패",
+                            "en": "Coolant Fail"
+                        },
+                        "tags": [
+                            "WARDED"
+                        ],
+                        "def": 6,
+                        "res": 52,
+                        "atkMult": 1.2,
+                        "atkIntervalMult": 0.85,
+                        "slamEveryMs": 8500,
+                        "slamDamageMult": 1,
+                        "slamRadius": 108
+                    },
+                    {
+                        "at": 0.35,
+                        "name": {
+                            "ko": "코어 폭주",
+                            "en": "Meltdown"
+                        },
+                        "tags": [],
+                        "def": 5,
+                        "res": 8,
+                        "atkMult": 1.9,
+                        "speedMult": 1.75,
+                        "atkIntervalMult": 0.7,
+                        "slamEveryMs": 4500,
+                        "slamDamageMult": 1.25,
+                        "slamRadius": 124
+                    }
+                ]
+            },
+            "tags": [
+                "ARMORED"
+            ],
+            "dmgType": "physical",
+            "base": {
+                "hp": 430,
+                "atk": 40,
+                "def": 48,
+                "res": 0,
+                "range": 48,
+                "speed": 22,
+                "atkInterval": 1900
+            },
+            "breachDamage": 32,
+            "cost": 78,
+            "art": {
+                "atlas": "bosses",
+                "frame": "MechaGolem",
+                "scale": 4,
+                "outline": "0x6ad0ff"
+            },
+            "giant": {
+                "scale": 1,
+                "hpMult": 62,
+                "atkMult": 3.5,
+                "speedMult": 0.6
+            }
+        },
+        {
+            "id": "undead_executioner",
+            "name": {
+                "ko": "무덤의 처형인",
+                "en": "Undead Executioner"
+            },
+            "faction": "undead",
+            "$comment": "월드 3 첫 보스. **전용 보스 아트** (100×100 → giant.scale 1).",
+            "$boss": [
+                "고유 축: **재생이 돌아온다.**",
+                "다른 보스는 REGEN 이 1페이즈에만 붙고 사라지면 그만이다. 여기서는",
+                "2페이즈에 멈췄다가 **3페이즈에 다시 켜진다.**",
+                "★ 그래서 3페이즈는 '무방비 보너스 구간'이 아니라 **순DPS 시험**이 된다.",
+                "  방어를 다 버렸는데도 화력이 모자라면 HP 가 도로 차오른다.",
+                "  각인·오라를 3페이즈에 맞춰 쓰게 만드는 유일한 보스다.",
+                "★ 재생 페이즈의 res 는 0 과 12 다. res 25 이상과 REGEN 을 겹치면",
+                "  술식·신성이 동시에 막혀 어떤 편성으로도 죽지 않는다 (3-20 소프트락 사고)."
+            ],
+            "boss": {
+                "phases": [
+                    {
+                        "at": 1,
+                        "name": {
+                            "ko": "형틀",
+                            "en": "Scaffold"
+                        },
+                        "tags": [
+                            "CORRUPT",
+                            "ARMORED",
+                            "REGEN"
+                        ],
+                        "def": 36,
+                        "res": 0,
+                        "slamEveryMs": 10000,
+                        "slamDamageMult": 0.85,
+                        "slamRadius": 96
+                    },
+                    {
+                        "at": 0.7,
+                        "name": {
+                            "ko": "참수",
+                            "en": "Beheading"
+                        },
+                        "tags": [
+                            "CORRUPT",
+                            "WARDED"
+                        ],
+                        "def": 5,
+                        "res": 46,
+                        "atkMult": 1.25,
+                        "speedMult": 1.15,
+                        "atkIntervalMult": 0.7,
+                        "slamEveryMs": 8000,
+                        "slamDamageMult": 1.05,
+                        "slamRadius": 104
+                    },
+                    {
+                        "at": 0.4,
+                        "name": {
+                            "ko": "망자의 낫",
+                            "en": "Grave Scythe"
+                        },
+                        "tags": [
+                            "CORRUPT",
+                            "REGEN"
+                        ],
+                        "def": 5,
+                        "res": 12,
+                        "atkMult": 1.5,
+                        "speedMult": 1.45,
+                        "slamEveryMs": 6000,
+                        "slamDamageMult": 1.15,
+                        "slamRadius": 112
+                    }
+                ]
+            },
+            "tags": [
+                "CORRUPT",
+                "ARMORED",
+                "REGEN"
+            ],
+            "dmgType": "physical",
+            "base": {
+                "hp": 420,
+                "atk": 42,
+                "def": 36,
+                "res": 0,
+                "range": 52,
+                "speed": 24,
+                "atkInterval": 1700
+            },
+            "breachDamage": 32,
+            "cost": 78,
+            "art": {
+                "atlas": "bosses",
+                "frame": "UndeadExecutioner",
+                "scale": 3,
+                "outline": "0x8ad06a"
+            },
+            "giant": {
+                "scale": 1,
+                "hpMult": 39,
+                "atkMult": 3.4,
+                "speedMult": 0.6
+            }
+        },
+        {
+            "id": "evil_wizard",
+            "name": {
+                "ko": "균열의 술사",
+                "en": "Evil Wizard"
+            },
+            "faction": "undead",
+            "$comment": "월드 3 최종 보스 — 캠페인 1부의 마지막. **전용 보스 아트** (250×250 → scale 2).",
+            "$boss": [
+                "고유 축: **유일한 술식 보스이자 유일한 원거리 보스.**",
+                "다른 보스는 전부 physical 근접이라 방벽이 붙잡으면 그 자리에서 싸움이 끝난다.",
+                "이 녀석은 range 120 에서 arcane 을 쏜다 —",
+                "  ① 방벽이 붙잡지 못하고 (사거리 밖에서 때린다)",
+                "  ② arcane 은 아군 DEF 를 무시한다. 방벽의 방어력이 통째로 무의미해진다.",
+                "★ 그래서 답이 '더 단단한 방벽'이 아니라 **'더 먼 사거리로 먼저 끊기'** 다.",
+                "  보스전 전체를 통틀어 원거리·술사 슬롯이 필수가 되는 유일한 지점이다.",
+                "★ 슬램 반경이 가장 크다(120→150). 원거리 보스라 슬램이 전선 뒤쪽에 떨어지므로",
+                "  반경을 키우지 않으면 아무도 맞지 않아 슬램이 연출로 전락한다."
+            ],
+            "boss": {
+                "phases": [
+                    {
+                        "at": 1,
+                        "name": {
+                            "ko": "금단의 보호막",
+                            "en": "Dark Ward"
+                        },
+                        "tags": [
+                            "CORRUPT",
+                            "WARDED"
+                        ],
+                        "def": 5,
+                        "res": 50,
+                        "slamEveryMs": 11000,
+                        "slamDamageMult": 0.9,
+                        "slamRadius": 120
+                    },
+                    {
+                        "at": 0.7,
+                        "name": {
+                            "ko": "석화 주문",
+                            "en": "Petrify"
+                        },
+                        "tags": [
+                            "CORRUPT",
+                            "ARMORED"
+                        ],
+                        "def": 38,
+                        "res": 0,
+                        "atkMult": 1.15,
+                        "speedMult": 0.9,
+                        "atkIntervalMult": 0.85,
+                        "slamEveryMs": 8500,
+                        "slamDamageMult": 1.05,
+                        "slamRadius": 134
+                    },
+                    {
+                        "at": 0.4,
+                        "name": {
+                            "ko": "균열 개방",
+                            "en": "Rift Opens"
+                        },
+                        "tags": [
+                            "CORRUPT"
+                        ],
+                        "def": 4,
+                        "res": 10,
+                        "atkMult": 1.55,
+                        "speedMult": 1.4,
+                        "atkIntervalMult": 0.7,
+                        "slamEveryMs": 5500,
+                        "slamDamageMult": 1.2,
+                        "slamRadius": 150
+                    }
+                ]
+            },
+            "tags": [
+                "CORRUPT",
+                "WARDED"
+            ],
+            "role": "CASTER",
+            "dmgType": "arcane",
+            "base": {
+                "hp": 380,
+                "atk": 34,
+                "def": 5,
+                "res": 50,
+                "range": 120,
+                "speed": 26,
+                "atkInterval": 2000
+            },
+            "breachDamage": 34,
+            "cost": 82,
+            "art": {
+                "projectile": { "shape": "7_0", "$note": "균열 섬광" },
+                "atlas": "bosses",
+                "frame": "EvilWizard",
+                "scale": 2,
+                "outline": "0xb45ad6"
+            },
+            "giant": {
+                "scale": 1,
+                "hpMult": 27,
+                "atkMult": 3.3,
+                "speedMult": 0.6
+            }
+        },
+        {
+            "id": "lizard_scout",
+            "name": {
+                "ko": "리자드 척후병",
+                "en": "Lizardfolk Scout"
+            },
+            "faction": "lizard",
+            "tags": [
+                "SWARM",
+                "LIVING"
+            ],
+            "dmgType": "physical",
+            "base": {
+                "hp": 120,
+                "atk": 15,
+                "def": 4,
+                "res": 0,
+                "range": 30,
+                "speed": 58,
+                "atkInterval": 850
+            },
+            "breachDamage": 4,
+            "cost": 11,
+            "art": {
+                "atlas": "units",
+                "frame": "LizardfolkScout",
+                "scale": 4
+            }
+        },
+        {
+            "id": "lizard_spearman",
+            "name": {
+                "ko": "리자드 창병",
+                "en": "Lizardfolk Spearman"
+            },
+            "faction": "lizard",
+            "$comment": "★ 사거리 72 — 근접이지만 방벽 한 겹 뒤에서 찌른다. 앞줄만 두껍게 해서는 닿지 않는다.",
+            "tags": [
+                "LIVING"
+            ],
+            "dmgType": "physical",
+            "base": {
+                "hp": 190,
+                "atk": 22,
+                "def": 10,
+                "res": 0,
+                "range": 72,
+                "speed": 34,
+                "atkInterval": 1200
+            },
+            "breachDamage": 7,
+            "cost": 17,
+            "art": {
+                "atlas": "units",
+                "frame": "LizardfolkSpearman",
+                "scale": 4
+            }
+        },
+        {
+            "id": "lizard_archer",
+            "name": {
+                "ko": "리자드 궁수",
+                "en": "Lizardfolk Archer"
+            },
+            "faction": "lizard",
+            "tags": [
+                "LIVING"
+            ],
+            "role": "RANGED",
+            "dmgType": "physical",
+            "base": {
+                "hp": 150,
+                "atk": 22,
+                "def": 5,
+                "res": 0,
+                "range": 150,
+                "speed": 40,
+                "atkInterval": 1400
+            },
+            "breachDamage": 6,
+            "cost": 18,
+            "art": {
+                "projectile": { "shape": "2_26", "$note": "화살" },
+                "atlas": "units",
+                "frame": "LizardfolkArcher",
+                "scale": 4
+            }
+        },
+        {
+            "id": "coral_crab",
+            "name": {
+                "ko": "산호 게",
+                "en": "Coral Crab"
+            },
+            "faction": "lizard",
+            "$comment": "★★ 첫 진짜 보호막. SHIELDED 는 지금까지 태그뿐이었고 수치가 없었다 — 여기서 base.shield 가 붙는다. 세기와 무관하게 첫 2회 피해가 통째로 사라지므로, 큰 한 방을 먼저 넣는 편성이 손해를 본다.",
+            "tags": [
+                "ARMORED",
+                "LIVING",
+                "SHIELDED"
+            ],
+            "dmgType": "physical",
+            "base": {
+                "hp": 260,
+                "atk": 22,
+                "def": 30,
+                "res": 0,
+                "range": 34,
+                "speed": 20,
+                "atkInterval": 1300,
+                "shield": 2
+            },
+            "breachDamage": 10,
+            "cost": 16,
+            "art": {
+                "atlas": "units",
+                "frame": "CoralCrab",
+                "scale": 4
+            }
+        },
+        {
+            "id": "merfolk_scout",
+            "name": {
+                "ko": "인어 척후",
+                "en": "Merfolk Scout"
+            },
+            "faction": "lizard",
+            "tags": [
+                "SWARM",
+                "LIVING"
+            ],
+            "dmgType": "physical",
+            "base": {
+                "hp": 130,
+                "atk": 16,
+                "def": 3,
+                "res": 0,
+                "range": 30,
+                "speed": 72,
+                "atkInterval": 800
+            },
+            "breachDamage": 4,
+            "cost": 13,
+            "art": {
+                "atlas": "units",
+                "frame": "MerfolkScout",
+                "scale": 4
+            }
+        },
+        {
+            "id": "merfolk_impaler",
+            "name": {
+                "ko": "인어 작살잡이",
+                "en": "Merfolk Impaler"
+            },
+            "faction": "lizard",
+            "tags": [
+                "LIVING"
+            ],
+            "role": "RANGED",
+            "dmgType": "physical",
+            "base": {
+                "hp": 200,
+                "atk": 26,
+                "def": 6,
+                "res": 0,
+                "range": 130,
+                "speed": 38,
+                "atkInterval": 1500
+            },
+            "breachDamage": 9,
+            "cost": 23,
+            "art": {
+                "projectile": { "shape": "0_26", "$note": "작살" },
+                "atlas": "units",
+                "frame": "MerfolkImpaler",
+                "scale": 4
+            }
+        },
+        {
+            "id": "merfolk_aquamancer",
+            "name": {
+                "ko": "인어 수술사",
+                "en": "Merfolk Aquamancer"
+            },
+            "faction": "lizard",
+            "$comment": "★★ WARDED + SWARM — 결계가 물량에 붙은 첫 사례. 술식·신성 광역은 RES 에 깎이고, 근접 광역은 사거리 밖에서 맞는다. 물리 원거리가 답이다.",
+            "tags": [
+                "SWARM",
+                "WARDED",
+                "LIVING"
+            ],
+            "role": "CASTER",
+            "dmgType": "arcane",
+            "base": {
+                "hp": 145,
+                "atk": 20,
+                "def": 2,
+                "res": 46,
+                "range": 140,
+                "speed": 42,
+                "atkInterval": 1500
+            },
+            "breachDamage": 6,
+            "cost": 19,
+            "art": {
+                "projectile": { "shape": "5_0", "$note": "물살" },
+                "atlas": "units",
+                "frame": "MerfolkAquamancer",
+                "scale": 4
+            }
+        },
+        {
+            "id": "swamp_toad",
+            "name": {
+                "ko": "늪 두꺼비",
+                "en": "Swamp Toad"
+            },
+            "faction": "lizard",
+            "tags": [
+                "LIVING",
+                "REGEN"
+            ],
+            "dmgType": "physical",
+            "base": {
+                "hp": 320,
+                "atk": 26,
+                "def": 12,
+                "res": 0,
+                "range": 34,
+                "speed": 30,
+                "atkInterval": 1300
+            },
+            "breachDamage": 12,
+            "cost": 21,
+            "art": {
+                "atlas": "units",
+                "frame": "CroakingToad",
+                "scale": 4
+            }
+        },
+        {
+            "id": "mud_wyvern",
+            "name": {
+                "ko": "진흙 비룡",
+                "en": "Mud Wyvern"
+            },
+            "faction": "lizard",
+            "$comment": "★★ ARMORED + FLYING — 방벽이 붙잡지 못하고 물리는 DEF 에 막힌다. 월드 1 이 따로 가르친 두 태그가 처음으로 한 몸에 붙었다.",
+            "tags": [
+                "FLYING",
+                "ARMORED",
+                "LIVING"
+            ],
+            "dmgType": "physical",
+            "base": {
+                "hp": 230,
+                "atk": 28,
+                "def": 26,
+                "res": 0,
+                "range": 32,
+                "speed": 54,
+                "atkInterval": 1100
+            },
+            "breachDamage": 11,
+            "cost": 30,
+            "art": {
+                "atlas": "units",
+                "frame": "MudWyvern",
+                "scale": 4
+            }
+        },
+        {
+            "id": "aqua_drake",
+            "name": {
+                "ko": "물결 드레이크",
+                "en": "Aqua Drake"
+            },
+            "faction": "lizard",
+            "tags": [
+                "FLYING",
+                "LIVING"
+            ],
+            "dmgType": "arcane",
+            "base": {
+                "hp": 200,
+                "atk": 26,
+                "def": 4,
+                "res": 12,
+                "range": 34,
+                "speed": 56,
+                "atkInterval": 1200
+            },
+            "breachDamage": 10,
+            "cost": 29,
+            "art": {
+                "atlas": "units",
+                "frame": "AquaDrake",
+                "scale": 4
+            }
+        },
+        {
+            "id": "ochre_jelly",
+            "name": {
+                "ko": "황토 점액",
+                "en": "Ochre Jelly"
+            },
+            "faction": "lizard",
+            "$comment": "LIVING 도 CORRUPT 도 아니다 — 신성이 특효도 페널티도 받지 않는 중립 표적. WARDED + SHIELDED 라 술식은 저항당하고 첫 타는 지워진다.",
+            "tags": [
+                "WARDED",
+                "SHIELDED"
+            ],
+            "dmgType": "physical",
+            "base": {
+                "hp": 300,
+                "atk": 24,
+                "def": 4,
+                "res": 48,
+                "range": 32,
+                "speed": 22,
+                "atkInterval": 1400,
+                "shield": 1
+            },
+            "breachDamage": 13,
+            "cost": 17,
+            "art": {
+                "atlas": "units",
+                "frame": "OchreJelly",
+                "scale": 4
+            }
+        },
+        {
+            "id": "tidal_ravager",
+            "name": {
+                "ko": "해일 파괴자",
+                "en": "Tidal Ravager"
+            },
+            "faction": "lizard",
+            "$comment": "★★ 첫 술식 근접. arcane 은 아군 DEF 를 무시하므로, 방벽을 더 단단하게 만드는 답이 여기서 통하지 않는다 — 붙잡되 빨리 끊거나, 회복으로 버텨야 한다.",
+            "tags": [
+                "ARMORED",
+                "LIVING"
+            ],
+            "dmgType": "arcane",
+            "base": {
+                "hp": 360,
+                "atk": 36,
+                "def": 30,
+                "res": 0,
+                "range": 40,
+                "speed": 28,
+                "atkInterval": 1500
+            },
+            "breachDamage": 17,
+            "cost": 33,
+            "art": {
+                "atlas": "units",
+                "frame": "LizardfolkGladiator",
+                "scale": 4
+            }
+        },
+        {
+            "id": "citadel_statue",
+            "name": {
+                "ko": "성채의 석상",
+                "en": "Citadel Statue"
+            },
+            "faction": "lizard",
+            "tags": [
+                "ARMORED",
+                "REGEN"
+            ],
+            "dmgType": "physical",
+            "base": {
+                "hp": 460,
+                "atk": 40,
+                "def": 34,
+                "res": 0,
+                "range": 40,
+                "speed": 20,
+                "atkInterval": 1700
+            },
+            "breachDamage": 21,
+            "cost": 30,
+            "art": {
+                "atlas": "units",
+                "frame": "EarthElemental",
+                "scale": 4
+            }
+        },
+        {
+            "id": "moat_warden",
+            "name": {
+                "ko": "범람의 파수병",
+                "en": "Floodgate Warden"
+            },
+            "faction": "lizard",
+            "$comment": "월드 4 첫 보스. 거대화 엘리트 — 해자를 지키는 늪 트롤.",
+            "$boss": [
+                "고유 축: 결계로 열고 결계로 닫는다.",
+                "지금까지 모든 보스는 장갑 → 결계(또는 그 반대) → 무방비 였다. 여기서는",
+                "1·3페이즈가 둘 다 WARDED 다 — 물리 딜러가 전투 내내 필요하고,",
+                "술식은 중간 한 구간에서만 값을 한다.",
+                "★ 그래서 '술식 하나로 전 페이즈를 밀어붙이는' 운영이 처음으로 완전히 막힌다.",
+                "★ 3페이즈 res 44 는 1페이즈 52 보다 낮다 — 처치 창구는 열리되, 여전히 결계다."
+            ],
+            "boss": {
+                "phases": [
+                    {
+                        "at": 1,
+                        "name": {
+                            "ko": "수막",
+                            "en": "Water Veil"
+                        },
+                        "tags": [
+                            "WARDED",
+                            "LIVING"
+                        ],
+                        "def": 8,
+                        "res": 52,
+                        "slamEveryMs": 0
+                    },
+                    {
+                        "at": 0.7,
+                        "name": {
+                            "ko": "비늘 경화",
+                            "en": "Scale Harden"
+                        },
+                        "tags": [
+                            "ARMORED",
+                            "LIVING"
+                        ],
+                        "def": 36,
+                        "res": 0,
+                        "atkMult": 1.2,
+                        "speedMult": 1.15,
+                        "slamEveryMs": 9000,
+                        "slamDamageMult": 0.95,
+                        "slamRadius": 100
+                    },
+                    {
+                        "at": 0.4,
+                        "name": {
+                            "ko": "썰물",
+                            "en": "Ebb Tide"
+                        },
+                        "tags": [
+                            "WARDED",
+                            "LIVING"
+                        ],
+                        "def": 6,
+                        "res": 44,
+                        "atkMult": 1.5,
+                        "speedMult": 1.45,
+                        "atkIntervalMult": 0.85,
+                        "slamEveryMs": 6500,
+                        "slamDamageMult": 1.15,
+                        "slamRadius": 116
+                    }
+                ]
+            },
+            "tags": [
+                "WARDED",
+                "LIVING"
+            ],
+            "dmgType": "physical",
+            "base": {
+                "hp": 460,
+                "atk": 46,
+                "def": 8,
+                "res": 52,
+                "range": 46,
+                "speed": 22,
+                "atkInterval": 1700
+            },
+            "breachDamage": 34,
+            "cost": 74,
+            "art": {
+                "atlas": "units",
+                "frame": "SwampTroll",
+                "outline": "0x4fd18b"
+            },
+            "giant": {
+                "scale": 4,
+                "hpMult": 26,
+                "atkMult": 3.2,
+                "speedMult": 0.6
+            }
+        },
+        {
+            "id": "scale_sovereign",
+            "name": {
+                "ko": "비늘군주",
+                "en": "Scale Sovereign"
+            },
+            "faction": "lizard",
+            "$comment": "월드 4 최종 보스. 거대화 엘리트 — 성채를 차지한 리자드 군주.",
+            "$boss": [
+                "고유 축: 보호막으로 열고 재생으로 닫는다.",
+                "1페이즈의 SHIELDED 는 표시가 아니라 실제 수치다 (base.shield = 3).",
+                "★ 첫 3회 피해가 세기와 무관하게 사라지므로, 개막 버스트가 통째로 버려진다.",
+                "  잔딜로 먼저 껍질을 벗기고 그 다음에 화력을 붓는 순서가 강제된다.",
+                "★ 3페이즈에 REGEN 이 켜진다 — 무방비 구간이 '보너스'가 아니라 순DPS 시험이다.",
+                "  무덤의 처형인(3-10)과 달리 1페이즈에는 재생이 없다. 재생을 만나는 시점이",
+                "  뒤로 밀려서, '아꼈다가 마지막에' 운영이 정확히 역효과를 낸다."
+            ],
+            "boss": {
+                "phases": [
+                    {
+                        "at": 1,
+                        "name": {
+                            "ko": "금강 비늘",
+                            "en": "Adamant Scale"
+                        },
+                        "tags": [
+                            "ARMORED",
+                            "LIVING",
+                            "SHIELDED"
+                        ],
+                        "def": 40,
+                        "res": 0,
+                        "slamEveryMs": 10000,
+                        "slamDamageMult": 0.85,
+                        "slamRadius": 96
+                    },
+                    {
+                        "at": 0.72,
+                        "name": {
+                            "ko": "주술 각성",
+                            "en": "Hex Awakens"
+                        },
+                        "tags": [
+                            "WARDED",
+                            "LIVING"
+                        ],
+                        "def": 6,
+                        "res": 50,
+                        "atkMult": 1.2,
+                        "speedMult": 1.15,
+                        "slamEveryMs": 8500,
+                        "slamDamageMult": 1,
+                        "slamRadius": 106
+                    },
+                    {
+                        "at": 0.42,
+                        "name": {
+                            "ko": "군주의 재생",
+                            "en": "Regrowth"
+                        },
+                        "tags": [
+                            "LIVING",
+                            "REGEN"
+                        ],
+                        "def": 8,
+                        "res": 12,
+                        "atkMult": 1.5,
+                        "speedMult": 1.4,
+                        "atkIntervalMult": 0.8,
+                        "slamEveryMs": 6000,
+                        "slamDamageMult": 1.15,
+                        "slamRadius": 118
+                    }
+                ],
+                "$note": "REGEN 페이즈의 res 는 12 다. 40 이상과 겹치면 술식·신성이 동시에 막혀 보스가 죽지 않는다 (3-20 소프트락 사고)."
+            },
+            "tags": [
+                "ARMORED",
+                "LIVING",
+                "SHIELDED"
+            ],
+            "dmgType": "physical",
+            "base": {
+                "hp": 500,
+                "atk": 48,
+                "def": 40,
+                "res": 0,
+                "range": 48,
+                "speed": 22,
+                "atkInterval": 1750,
+                "shield": 3
+            },
+            "breachDamage": 36,
+            "cost": 80,
+            "art": {
+                "atlas": "units",
+                "frame": "BestialLizardfolkIdleSide",
+                "outline": "0xffd166"
+            },
+            "giant": {
+                "scale": 4,
+                "hpMult": 24,
+                "atkMult": 3.3,
+                "speedMult": 0.58
+            }
+        },
+        {
+            "id": "rascal_demonling",
+            "name": {
+                "ko": "장난꾸러기 마귀",
+                "en": "Rascally Demonling"
+            },
+            "faction": "arcane",
+            "tags": [
+                "SWARM",
+                "CORRUPT"
+            ],
+            "dmgType": "physical",
+            "base": {
+                "hp": 165,
+                "atk": 18,
+                "def": 6,
+                "res": 0,
+                "range": 30,
+                "speed": 62,
+                "atkInterval": 800
+            },
+            "breachDamage": 5,
+            "cost": 15,
+            "art": {
+                "atlas": "units",
+                "frame": "RascallyDemonling",
+                "scale": 4
+            }
+        },
+        {
+            "id": "glowing_wisp",
+            "name": {
+                "ko": "빛나는 도깨비불",
+                "en": "Glowing Wisp"
+            },
+            "faction": "arcane",
+            "tags": [
+                "FLYING",
+                "SWARM",
+                "CORRUPT"
+            ],
+            "dmgType": "arcane",
+            "base": {
+                "hp": 150,
+                "atk": 18,
+                "def": 2,
+                "res": 18,
+                "range": 34,
+                "speed": 70,
+                "atkInterval": 1000
+            },
+            "breachDamage": 5,
+            "cost": 19,
+            "art": {
+                "atlas": "units",
+                "frame": "GlowingWisp",
+                "scale": 4
+            }
+        },
+        {
+            "id": "nefarious_scamp",
+            "name": {
+                "ko": "사악한 잡귀",
+                "en": "Nefarious Scamp"
+            },
+            "faction": "arcane",
+            "$comment": "★★ CORRUPT + WARDED + SWARM. 타락이라 신성이 특효(×1.6)인데, 결계가 그 신성을 절반 가까이 깎는다 — 정답이 정답을 막는 첫 구성이다. 물리 광역이 실제 답이다.",
+            "tags": [
+                "SWARM",
+                "WARDED",
+                "CORRUPT"
+            ],
+            "dmgType": "arcane",
+            "base": {
+                "hp": 180,
+                "atk": 20,
+                "def": 3,
+                "res": 44,
+                "range": 40,
+                "speed": 50,
+                "atkInterval": 1100
+            },
+            "breachDamage": 6,
+            "cost": 16,
+            "art": {
+                "atlas": "units",
+                "frame": "NefariousScamp",
+                "scale": 4
+            }
+        },
+        {
+            "id": "floating_eye",
+            "name": {
+                "ko": "부유하는 눈",
+                "en": "Floating Eye"
+            },
+            "faction": "arcane",
+            "tags": [
+                "FLYING",
+                "CORRUPT"
+            ],
+            "role": "CASTER",
+            "dmgType": "arcane",
+            "base": {
+                "hp": 190,
+                "atk": 24,
+                "def": 3,
+                "res": 20,
+                "range": 130,
+                "speed": 46,
+                "atkInterval": 1500
+            },
+            "breachDamage": 8,
+            "cost": 30,
+            "art": {
+                "projectile": { "shape": "2_6", "$note": "안광" },
+                "atlas": "units",
+                "frame": "FloatingEye",
+                "scale": 4
+            }
+        },
+        {
+            "id": "elf_enchanter",
+            "name": {
+                "ko": "엘프 매혹술사",
+                "en": "Elf Enchanter"
+            },
+            "faction": "arcane",
+            "tags": [
+                "WARDED",
+                "LIVING"
+            ],
+            "role": "CASTER",
+            "dmgType": "arcane",
+            "base": {
+                "hp": 215,
+                "atk": 30,
+                "def": 4,
+                "res": 50,
+                "range": 160,
+                "speed": 36,
+                "atkInterval": 1700
+            },
+            "breachDamage": 9,
+            "cost": 27,
+            "art": {
+                "projectile": { "shape": "4_6", "$note": "주박의 빛" },
+                "atlas": "units",
+                "frame": "ElfEnchanter",
+                "scale": 4
+            }
+        },
+        {
+            "id": "elf_bladedancer",
+            "name": {
+                "ko": "엘프 검무사",
+                "en": "Elf Bladedancer"
+            },
+            "faction": "arcane",
+            "$comment": "★ 이 게임에서 가장 빠른 지상 적(speed 84). 배치가 끝나기 전에 전선을 지나간다 — 선배치를 강제한다.",
+            "tags": [
+                "LIVING"
+            ],
+            "dmgType": "physical",
+            "base": {
+                "hp": 265,
+                "atk": 38,
+                "def": 12,
+                "res": 0,
+                "range": 32,
+                "speed": 84,
+                "atkInterval": 1000
+            },
+            "breachDamage": 13,
+            "cost": 33,
+            "art": {
+                "atlas": "units",
+                "frame": "ElfBladedancer",
+                "scale": 4
+            }
+        },
+        {
+            "id": "fungal_myconid",
+            "name": {
+                "ko": "균사 마이코니드",
+                "en": "Fungal Myconid"
+            },
+            "faction": "arcane",
+            "$comment": "REGEN + SHIELDED. 보호막이 첫 2타를 지우는 동안 회복이 돌아간다 — 잔딜로는 영원히 못 죽인다.",
+            "tags": [
+                "REGEN",
+                "SHIELDED"
+            ],
+            "dmgType": "physical",
+            "base": {
+                "hp": 380,
+                "atk": 26,
+                "def": 14,
+                "res": 10,
+                "range": 34,
+                "speed": 26,
+                "atkInterval": 1300,
+                "shield": 2
+            },
+            "breachDamage": 12,
+            "cost": 21,
+            "art": {
+                "atlas": "units",
+                "frame": "FungalMyconid",
+                "scale": 4
+            }
+        },
+        {
+            "id": "ice_golem",
+            "name": {
+                "ko": "얼음 골렘",
+                "en": "Ice Golem"
+            },
+            "faction": "arcane",
+            "$comment": "LIVING 도 CORRUPT 도 아닌 구조물 — 신성이 평범해진다.",
+            "tags": [
+                "ARMORED",
+                "SHIELDED"
+            ],
+            "dmgType": "physical",
+            "base": {
+                "hp": 440,
+                "atk": 34,
+                "def": 36,
+                "res": 0,
+                "range": 38,
+                "speed": 22,
+                "atkInterval": 1500,
+                "shield": 2
+            },
+            "breachDamage": 16,
+            "cost": 25,
+            "art": {
+                "atlas": "units",
+                "frame": "IceGolem",
+                "scale": 4
+            }
+        },
+        {
+            "id": "crimson_slaad",
+            "name": {
+                "ko": "진홍 슬라드",
+                "en": "Crimson Slaad"
+            },
+            "faction": "arcane",
+            "tags": [
+                "ARMORED",
+                "CORRUPT",
+                "REGEN"
+            ],
+            "dmgType": "physical",
+            "base": {
+                "hp": 420,
+                "atk": 36,
+                "def": 28,
+                "res": 0,
+                "range": 36,
+                "speed": 32,
+                "atkInterval": 1300
+            },
+            "breachDamage": 15,
+            "cost": 30,
+            "art": {
+                "atlas": "units",
+                "frame": "CrimsonSlaad",
+                "scale": 4
+            }
+        },
+        {
+            "id": "corrupted_treant",
+            "name": {
+                "ko": "타락한 나무정령",
+                "en": "Corrupted Treant"
+            },
+            "faction": "arcane",
+            "tags": [
+                "ARMORED",
+                "CORRUPT"
+            ],
+            "dmgType": "physical",
+            "base": {
+                "hp": 520,
+                "atk": 44,
+                "def": 34,
+                "res": 0,
+                "range": 42,
+                "speed": 20,
+                "atkInterval": 1700
+            },
+            "breachDamage": 22,
+            "cost": 31,
+            "art": {
+                "atlas": "units",
+                "frame": "CorruptedTreant",
+                "scale": 4
+            }
+        },
+        {
+            "id": "vile_witch",
+            "name": {
+                "ko": "사악한 마녀",
+                "en": "Vile Witch"
+            },
+            "faction": "arcane",
+            "$comment": "사거리 185 — 전 적 중 최장. 방벽 뒤 아군까지 닿는다.",
+            "tags": [
+                "WARDED",
+                "CORRUPT"
+            ],
+            "role": "CASTER",
+            "dmgType": "arcane",
+            "base": {
+                "hp": 290,
+                "atk": 36,
+                "def": 4,
+                "res": 52,
+                "range": 175,
+                "speed": 32,
+                "atkInterval": 1800
+            },
+            "breachDamage": 13,
+            "cost": 36,
+            "art": {
+                "projectile": { "shape": "2_0", "$note": "저주탄" },
+                "atlas": "units",
+                "frame": "VileWitch",
+                "scale": 4
+            }
+        },
+        {
+            "id": "ghastly_eye",
+            "name": {
+                "ko": "소름끼치는 눈",
+                "en": "Ghastly Eye"
+            },
+            "faction": "arcane",
+            "$comment": "★★ FLYING + WARDED + CORRUPT 3조건. 대공이면서 · 물리이고 · 사거리가 긴 답이 동시에 필요하다.",
+            "tags": [
+                "FLYING",
+                "WARDED",
+                "CORRUPT"
+            ],
+            "role": "CASTER",
+            "dmgType": "arcane",
+            "base": {
+                "hp": 260,
+                "atk": 26,
+                "def": 4,
+                "res": 48,
+                "range": 155,
+                "speed": 44,
+                "atkInterval": 1700
+            },
+            "breachDamage": 13,
+            "cost": 32,
+            "art": {
+                "projectile": { "shape": "1_6", "$note": "안광" },
+                "atlas": "units",
+                "frame": "GhastlyEye",
+                "scale": 4
+            }
+        },
+        {
+            "id": "depraved_blackguard",
+            "name": {
+                "ko": "타락한 흑기사",
+                "en": "Depraved Blackguard"
+            },
+            "faction": "arcane",
+            "$comment": "WARDED + SHIELDED + CORRUPT. 신성 특효가 결계에 깎이고, 남은 물리는 첫 2타를 보호막에 먹힌다.",
+            "tags": [
+                "WARDED",
+                "CORRUPT",
+                "SHIELDED"
+            ],
+            "dmgType": "physical",
+            "base": {
+                "hp": 540,
+                "atk": 46,
+                "def": 12,
+                "res": 46,
+                "range": 40,
+                "speed": 28,
+                "atkInterval": 1600,
+                "shield": 2
+            },
+            "breachDamage": 24,
+            "cost": 35,
+            "art": {
+                "atlas": "units",
+                "frame": "DepravedBlackguard",
+                "scale": 4
+            }
+        },
+        {
+            "id": "ocular_watcher",
+            "name": {
+                "ko": "응시하는 감시자",
+                "en": "Ocular Watcher"
+            },
+            "faction": "arcane",
+            "$comment": "월드 5 첫 보스. 거대화 엘리트 — 탑의 서고를 지키는 눈.",
+            "$boss": [
+                "고유 축: 마지막 페이즈에 도망친다.",
+                "다른 보스의 3페이즈는 '몰아칠 창구'다. 이 녀석은 방어를 버리는 동시에",
+                "이동 속도가 2.3배가 되어 방주를 향해 달린다.",
+                "★ 그래서 처치 창구가 곧 시간 제한이 된다. 화력을 아꼈다가 마지막에",
+                "  터뜨리는 운영이 '아끼는 동안 보스가 지나간다'로 뒤집힌다.",
+                "★ dmgType 은 arcane 이다 — 근접인데 아군 DEF 를 무시한다. 방벽은 붙잡는",
+                "  역할만 남고, 버티는 역할은 지원·회복이 가져가야 한다."
+            ],
+            "boss": {
+                "phases": [
+                    {
+                        "at": 1,
+                        "name": {
+                            "ko": "석화의 눈",
+                            "en": "Stone Gaze"
+                        },
+                        "tags": [
+                            "ARMORED",
+                            "CORRUPT"
+                        ],
+                        "def": 42,
+                        "res": 0,
+                        "slamEveryMs": 0
+                    },
+                    {
+                        "at": 0.7,
+                        "name": {
+                            "ko": "주시",
+                            "en": "Fixation"
+                        },
+                        "tags": [
+                            "WARDED",
+                            "CORRUPT"
+                        ],
+                        "def": 6,
+                        "res": 50,
+                        "atkMult": 1.25,
+                        "speedMult": 1.2,
+                        "slamEveryMs": 8500,
+                        "slamDamageMult": 1,
+                        "slamRadius": 104
+                    },
+                    {
+                        "at": 0.38,
+                        "name": {
+                            "ko": "폭주하는 시선",
+                            "en": "Raging Gaze"
+                        },
+                        "tags": [
+                            "CORRUPT"
+                        ],
+                        "def": 6,
+                        "res": 12,
+                        "atkMult": 1.5,
+                        "speedMult": 2.3,
+                        "atkIntervalMult": 0.7,
+                        "slamEveryMs": 5500,
+                        "slamDamageMult": 1.2,
+                        "slamRadius": 124
+                    }
+                ]
+            },
+            "tags": [
+                "ARMORED",
+                "CORRUPT"
+            ],
+            "dmgType": "arcane",
+            "base": {
+                "hp": 560,
+                "atk": 50,
+                "def": 42,
+                "res": 0,
+                "range": 60,
+                "speed": 26,
+                "atkInterval": 1700
+            },
+            "breachDamage": 36,
+            "cost": 82,
+            "art": {
+                "atlas": "units",
+                "frame": "OcularWatcher",
+                "outline": "0x9b6ad0"
+            },
+            "giant": {
+                "scale": 4,
+                "hpMult": 21,
+                "atkMult": 3.2,
+                "speedMult": 0.62
+            }
+        },
+        {
+            "id": "pit_balor",
+            "name": {
+                "ko": "심연의 발로르",
+                "en": "Pit Balor"
+            },
+            "faction": "arcane",
+            "$comment": "월드 5 최종 보스 — 캠페인 2부의 마지막. 거대화 엘리트.",
+            "$boss": [
+                "고유 축: 세 페이즈가 서로 다른 방어 원리를 쓴다.",
+                "  1페이즈 결계(RES) + 보호막(피격 횟수) — 두 종류의 무효화가 겹친다",
+                "  2페이즈 장갑(DEF) + 재생(시간) — 술식이 유일한 답이 되고, 미루면 되돌아간다",
+                "  3페이즈 무방비 — 처음으로 아무것도 막지 않는다",
+                "★ 그래서 한 편성 안에 물리 · 술식 · 지속 화력이 전부 있어야 한다.",
+                "  월드 1–4 가 하나씩 가르친 답을 동시에 요구하는 것이 이 보스의 전부다.",
+                "★ base.shield = 4 — 개막 4타가 통째로 사라진다. 큰 한 방을 먼저 넣지 마라."
+            ],
+            "boss": {
+                "phases": [
+                    {
+                        "at": 1,
+                        "name": {
+                            "ko": "심연의 결계",
+                            "en": "Abyssal Ward"
+                        },
+                        "tags": [
+                            "WARDED",
+                            "CORRUPT",
+                            "SHIELDED"
+                        ],
+                        "def": 10,
+                        "res": 54,
+                        "slamEveryMs": 10000,
+                        "slamDamageMult": 0.9,
+                        "slamRadius": 110
+                    },
+                    {
+                        "at": 0.68,
+                        "name": {
+                            "ko": "불타는 갑주",
+                            "en": "Burning Mail"
+                        },
+                        "tags": [
+                            "ARMORED",
+                            "CORRUPT",
+                            "REGEN"
+                        ],
+                        "def": 46,
+                        "res": 0,
+                        "atkMult": 1.2,
+                        "speedMult": 1.1,
+                        "slamEveryMs": 8000,
+                        "slamDamageMult": 1.05,
+                        "slamRadius": 120
+                    },
+                    {
+                        "at": 0.36,
+                        "name": {
+                            "ko": "균열 강림",
+                            "en": "Rift Descent"
+                        },
+                        "tags": [
+                            "CORRUPT"
+                        ],
+                        "def": 8,
+                        "res": 14,
+                        "atkMult": 1.6,
+                        "speedMult": 1.5,
+                        "atkIntervalMult": 0.7,
+                        "slamEveryMs": 5500,
+                        "slamDamageMult": 1.25,
+                        "slamRadius": 140
+                    }
+                ],
+                "$note": "REGEN 은 res 0 인 장갑 페이즈에만 둔다 — 재생과 높은 res 를 겹치면 술식·신성이 동시에 막혀 소프트락이 된다."
+            },
+            "tags": [
+                "WARDED",
+                "CORRUPT",
+                "SHIELDED"
+            ],
+            "dmgType": "physical",
+            "base": {
+                "hp": 600,
+                "atk": 54,
+                "def": 10,
+                "res": 54,
+                "range": 52,
+                "speed": 24,
+                "atkInterval": 1800,
+                "shield": 4
+            },
+            "breachDamage": 40,
+            "cost": 88,
+            "art": {
+                "atlas": "units",
+                "frame": "PitBalor",
+                "outline": "0xff5a5a"
+            },
+            "giant": {
+                "scale": 4,
+                "hpMult": 16,
+                "atkMult": 3.2,
+                "speedMult": 0.58
+            }
+        }
+    ]
+}

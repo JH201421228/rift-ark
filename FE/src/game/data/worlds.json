@@ -1,0 +1,1475 @@
+{
+    "$comment": [
+        "월드 계획 — tools/gen-stages.mjs 가 이것을 stages.json 으로 전개한다.",
+        "스테이지를 손으로 200개 쓰면 밀도 곡선이 반드시 어긋난다.",
+        "",
+        "★★ **보스의 거대화 배율은 여기 적지 않는다** (2026-08-05).",
+        "  단일 출처는 `enemies.json` 의 `<보스>.giant` 다 — 시뮬(stageConfig) 도",
+        "  연출(UnitPresenter) 도 그것만 읽는다.",
+        "  한때 1-10 · 2-10 비트에 `bossGiant` 가 있었는데 생성기가 읽지 않았고,",
+        "  값도 실제와 달랐다 (hpMult 11 vs 36 · 13 vs 39). 소비하도록 배선했다면",
+        "  두 보스가 **3분의 1 체력**으로 나왔을 것이다. 같은 사실을 두 곳에 적은",
+        "  전형적인 사례이고, 읽히지 않은 쪽이 조용히 썩어 있었다.",
+        "",
+        "★ 여기 적는 비트 필드가 생성기에 실제로 닿는지는 `tools/validate-data.mjs`",
+        "  의 '선언 ↔ 소비 대조' 절이 검사한다 — 등록되지 않은 새 필드는 오류다."
+    ],
+    "$density": [
+        "밀도 = 그 스테이지에 등장하는 적 총합.",
+        "",
+        "★ 밀도는 초반 램프 이후 거의 평탄하다. 이것이 이 게임의 핵심 밸런스 결정이다.",
+        "  적 개체 HP 가 이미 스테이지당 1.11 로 오르고, 그게 플레이어 파워 성장률과",
+        "  같은 속도다. 밀도까지 지수로 올리면 두 지수가 곱해져 월드 3에서 4천 마리가",
+        "  나온다 (첫 생성에서 실제로 그랬다). 성능 예산(동시 180체)도 재미도 무너진다.",
+        "",
+        "  반대로 밀도를 처음부터 평탄하게 두면 1-1 에 90마리가 나와 튜토리얼이 죽는다.",
+        "  그래서 전역 10스테이지까지만 가파르게 램프를 올리고, 그 뒤로는 평탄하게 둔 뒤",
+        "  난이도 상승을 전부 개체 스탯에 맡긴다.",
+        "",
+        "관문(9·19)에서 급등하고 보스(10·20)에서 내려간다.",
+        "보스가 물량으로도 이기면 그건 '보스전'이 아니라 '물량전'이기 때문이다."
+    ],
+    "densityCurve": {
+        "rampBase": 7,
+        "rampGrowth": 1.42,
+        "rampEndStage": 8,
+        "plateauDrift": 1.004,
+        "gateIndex": 9,
+        "gateMult": 1.5,
+        "bossIndex": 10,
+        "bossMult": 0.8,
+        "maxDensity": 120,
+        "$plateau": "평탄값 70 은 실측에서 나왔다. 200 마리는 6유닛 편성이 물리적으로 막지 못해 전 조합 0% 가 된다 — 난이도가 아니라 포화다.",
+        "maxBodies": 110,
+        "$maxBodies": "머릿수 상한. 예산이 아무리 커도 6유닛이 막을 수 있는 한계를 넘기면 난이도가 아니라 포화가 된다.",
+        "$bossMult": "보스 스테이지는 물량을 줄이되 너무 줄이면 전투가 70초에 끝나 보스전 같지 않다. 0.45 에서 0.8 로 올렸다."
+    },
+    "$modes": [
+        "★ 2026-08-04 경량화 — 변주 모드는 사라졌다.",
+        "  돌파(breakthrough) · 호위(escort) · 버티기(endure) 셋은 각각 별도의 승리 조건 ·",
+        "  별도의 HUD · 별도의 렌더 대상을 요구했고, 플레이어에게는 \"들어가 봐야 규칙을 아는\"",
+        "  학습 비용이었다. 해당 25 스테이지는 assault 로 내렸다.",
+        "",
+        "★ 남는 것은 월드마다 두 번의 nemesis(보스전)뿐이다. 그것은 규칙 변주가 아니라",
+        "  월드의 마침표이고, 보스 3페이즈는 이 게임에서 가장 값싸게 얻은 연출이다.",
+        "",
+        "★ 키는 월드 안의 인덱스(1~20)다. 10 단위로 접지 않는다."
+    ],
+    "$postProcess": [
+        "생성 후처리 — 웨이브 테이블을 다 만든 뒤에 거는 실측 손잡이.",
+        "",
+        "★ 예전에는 별도 스크립트라 생성 파이프라인 밖에 있었고, gen:stages 를 한 번",
+        "  돌리면 실측 조정이 통째로 사라졌다. 생성기 안으로 넣었다.",
+        "",
+        "flyingCap — 한 스테이지의 FLYING 비율 상한.",
+        "  FLYING 은 블로킹이 불가능해서, 절반이 비행이면 방벽 슬롯이 순수 손해가 되고",
+        "  \"방벽 없는 편성\"이 균형 편성을 이긴다 (3-19 실측: 비행 55%, no_blocker 100%",
+        "  vs balanced 33.7%). 게이트 B16(방벽 필수성)이 규칙이 아니라 데이터 때문에",
+        "  뒤집혔던 것이다. 초과분은 같은 세력의 비용이 가장 가까운 지상 적으로 바꾼다.",
+        "",
+        "★ modeSpawnScale 은 버티기 모드와 함께 2026-08-04 경량화로 사라졌다."
+    ],
+    "postProcess": {
+        "flyingCap": 0.35
+    },
+    "modeRotation": {
+        "10": "nemesis",
+        "20": "nemesis"
+    },
+    "worlds": [
+        {
+            "world": 1,
+            "name": {
+                "ko": "무너진 하수도",
+                "en": "The Collapsed Sewers"
+            },
+            "faction": "vermin",
+            "arkHp": 100,
+            "$teaches": "기본 문법 — 소환 · 방벽 · 대공 · 중장갑",
+            "designedDefeatIndex": 9,
+            "beats": [
+                {
+                    "index": 1,
+                    "teaches": {
+                        "ko": "소환 = 승리",
+                        "en": "Summon and you win"
+                    },
+                    "pool": [
+                        "foraging_maggot"
+                    ],
+                    "arkHp": 30
+                },
+                {
+                    "index": 2,
+                    "teaches": {
+                        "ko": "레인 3개",
+                        "en": "Three lanes"
+                    },
+                    "pool": [
+                        "foraging_maggot",
+                        "infected_mouse"
+                    ],
+                    "arkHp": 36
+                },
+                {
+                    "index": 3,
+                    "teaches": {
+                        "ko": "물량은 광역",
+                        "en": "Crowds need area damage"
+                    },
+                    "pool": [
+                        "infected_mouse",
+                        "tainted_cockroach"
+                    ],
+                    "arkHp": 60
+                },
+                {
+                    "index": 4,
+                    "teaches": {
+                        "ko": "방벽이 필요하다",
+                        "en": "You need a Blocker"
+                    },
+                    "pool": [
+                        "tainted_cockroach",
+                        "soldier_ant"
+                    ]
+                },
+                {
+                    "index": 5,
+                    "teaches": {
+                        "ko": "중장갑 — 물리가 안 통한다",
+                        "en": "Armored — physical bounces off"
+                    },
+                    "pool": [
+                        "soldier_ant",
+                        "acid_ant"
+                    ],
+                    "emphasis": "acid_ant"
+                },
+                {
+                    "index": 6,
+                    "teaches": {
+                        "ko": "공중 — 방벽을 무시한다",
+                        "en": "Air — it ignores Blockers"
+                    },
+                    "pool": [
+                        "infected_mouse",
+                        "swooping_bat"
+                    ],
+                    "emphasis": "swooping_bat"
+                },
+                {
+                    "index": 7,
+                    "teaches": {
+                        "ko": "복합 편성",
+                        "en": "Mixed formations"
+                    },
+                    "pool": [
+                        "tainted_cockroach",
+                        "acid_ant",
+                        "swooping_bat"
+                    ]
+                },
+                {
+                    "index": 8,
+                    "teaches": {
+                        "ko": "단단한 선봉",
+                        "en": "A tough vanguard"
+                    },
+                    "pool": [
+                        "soldier_ant",
+                        "dung_beetle",
+                        "swooping_bat"
+                    ]
+                },
+                {
+                    "index": 9,
+                    "teaches": {
+                        "ko": "설계된 첫 패배 — 편성을 바꿔야 한다",
+                        "en": "The designed first defeat — change your loadout"
+                    },
+                    "pool": [
+                        "tainted_cockroach",
+                        "acid_ant",
+                        "dung_beetle",
+                        "swooping_bat"
+                    ],
+                    "$difficultyMult": [
+                        "게이트 B3 — 설계된 첫 패배는 승률 30~45% 여야 한다.",
+                        "이 값은 추천 편성이 얼마나 센가에 종속된다. 응답이 가파르다:",
+                        "3.40 = 51.7% · 3.55 = 38.3% · 3.70 = 20.0% · 3.85 = 11.7% (60시드).",
+                        "",
+                        "★ 2026-08-04 경량화로 3.85 → 3.55. 각인 풀이 30 → 18 이 되고 진화가",
+                        "  사라지면서 같은 배율에서 승률이 38% → 12% 로 떨어졌다 — 드래프트가",
+                        "  주던 상한이 낮아진 것이다. 각인 풀·추천 편성 규칙을 다시 만지면",
+                        "  이 값도 **반드시 다시 재야 한다** (tools/tune-first-defeat.mjs).",
+                        "",
+                        "★★ 2026-08-05 재측정 — 3.55 에서 승률이 **100%** 가 됐다.",
+                        "  각인 6종(관통 · 육중한 사격 · 처형 · 철벽 · 대공탄 · 오라 냉기)이",
+                        "  선언대로 작동하지 않고 있었고, 그것을 고치자 같은 배율에서",
+                        "  게임이 그만큼 쉬워졌다. 아군이 뒤로 지나간 적을 쫓는 수정도 함께다.",
+                        "  즉 이 값은 **게임이 원래 설계대로 돌아온 만큼** 다시 올려야 했다.",
+                        "",
+                        "  배율만 올린 스윕 (40시드): 3.9 = 97.5% · 4.3 = 85% · 4.7 = 65% ·",
+                        "  5.2 = 47.5% · 5.5 = 32.5%. 5.5 는 창 안이지만 **패배의 질이 나쁘다** —",
+                        "  적 잔여 HP 중앙값 82%, 웨이브 진행 72% 로 '벽'으로 읽힌다.",
+                        "",
+                        "  그래서 배율 대신 **모양**을 바꿨다 (30시드):",
+                        "    회복4 · 4.3 · 급증3 → 승률 36.7% · 잔여 40% · 진행 100%  ← 채택",
+                        "    회복4 · 4.7 · 급증3 → 승률 43.3% · 잔여 40% · 진행 100%",
+                        "  플레이어는 마지막 웨이브까지 가고, 거기서 무너진다."
+                    ],
+                    "difficultyMult": 4.3,
+                    "$surge": [
+                        "후반 급증 — 총량이 아니라 분포를 뒤로 민다 (stages-core.mjs 참조).",
+                        "앞 웨이브는 넘기게 두고 마지막 4웨이브에서 무너지게 한다."
+                    ],
+                    "surge": {
+                        "waves": 4,
+                        "mult": 3
+                    },
+                    "$arkRegenPerWave": [
+                        "웨이브 사이 방주 회복. **이 스테이지가 이 규칙을 켠 첫 스테이지다.**",
+                        "초반 누적 피해를 상쇄해 오래 버티게 하고, 후반 급증이 그것을 넘어선다 —",
+                        "초반 생존과 후반 치사성을 분리하는 유일한 직접 수단이다 (P7-03)."
+                    ],
+                    "arkRegenPerWave": 4
+                },
+                {
+                    "index": 10,
+                    "teaches": {
+                        "ko": "첫 보스 (거대화 엘리트)",
+                        "en": "First boss — a giant elite"
+                    },
+                    "pool": [
+                        "infected_mouse",
+                        "soldier_ant",
+                        "acid_ant",
+                        "swooping_bat"
+                    ],
+                    "boss": "giant_rhino_beetle"
+                },
+                {
+                    "index": 11,
+                    "teaches": {
+                        "ko": "하수도 깊은 곳",
+                        "en": "Deep in the sewers"
+                    },
+                    "pool": [
+                        "tainted_cockroach",
+                        "dung_beetle",
+                        "swooping_bat"
+                    ]
+                },
+                {
+                    "index": 12,
+                    "teaches": {
+                        "ko": "장갑 물량",
+                        "en": "Armored crowds"
+                    },
+                    "pool": [
+                        "acid_ant",
+                        "dung_beetle"
+                    ]
+                },
+                {
+                    "index": 13,
+                    "teaches": {
+                        "ko": "공중 물량",
+                        "en": "Air crowds"
+                    },
+                    "pool": [
+                        "swooping_bat",
+                        "infected_mouse"
+                    ],
+                    "emphasis": "swooping_bat"
+                },
+                {
+                    "index": 14,
+                    "teaches": {
+                        "ko": "코뿔소 등장",
+                        "en": "Enter the rhino beetle"
+                    },
+                    "pool": [
+                        "dung_beetle",
+                        "rhino_beetle",
+                        "tainted_cockroach"
+                    ]
+                },
+                {
+                    "index": 15,
+                    "teaches": {
+                        "ko": "3중 압박",
+                        "en": "Pressure on three fronts"
+                    },
+                    "pool": [
+                        "acid_ant",
+                        "rhino_beetle",
+                        "swooping_bat"
+                    ]
+                },
+                {
+                    "index": 16,
+                    "teaches": {
+                        "ko": "지구전",
+                        "en": "A war of endurance"
+                    },
+                    "pool": [
+                        "soldier_ant",
+                        "dung_beetle",
+                        "rhino_beetle"
+                    ]
+                },
+                {
+                    "index": 17,
+                    "teaches": {
+                        "ko": "전면전",
+                        "en": "All-out battle"
+                    },
+                    "pool": [
+                        "tainted_cockroach",
+                        "acid_ant",
+                        "rhino_beetle",
+                        "swooping_bat"
+                    ]
+                },
+                {
+                    "index": 18,
+                    "teaches": {
+                        "ko": "물량전",
+                        "en": "A battle of numbers"
+                    },
+                    "pool": [
+                        "infected_mouse",
+                        "acid_ant",
+                        "swooping_bat",
+                        "rhino_beetle"
+                    ]
+                },
+                {
+                    "index": 19,
+                    "teaches": {
+                        "ko": "월드 1 최종 관문",
+                        "en": "World 1 final gate"
+                    },
+                    "pool": [
+                        "tainted_cockroach",
+                        "dung_beetle",
+                        "rhino_beetle",
+                        "swooping_bat"
+                    ]
+                },
+                {
+                    "index": 20,
+                    "teaches": {
+                        "ko": "황금 갑충 여왕 — 순서가 뒤집힌 보스",
+                        "en": "Royal Scarab Matriarch — a boss in reverse order"
+                    },
+                    "pool": [
+                        "acid_ant",
+                        "dung_beetle",
+                        "swooping_bat"
+                    ],
+                    "boss": "royal_scarab_matriarch",
+                    "bossMult": 1.35
+                }
+            ],
+            "$comment_arkHp": "비트 1–3 은 방주 HP 를 낮춘다 — 월드 상수(100)로는 스폰 전량이 자폭해도 이길 수 있었다 (44/50/83 vs 100). tools/lib/stages-core.mjs 의 beat.arkHp 참조"
+        },
+        {
+            "world": 2,
+            "name": {
+                "ko": "고블린 전초지",
+                "en": "Goblin Outpost"
+            },
+            "faction": "goblin",
+            "arkHp": 110,
+            "$teaches": "새 질문 — 원거리 적 · 속공 · WARDED(술식 저항) · REGEN",
+            "beats": [
+                {
+                    "index": 1,
+                    "teaches": {
+                        "ko": "새 적, 같은 문법",
+                        "en": "New enemies, same grammar"
+                    },
+                    "pool": [
+                        "goblin_scrapper"
+                    ]
+                },
+                {
+                    "index": 2,
+                    "teaches": {
+                        "ko": "원거리 적 — 방벽만으론 못 막는다",
+                        "en": "Ranged enemies — Blockers alone will not stop them"
+                    },
+                    "pool": [
+                        "goblin_scrapper",
+                        "goblin_slinger"
+                    ],
+                    "emphasis": "goblin_slinger"
+                },
+                {
+                    "index": 3,
+                    "teaches": {
+                        "ko": "지구전",
+                        "en": "A war of endurance"
+                    },
+                    "pool": [
+                        "goblin_scrapper",
+                        "goblin_slinger"
+                    ]
+                },
+                {
+                    "index": 4,
+                    "teaches": {
+                        "ko": "속공 — 선배치가 필요하다",
+                        "en": "Rushers — place your line early"
+                    },
+                    "pool": [
+                        "goblin_scrapper",
+                        "wolf_rider"
+                    ],
+                    "emphasis": "wolf_rider"
+                },
+                {
+                    "index": 5,
+                    "teaches": {
+                        "ko": "장갑 복귀",
+                        "en": "Armor returns"
+                    },
+                    "pool": [
+                        "goblin_slinger",
+                        "red_cap"
+                    ]
+                },
+                {
+                    "index": 6,
+                    "teaches": {
+                        "ko": "전면전 — 이번엔 우리가 뚫는다",
+                        "en": "All-out battle — this time you break through"
+                    },
+                    "pool": [
+                        "goblin_scrapper",
+                        "wolf_rider",
+                        "red_cap"
+                    ]
+                },
+                {
+                    "index": 7,
+                    "teaches": {
+                        "ko": "술식 저항 — 술식이 안 통한다",
+                        "en": "Warded — arcane stops working"
+                    },
+                    "pool": [
+                        "goblin_scrapper",
+                        "goblin_occultist"
+                    ],
+                    "emphasis": "goblin_occultist"
+                },
+                {
+                    "index": 8,
+                    "teaches": {
+                        "ko": "공중 물량",
+                        "en": "Air crowds"
+                    },
+                    "pool": [
+                        "grinning_gremlin",
+                        "goblin_slinger"
+                    ],
+                    "emphasis": "grinning_gremlin"
+                },
+                {
+                    "index": 9,
+                    "teaches": {
+                        "ko": "관문 — 원거리 + 속공 + 장갑",
+                        "en": "Gate — ranged, rushers and armor"
+                    },
+                    "pool": [
+                        "goblin_slinger",
+                        "wolf_rider",
+                        "red_cap",
+                        "grinning_gremlin"
+                    ]
+                },
+                {
+                    "index": 10,
+                    "teaches": {
+                        "ko": "짓뭉개는 외눈거인 — 무방비 구간이 없다",
+                        "en": "Crushing Cyclops — it never leaves an opening"
+                    },
+                    "pool": [
+                        "goblin_scrapper",
+                        "goblin_slinger",
+                        "wolf_rider"
+                    ],
+                    "boss": "crushing_cyclops"
+                },
+                {
+                    "index": 11,
+                    "teaches": {
+                        "ko": "회복 — 찔끔 때리면 안 죽는다",
+                        "en": "Regeneration — chip damage will not kill it"
+                    },
+                    "pool": [
+                        "goblin_scrapper",
+                        "stone_troll"
+                    ],
+                    "emphasis": "stone_troll"
+                },
+                {
+                    "index": 12,
+                    "teaches": {
+                        "ko": "주술사 진영",
+                        "en": "An occultist line"
+                    },
+                    "pool": [
+                        "goblin_occultist",
+                        "red_cap",
+                        "goblin_scrapper"
+                    ]
+                },
+                {
+                    "index": 13,
+                    "teaches": {
+                        "ko": "기병 돌격",
+                        "en": "Cavalry charge"
+                    },
+                    "pool": [
+                        "wolf_rider",
+                        "grinning_gremlin"
+                    ]
+                },
+                {
+                    "index": 14,
+                    "teaches": {
+                        "ko": "트롤 벽",
+                        "en": "A wall of trolls"
+                    },
+                    "pool": [
+                        "stone_troll",
+                        "goblin_slinger",
+                        "red_cap"
+                    ]
+                },
+                {
+                    "index": 15,
+                    "teaches": {
+                        "ko": "혼성 부대",
+                        "en": "A mixed warband"
+                    },
+                    "pool": [
+                        "goblin_occultist",
+                        "wolf_rider",
+                        "grinning_gremlin",
+                        "red_cap"
+                    ]
+                },
+                {
+                    "index": 16,
+                    "teaches": {
+                        "ko": "장기전",
+                        "en": "The long fight"
+                    },
+                    "pool": [
+                        "stone_troll",
+                        "brawny_ogre",
+                        "goblin_slinger"
+                    ]
+                },
+                {
+                    "index": 17,
+                    "teaches": {
+                        "ko": "전면 공세",
+                        "en": "Full offensive"
+                    },
+                    "pool": [
+                        "goblin_scrapper",
+                        "wolf_rider",
+                        "goblin_occultist",
+                        "grinning_gremlin"
+                    ]
+                },
+                {
+                    "index": 18,
+                    "teaches": {
+                        "ko": "물량전 — 회복 적을 뚫으며",
+                        "en": "Numbers — through enemies that heal"
+                    },
+                    "pool": [
+                        "stone_troll",
+                        "wolf_rider",
+                        "goblin_slinger"
+                    ]
+                },
+                {
+                    "index": 19,
+                    "teaches": {
+                        "ko": "월드 2 최종 관문",
+                        "en": "World 2 final gate"
+                    },
+                    "pool": [
+                        "brawny_ogre",
+                        "goblin_occultist",
+                        "grinning_gremlin",
+                        "wolf_rider"
+                    ]
+                },
+                {
+                    "index": 20,
+                    "teaches": {
+                        "ko": "고철 거신 — 살아 있지 않다",
+                        "en": "Mecha Golem — it is not alive"
+                    },
+                    "pool": [
+                        "red_cap",
+                        "stone_troll",
+                        "grinning_gremlin"
+                    ],
+                    "boss": "mecha_golem"
+                }
+            ]
+        },
+        {
+            "world": 3,
+            "name": {
+                "ko": "망자의 행렬",
+                "en": "March of the Dead"
+            },
+            "faction": "undead",
+            "arkHp": 120,
+            "$teaches": "새 질문 — CORRUPT(신성 특효) · 2조건 조합(공중+술식저항) · 지속 회복",
+            "beats": [
+                {
+                    "index": 1,
+                    "teaches": {
+                        "ko": "부정한 것 — 신성이 특효다",
+                        "en": "The unclean — holy is the answer"
+                    },
+                    "pool": [
+                        "decrepit_bones"
+                    ],
+                    "emphasis": "decrepit_bones"
+                },
+                {
+                    "index": 2,
+                    "teaches": {
+                        "ko": "기어오는 물량",
+                        "en": "A crawling swarm"
+                    },
+                    "pool": [
+                        "decrepit_bones",
+                        "skittering_hand"
+                    ]
+                },
+                {
+                    "index": 3,
+                    "teaches": {
+                        "ko": "지구전",
+                        "en": "A war of endurance"
+                    },
+                    "pool": [
+                        "skittering_hand",
+                        "sand_ghoul"
+                    ]
+                },
+                {
+                    "index": 4,
+                    "teaches": {
+                        "ko": "결박된 시체 — 장갑 + 부정",
+                        "en": "Bound cadavers — armor plus corruption"
+                    },
+                    "pool": [
+                        "decrepit_bones",
+                        "bound_cadaver"
+                    ]
+                },
+                {
+                    "index": 5,
+                    "teaches": {
+                        "ko": "포식자 — 회복하며 달려온다",
+                        "en": "Feeders — they heal as they charge"
+                    },
+                    "pool": [
+                        "sand_ghoul",
+                        "carcass_feeder"
+                    ],
+                    "emphasis": "carcass_feeder"
+                },
+                {
+                    "index": 6,
+                    "teaches": {
+                        "ko": "전면전",
+                        "en": "All-out battle"
+                    },
+                    "pool": [
+                        "decrepit_bones",
+                        "bound_cadaver",
+                        "sand_ghoul"
+                    ]
+                },
+                {
+                    "index": 7,
+                    "teaches": {
+                        "ko": "흡혈 — 공중 + 회복",
+                        "en": "Bloodsuckers — air plus regeneration"
+                    },
+                    "pool": [
+                        "vampire_bat",
+                        "skittering_hand"
+                    ],
+                    "emphasis": "vampire_bat"
+                },
+                {
+                    "index": 8,
+                    "teaches": {
+                        "ko": "일그러진 해골 — 공중 + 술식저항",
+                        "en": "Warp skulls — air plus ward"
+                    },
+                    "pool": [
+                        "warp_skull",
+                        "decrepit_bones"
+                    ],
+                    "emphasis": "warp_skull"
+                },
+                {
+                    "index": 9,
+                    "teaches": {
+                        "ko": "관문 — 2조건 조합",
+                        "en": "Gate — two conditions at once"
+                    },
+                    "pool": [
+                        "warp_skull",
+                        "vampire_bat",
+                        "bound_cadaver",
+                        "carcass_feeder"
+                    ]
+                },
+                {
+                    "index": 10,
+                    "teaches": {
+                        "ko": "무덤의 처형인 — 재생이 돌아온다",
+                        "en": "Undead Executioner — regeneration returns"
+                    },
+                    "pool": [
+                        "decrepit_bones",
+                        "sand_ghoul",
+                        "vampire_bat"
+                    ],
+                    "boss": "undead_executioner"
+                },
+                {
+                    "index": 11,
+                    "teaches": {
+                        "ko": "망령의 행진",
+                        "en": "March of the revenants"
+                    },
+                    "pool": [
+                        "grave_revenant",
+                        "skittering_hand"
+                    ]
+                },
+                {
+                    "index": 12,
+                    "teaches": {
+                        "ko": "공중 지배",
+                        "en": "The sky belongs to them"
+                    },
+                    "pool": [
+                        "vampire_bat",
+                        "warp_skull",
+                        "skittering_hand"
+                    ],
+                    "emphasis": "warp_skull",
+                    "$fix": "전원 비행이면 방벽이 무의미해져 구조적 벽이 된다(승률 0%). 지상 물량을 섞어 방벽이 일할 자리를 남긴다."
+                },
+                {
+                    "index": 13,
+                    "teaches": {
+                        "ko": "장갑 행렬",
+                        "en": "An armored procession"
+                    },
+                    "pool": [
+                        "bound_cadaver",
+                        "grave_revenant",
+                        "decrepit_bones"
+                    ]
+                },
+                {
+                    "index": 14,
+                    "teaches": {
+                        "ko": "질주하는 시체",
+                        "en": "Sprinting corpses"
+                    },
+                    "pool": [
+                        "carcass_feeder",
+                        "sand_ghoul",
+                        "skittering_hand"
+                    ]
+                },
+                {
+                    "index": 15,
+                    "teaches": {
+                        "ko": "혼성 사자",
+                        "en": "Mixed dead"
+                    },
+                    "pool": [
+                        "warp_skull",
+                        "grave_revenant",
+                        "carcass_feeder"
+                    ]
+                },
+                {
+                    "index": 16,
+                    "teaches": {
+                        "ko": "끝없는 행렬",
+                        "en": "An endless procession"
+                    },
+                    "pool": [
+                        "decrepit_bones",
+                        "skittering_hand",
+                        "bound_cadaver",
+                        "vampire_bat"
+                    ]
+                },
+                {
+                    "index": 17,
+                    "teaches": {
+                        "ko": "전면 강림",
+                        "en": "Full descent"
+                    },
+                    "pool": [
+                        "grave_revenant",
+                        "warp_skull",
+                        "carcass_feeder",
+                        "vampire_bat"
+                    ]
+                },
+                {
+                    "index": 18,
+                    "teaches": {
+                        "ko": "물량전 — 부정한 땅을 가로질러",
+                        "en": "Numbers — across unhallowed ground"
+                    },
+                    "pool": [
+                        "sand_ghoul",
+                        "bound_cadaver",
+                        "warp_skull"
+                    ]
+                },
+                {
+                    "index": 19,
+                    "teaches": {
+                        "ko": "월드 3 최종 관문",
+                        "en": "World 3 final gate"
+                    },
+                    "pool": [
+                        "grave_revenant",
+                        "vampire_bat",
+                        "warp_skull",
+                        "bound_cadaver"
+                    ]
+                },
+                {
+                    "index": 20,
+                    "teaches": {
+                        "ko": "균열의 술사 — 원거리 술식 보스",
+                        "en": "Evil Wizard — a ranged arcane boss"
+                    },
+                    "pool": [
+                        "bound_cadaver",
+                        "carcass_feeder",
+                        "warp_skull"
+                    ],
+                    "boss": "evil_wizard"
+                }
+            ]
+        },
+        {
+            "world": 4,
+            "name": {
+                "ko": "부서진 성채",
+                "en": "The Broken Citadel"
+            },
+            "faction": "lizard",
+            "arkHp": 130,
+            "$teaches": "새 질문 — 방벽이 하던 일을 하나씩 빼앗는다",
+            "$design": [
+                "월드 1–3 은 '무엇으로 때리는가'를 물었다 (물리·술식·신성).",
+                "월드 4 는 '무엇으로 막는가'를 묻는다 — 그리고 매번 방벽에게서 하나씩 빼앗는다.",
+                "",
+                "  ① 보호막(SHIELDED)이 처음으로 **수치를 갖는다** (base.shield).",
+                "     세기와 무관하게 첫 N타가 지워지므로 '큰 한 방 먼저'가 손해가 된다.",
+                "  ② 술식 근접(tidal_ravager)이 아군 DEF 를 무시한다 —",
+                "     '더 단단한 방벽'이라는 답이 여기서 처음으로 통하지 않는다.",
+                "  ③ WARDED + SWARM(merfolk_aquamancer) — 결계가 물량에 붙는다.",
+                "     술식·신성 광역이 동시에 깎여 물리 원거리가 답이 된다.",
+                "  ④ ARMORED + FLYING(mud_wyvern) — 붙잡지도 못하고 물리도 안 통하는 2조건.",
+                "",
+                "★ 사거리 축이 굵어진다. 창병 72 · 궁수 165 · 작살 150 · 수술사 150 —",
+                "  방벽 앞줄만 두껍게 해서는 전선이 성립하지 않는다."
+            ],
+            "beats": [
+                {
+                    "index": 1,
+                    "teaches": {
+                        "ko": "성채의 척후 — 새 세력, 같은 문법",
+                        "en": "Citadel scouts — new faction, same grammar"
+                    },
+                    "pool": [
+                        "lizard_scout"
+                    ],
+                    "difficultyMult": 1.05
+                },
+                {
+                    "index": 2,
+                    "teaches": {
+                        "ko": "창은 방벽 뒤를 찌른다",
+                        "en": "Spears reach past your Blocker"
+                    },
+                    "pool": [
+                        "lizard_scout",
+                        "lizard_spearman"
+                    ],
+                    "emphasis": "lizard_spearman",
+                    "difficultyMult": 1.06
+                },
+                {
+                    "index": 3,
+                    "teaches": {
+                        "ko": "활이 전선을 넘는다",
+                        "en": "Bows shoot over the line"
+                    },
+                    "pool": [
+                        "lizard_spearman",
+                        "lizard_archer"
+                    ],
+                    "emphasis": "lizard_archer",
+                    "difficultyMult": 1.07
+                },
+                {
+                    "index": 4,
+                    "teaches": {
+                        "ko": "보호막 — 첫 타가 지워진다",
+                        "en": "Shields — your first hits are erased"
+                    },
+                    "pool": [
+                        "lizard_scout",
+                        "coral_crab"
+                    ],
+                    "emphasis": "coral_crab",
+                    "difficultyMult": 1.08
+                },
+                {
+                    "index": 5,
+                    "teaches": {
+                        "ko": "밀물 — 빠른 물량",
+                        "en": "The tide — fast and many"
+                    },
+                    "pool": [
+                        "merfolk_scout",
+                        "merfolk_impaler"
+                    ],
+                    "difficultyMult": 1.09
+                },
+                {
+                    "index": 6,
+                    "teaches": {
+                        "ko": "전면전 — 해자를 건넌다",
+                        "en": "All-out battle — crossing the moat"
+                    },
+                    "pool": [
+                        "lizard_scout",
+                        "lizard_spearman",
+                        "coral_crab"
+                    ],
+                    "difficultyMult": 1.13
+                },
+                {
+                    "index": 7,
+                    "teaches": {
+                        "ko": "결계 군집 — 술식 광역이 통째로 막힌다",
+                        "en": "Warded swarm — arcane area damage is shut out"
+                    },
+                    "pool": [
+                        "merfolk_scout",
+                        "merfolk_aquamancer"
+                    ],
+                    "emphasis": "merfolk_aquamancer",
+                    "difficultyMult": 1.14
+                },
+                {
+                    "index": 8,
+                    "teaches": {
+                        "ko": "물량전 — 늪을 가로질러",
+                        "en": "Numbers — across the swamp"
+                    },
+                    "pool": [
+                        "swamp_toad",
+                        "lizard_archer",
+                        "merfolk_impaler"
+                    ],
+                    "difficultyMult": 1.15
+                },
+                {
+                    "index": 9,
+                    "teaches": {
+                        "ko": "관문 — 중장갑 비행",
+                        "en": "Gate — armored fliers"
+                    },
+                    "pool": [
+                        "lizard_archer",
+                        "coral_crab",
+                        "merfolk_impaler",
+                        "mud_wyvern"
+                    ],
+                    "emphasis": "mud_wyvern",
+                    "difficultyMult": 1.16
+                },
+                {
+                    "index": 10,
+                    "teaches": {
+                        "ko": "범람의 파수병 — 결계가 끝까지 남는다",
+                        "en": "Moat Warden — the ward never drops"
+                    },
+                    "pool": [
+                        "lizard_spearman",
+                        "merfolk_impaler",
+                        "coral_crab"
+                    ],
+                    "boss": "moat_warden",
+                    "difficultyMult": 1.17
+                },
+                {
+                    "index": 11,
+                    "teaches": {
+                        "ko": "술식 근접 — 방벽의 방어력이 사라진다",
+                        "en": "Arcane melee — your Blocker's defense stops mattering"
+                    },
+                    "pool": [
+                        "lizard_scout",
+                        "tidal_ravager"
+                    ],
+                    "emphasis": "tidal_ravager",
+                    "difficultyMult": 1.18
+                },
+                {
+                    "index": 12,
+                    "teaches": {
+                        "ko": "물결 드레이크 — 술식 비행",
+                        "en": "Aqua drakes — arcane fliers"
+                    },
+                    "pool": [
+                        "merfolk_scout",
+                        "aqua_drake"
+                    ],
+                    "emphasis": "aqua_drake",
+                    "difficultyMult": 1.22
+                },
+                {
+                    "index": 13,
+                    "teaches": {
+                        "ko": "지구전 — 점액의 벽",
+                        "en": "Endurance — a wall of slime"
+                    },
+                    "pool": [
+                        "lizard_spearman",
+                        "swamp_toad",
+                        "ochre_jelly"
+                    ],
+                    "difficultyMult": 1.23
+                },
+                {
+                    "index": 14,
+                    "teaches": {
+                        "ko": "저항하는 무리",
+                        "en": "A horde that resists"
+                    },
+                    "pool": [
+                        "lizard_archer",
+                        "merfolk_aquamancer",
+                        "ochre_jelly"
+                    ],
+                    "difficultyMult": 1.24
+                },
+                {
+                    "index": 15,
+                    "teaches": {
+                        "ko": "회복하는 늪",
+                        "en": "The swamp heals its own"
+                    },
+                    "pool": [
+                        "merfolk_scout",
+                        "swamp_toad",
+                        "tidal_ravager"
+                    ],
+                    "difficultyMult": 1.25
+                },
+                {
+                    "index": 16,
+                    "teaches": {
+                        "ko": "전면전 — 성채 안뜰",
+                        "en": "All-out battle — the inner court"
+                    },
+                    "pool": [
+                        "lizard_archer",
+                        "coral_crab",
+                        "mud_wyvern"
+                    ],
+                    "difficultyMult": 1.26
+                },
+                {
+                    "index": 17,
+                    "teaches": {
+                        "ko": "전면 공세",
+                        "en": "Full offensive"
+                    },
+                    "pool": [
+                        "lizard_spearman",
+                        "merfolk_aquamancer",
+                        "aqua_drake",
+                        "tidal_ravager"
+                    ],
+                    "difficultyMult": 1.27
+                },
+                {
+                    "index": 18,
+                    "teaches": {
+                        "ko": "물량전 — 무너진 회랑",
+                        "en": "Numbers — the collapsed cloister"
+                    },
+                    "pool": [
+                        "merfolk_impaler",
+                        "ochre_jelly",
+                        "citadel_statue"
+                    ],
+                    "difficultyMult": 1.31
+                },
+                {
+                    "index": 19,
+                    "teaches": {
+                        "ko": "월드 4 최종 관문",
+                        "en": "World 4 final gate"
+                    },
+                    "pool": [
+                        "merfolk_aquamancer",
+                        "mud_wyvern",
+                        "tidal_ravager",
+                        "citadel_statue"
+                    ],
+                    "difficultyMult": 1.32
+                },
+                {
+                    "index": 20,
+                    "teaches": {
+                        "ko": "비늘군주 — 보호막으로 열고 재생으로 닫는다",
+                        "en": "Scale Sovereign — opens with a shield, closes with regeneration"
+                    },
+                    "pool": [
+                        "coral_crab",
+                        "ochre_jelly",
+                        "aqua_drake"
+                    ],
+                    "boss": "scale_sovereign",
+                    "difficultyMult": 1.33
+                }
+            ]
+        },
+        {
+            "world": 5,
+            "name": {
+                "ko": "마법사의 탑",
+                "en": "The Wizard's Tower"
+            },
+            "faction": "arcane",
+            "arkHp": 140,
+            "$teaches": "새 질문 — 술식이 이번엔 우리를 향해 온다",
+            "$design": [
+                "월드 5 의 적은 절반 이상이 arcane 이다. arcane 은 아군 DEF 를 무시하므로",
+                "**방벽의 방어력이 통째로 무의미해진다** — 방벽은 '붙잡는 역할'만 남고,",
+                "버티는 역할은 지원·회복이 가져가야 한다. 월드 4 가 예고한 축의 완성이다.",
+                "",
+                "  ① CORRUPT + WARDED — 신성이 특효(×1.6)인데 그 신성이 RES 에 깎인다.",
+                "     **정답이 정답을 막는다.** 물리를 같이 넣지 않으면 화력이 사라진다.",
+                "  ② FLYING + WARDED + CORRUPT(ghastly_eye) — 첫 3조건.",
+                "  ③ SHIELDED 가 물량이 아니라 거인에게 붙는다 (얼음 골렘 · 흑기사).",
+                "  ④ 사거리 185(vile_witch) — 전 적 중 최장. 전선 뒤까지 닿는다.",
+                "",
+                "★ 난이도 곡선. 전역 스테이지 81–94 구간은 무과금 목표 파워가 적 HP 성장을",
+                "  앞서므로(파워/HP 1.00 → 1.15) 그대로 두면 월드 4 보다 쉬워진다.",
+                "  그래서 적 base 를 월드 4 대비 약 1.3배로 올려 잡았다.",
+                "  반대로 레벨 상한(100)이 걸리는 스테이지 95 이후(5-15~5-20)는 비율이",
+                "  0.87 까지 떨어진다 — 캠페인 2부의 마지막이 가장 어려운 것은 의도다."
+            ],
+            "beats": [
+                {
+                    "index": 1,
+                    "teaches": {
+                        "ko": "탑의 문턱",
+                        "en": "The threshold of the tower"
+                    },
+                    "pool": [
+                        "rascal_demonling"
+                    ],
+                    "difficultyMult": 1.34
+                },
+                {
+                    "index": 2,
+                    "teaches": {
+                        "ko": "도깨비불 — 공중 군집",
+                        "en": "Wisps — an airborne swarm"
+                    },
+                    "pool": [
+                        "rascal_demonling",
+                        "glowing_wisp"
+                    ],
+                    "emphasis": "glowing_wisp",
+                    "difficultyMult": 1.36
+                },
+                {
+                    "index": 3,
+                    "teaches": {
+                        "ko": "결계 군집 — 신성이 저항당한다",
+                        "en": "Warded swarm — even holy is resisted"
+                    },
+                    "pool": [
+                        "rascal_demonling",
+                        "nefarious_scamp"
+                    ],
+                    "emphasis": "nefarious_scamp",
+                    "difficultyMult": 1.37
+                },
+                {
+                    "index": 4,
+                    "teaches": {
+                        "ko": "부유하는 눈 — 원거리 술식",
+                        "en": "Floating eyes — arcane at range"
+                    },
+                    "pool": [
+                        "rascal_demonling",
+                        "floating_eye"
+                    ],
+                    "emphasis": "floating_eye",
+                    "difficultyMult": 1.41
+                },
+                {
+                    "index": 5,
+                    "teaches": {
+                        "ko": "매혹술사 — 사거리가 전선을 넘는다",
+                        "en": "Enchanters — their range clears your line"
+                    },
+                    "pool": [
+                        "nefarious_scamp",
+                        "elf_enchanter"
+                    ],
+                    "difficultyMult": 1.42
+                },
+                {
+                    "index": 6,
+                    "teaches": {
+                        "ko": "전면전 — 나선 계단",
+                        "en": "All-out battle — the spiral stair"
+                    },
+                    "pool": [
+                        "rascal_demonling",
+                        "glowing_wisp",
+                        "elf_bladedancer"
+                    ],
+                    "difficultyMult": 1.44
+                },
+                {
+                    "index": 7,
+                    "teaches": {
+                        "ko": "검무 — 배치가 끝나기 전에 지나간다",
+                        "en": "Bladedancers — past you before you finish placing"
+                    },
+                    "pool": [
+                        "nefarious_scamp",
+                        "elf_bladedancer"
+                    ],
+                    "emphasis": "elf_bladedancer",
+                    "difficultyMult": 1.45
+                },
+                {
+                    "index": 8,
+                    "teaches": {
+                        "ko": "물량전 — 서고를 가로질러",
+                        "en": "Numbers — across the library"
+                    },
+                    "pool": [
+                        "floating_eye",
+                        "fungal_myconid",
+                        "elf_enchanter"
+                    ],
+                    "difficultyMult": 1.46
+                },
+                {
+                    "index": 9,
+                    "teaches": {
+                        "ko": "관문 — 얼음과 균사",
+                        "en": "Gate — ice and fungus"
+                    },
+                    "pool": [
+                        "floating_eye",
+                        "elf_bladedancer",
+                        "fungal_myconid",
+                        "ice_golem"
+                    ],
+                    "difficultyMult": 1.47
+                },
+                {
+                    "index": 10,
+                    "teaches": {
+                        "ko": "응시하는 감시자 — 마지막에 도망친다",
+                        "en": "Ocular Watcher — it runs at the end"
+                    },
+                    "pool": [
+                        "glowing_wisp",
+                        "rascal_demonling",
+                        "elf_enchanter"
+                    ],
+                    "boss": "ocular_watcher",
+                    "difficultyMult": 1.52
+                },
+                {
+                    "index": 11,
+                    "teaches": {
+                        "ko": "진홍 슬라드 — 재생하는 장갑",
+                        "en": "Crimson slaad — armor that regenerates"
+                    },
+                    "pool": [
+                        "rascal_demonling",
+                        "crimson_slaad"
+                    ],
+                    "emphasis": "crimson_slaad",
+                    "difficultyMult": 1.53
+                },
+                {
+                    "index": 12,
+                    "teaches": {
+                        "ko": "타락한 정원",
+                        "en": "The corrupted garden"
+                    },
+                    "pool": [
+                        "nefarious_scamp",
+                        "corrupted_treant"
+                    ],
+                    "difficultyMult": 1.54
+                },
+                {
+                    "index": 13,
+                    "teaches": {
+                        "ko": "지구전 — 봉인된 층",
+                        "en": "Endurance — the sealed floor"
+                    },
+                    "pool": [
+                        "elf_enchanter",
+                        "fungal_myconid",
+                        "ice_golem"
+                    ],
+                    "difficultyMult": 1.56
+                },
+                {
+                    "index": 14,
+                    "teaches": {
+                        "ko": "마녀의 회랑 — 사거리 185",
+                        "en": "The witches' gallery — reach 185"
+                    },
+                    "pool": [
+                        "elf_bladedancer",
+                        "vile_witch"
+                    ],
+                    "emphasis": "vile_witch",
+                    "difficultyMult": 1.57
+                },
+                {
+                    "index": 15,
+                    "teaches": {
+                        "ko": "3조건 — 비행 + 결계 + 타락",
+                        "en": "Three conditions — flying, warded, corrupt"
+                    },
+                    "pool": [
+                        "crimson_slaad",
+                        "ghastly_eye"
+                    ],
+                    "emphasis": "ghastly_eye",
+                    "difficultyMult": 1.5
+                },
+                {
+                    "index": 16,
+                    "teaches": {
+                        "ko": "전면전 — 봉인된 서고",
+                        "en": "All-out battle — the sealed archive"
+                    },
+                    "pool": [
+                        "glowing_wisp",
+                        "vile_witch",
+                        "corrupted_treant"
+                    ],
+                    "difficultyMult": 1.44
+                },
+                {
+                    "index": 17,
+                    "teaches": {
+                        "ko": "흑기사 — 결계와 보호막이 겹친다",
+                        "en": "Blackguards — ward and shield stacked"
+                    },
+                    "pool": [
+                        "floating_eye",
+                        "elf_bladedancer",
+                        "depraved_blackguard"
+                    ],
+                    "difficultyMult": 1.37
+                },
+                {
+                    "index": 18,
+                    "teaches": {
+                        "ko": "물량전 — 균열이 열린 층",
+                        "en": "Numbers — the floor where the rift opened"
+                    },
+                    "pool": [
+                        "nefarious_scamp",
+                        "ghastly_eye",
+                        "ice_golem"
+                    ],
+                    "difficultyMult": 1.28,
+                    "$difficultyMult": [
+                        "★ 2026-08-04 경량화 — 이 스테이지는 호위(escort) 모드였다. 호위는 물량을 0.85배로",
+                        "  줄여 받고 있었고(densityCurve.modeDensityMult), 모드가 사라지면서 그 감산도",
+                        "  같이 사라져 승률이 게이트 B4(≥55%) 아래로 떨어졌다 (200시드 51.5%).",
+                        "  물량을 되돌리는 대신 배율을 낮춘다 — 웨이브 수와 적 구성은 그대로 두고",
+                        "  1.31 = 51.5% · 1.28 = 75.5% · 1.24 = 89.0% (200시드). 응답이 가파르다.",
+                        "  1.28 을 고른 이유: B4(≥55%) 위에 여유를 두되 월드 5 후반의 압박을 남긴다."
+                    ]
+                },
+                {
+                    "index": 19,
+                    "teaches": {
+                        "ko": "월드 5 최종 관문",
+                        "en": "World 5 final gate"
+                    },
+                    "pool": [
+                        "elf_bladedancer",
+                        "crimson_slaad",
+                        "corrupted_treant",
+                        "ghastly_eye"
+                    ],
+                    "difficultyMult": 1.26
+                },
+                {
+                    "index": 20,
+                    "teaches": {
+                        "ko": "심연의 발로르 — 세 페이즈가 서로 다른 방어 원리다",
+                        "en": "Pit Balor — three phases, three different defenses"
+                    },
+                    "pool": [
+                        "glowing_wisp",
+                        "crimson_slaad",
+                        "corrupted_treant"
+                    ],
+                    "boss": "pit_balor",
+                    "difficultyMult": 1.2
+                }
+            ]
+        }
+    ]
+}

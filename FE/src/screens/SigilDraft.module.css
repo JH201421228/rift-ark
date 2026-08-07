@@ -1,0 +1,215 @@
+/* 각인 드래프트 — docs/02-design/18-ux-ui.md §2.5 */
+
+.overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    background: rgba(8, 8, 16, 0.86);
+    pointer-events: auto;
+    animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+}
+
+.title {
+    margin: 0;
+    font-size: 22px;
+    color: var(--rift);
+}
+
+.sub {
+    margin: 0;
+    font-size: 12px;
+    color: var(--text-dim);
+}
+
+.cards {
+    display: flex;
+    gap: 14px;
+}
+
+.card {
+    position: relative;
+    width: 200px;
+    min-height: 190px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px 14px;
+    text-align: left;
+    background: #14142a;
+    border: 2px solid #3a3a5e;
+    border-radius: 4px;
+    transition:
+        transform 0.1s,
+        border-color 0.1s;
+}
+
+/* 각인 아이콘 — 이름 위, 카드 상단 중앙 */
+.icon {
+    align-self: center;
+    margin-bottom: 2px;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    border-color: var(--gold);
+}
+
+/* 대가형 — ⚠ 로 명시한다. 숨기면 다크 패턴이다. */
+.card.cost {
+    border-color: #7a4a2a;
+    background: #1c1410;
+}
+.card.cost:hover {
+    border-color: #d08040;
+}
+
+.name {
+    font-size: 15px;
+    color: var(--text);
+    /* ★ 영어 각인 이름은 한 낱말이 길다 ("Overwhelming Force"). 200px 카드에서
+       줄바꿈할 자리가 없으면 카드 밖으로 삐져나가므로 낱말 안에서도 끊는다. */
+    overflow-wrap: break-word;
+}
+
+/* ★★ **카드 폭을 넓히지 않는다** (2026-08-07, i18n. 실측하고 내린 결론이다).
+   폰트가 한글:라틴 1:0.5 듀오스페이스라 **글자 수가 아니라 폭**을 재야 한다.
+   `sigils.json` 18종의 최장 설명은 영어 49자(= 한글 24.5자 폭) · 한국어 27자이므로,
+   영어 쪽이 오히려 **좁다.** 200px 카드에서 두 언어 모두 두 줄이고 카드가 자라지도
+   않는다. 폭을 210px 로만 넓혀도 3장 + 간격이 iPhone SE 가로(667px)에서 여백을
+   9px 밖에 남기지 않으므로, 넓히는 쪽이 오히려 위험하다.
+   설명이 길어져도 `.desc` 는 `flex: 1` · `.card` 는 `min-height` 뿐이라 넘치는 대신
+   **세로로 자란다** (세 장은 같은 flex 행이라 높이가 함께 맞춰진다). */
+.desc {
+    flex: 1;
+    font-size: 12px;
+    line-height: 1.65;
+    color: var(--text-dim);
+    overflow-wrap: break-word;
+}
+
+.badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.badge {
+    padding: 2px 6px;
+    font-size: 10px;
+    border-radius: 2px;
+}
+
+.badgeCost {
+    color: #ffb060;
+    background: rgba(208, 128, 64, 0.15);
+    border: 1px solid #7a4a2a;
+}
+
+/* ✨반응 — 조합이 존재한다는 힌트만. 무엇과 조합되는지는 알려주지 않는다. */
+.badgeReactive {
+    color: #ffe08a;
+    background: rgba(242, 179, 61, 0.15);
+    border: 1px solid #7a6a2a;
+    animation: shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+    50% {
+        filter: brightness(1.6);
+    }
+}
+
+.badgeStack {
+    color: var(--text-dim);
+    border: 1px solid #3a3a5e;
+}
+
+.footer {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 4px;
+}
+
+.reroll {
+    min-height: 40px;
+    padding: 0 16px;
+    font-size: 12px;
+    color: var(--text);
+    background: #1e1e34;
+    border: 2px solid #3a3a5e;
+    border-radius: 3px;
+}
+
+.reroll:disabled {
+    opacity: 0.4;
+}
+
+/* 3초 자동 선택 — 방치·오토 플레이 대응 */
+.autoTimer {
+    font-size: 12px;
+    color: var(--text-dim);
+}
+
+.timerBar {
+    width: 160px;
+    height: 4px;
+    margin-top: 4px;
+    background: #1a1a2e;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.timerFill {
+    height: 100%;
+    background: var(--rift);
+    transform-origin: left center;
+    transition: transform 0.1s linear;
+}
+
+/* 진화 발생 토스트 */
+.evolution {
+    position: absolute;
+    top: 22%;
+    padding: 12px 24px;
+    font-size: 18px;
+    color: #0f0f1e;
+    background: var(--gold);
+    border-radius: 3px;
+    animation: evoPop 0.4s ease-out;
+}
+
+@keyframes evoPop {
+    from {
+        transform: scale(0.6);
+        opacity: 0;
+    }
+    70% {
+        transform: scale(1.12);
+    }
+}
+
+/* ── 확인 모달 안의 보조 문장 (2026-08-05) ──────────────────────
+   ★ 모달 본문은 block 이라 문장이 정상으로 흐른다. 여기서는 여백만 준다. */
+.confirmWarn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin: 8px 0 0;
+    color: var(--gold);
+}
+
+.confirmNote {
+    margin: 6px 0 0;
+    color: var(--text-dim);
+}

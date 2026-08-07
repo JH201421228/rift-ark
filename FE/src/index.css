@@ -1,0 +1,320 @@
+/**
+ * 전역 스타일
+ *
+ * 가로 고정 모바일 게임. 브라우저 제스처·스크롤·선택을 전부 차단하고
+ * Phaser 캔버스와 React 오버레이 두 층만 남긴다.
+ *
+ * @see docs/03-tech/25-capacitor-mobile.md §4.2
+ * @see docs/02-design/18-ux-ui.md §1
+ */
+
+/* ── 폰트 ───────────────────────────────────────────────────────
+ * 물마루 모노 (Mulmaru Mono) by Mushsooni
+ * 한글 음절 11,172자 전체 + 호환 자모. unitsPerEm 192 픽셀 그리드.
+ * 모노스페이스이므로 HUD 수치가 흔들리지 않는다 (tabular-nums 불필요).
+ * ★ 픽셀 그리드 폰트이므로 정수 크기로만 렌더한다.
+ */
+@font-face {
+    font-family: "Mulmaru";
+    font-weight: 400;
+    font-style: normal;
+    font-display: block; /* 게임 UI 는 FOUT 보다 짧은 대기가 낫다 */
+    src: url("./assets/fonts/base_font.woff2") format("woff2");
+}
+
+:root {
+    --bg: #0f0f1e;
+    --text: #e8e8f0;
+    --text-dim: #8899aa;
+    /**
+     * 의도적으로 흐린 상태(미해금 · 빈 칸)의 글자색.
+     * ★ 화면에 하드코딩된 `#4a4a66`(대비 2.2:1) · `#6a6a8e`(3.7:1) 를 대체한다 (P9-04).
+     *   "흐리다"와 "읽을 수 없다"는 다르다 — 미해금 카드의 해금 조건은 **읽으라고**
+     *   쓴 문장이고, 2.2:1 은 정상 시력에서도 어두운 화면에서 사라진다.
+     *   --bg 위 5.0:1 · 가장 밝은 패널(#1c1c38) 위 4.4:1.
+     */
+    --text-muted: #8080a4;
+    --gold: #f2b33d;
+    --rift: #b45ad6;
+
+    /* 등급 색상 — docs/02-design/19-art-audio-direction.md §5.2 */
+    --rarity-c: #b8b8b8;
+    --rarity-r: #4a9ee0;
+    --rarity-e: #b45ad6;
+    --rarity-l: #f2b33d;
+
+    /* 접근성: 텍스트 크기 3단계 (100% / 115% / 130%).
+       ★ App.jsx 가 설정에서 이 변수를 갱신한다. 기본값을 여기 두는 이유는
+         하이드레이션 전 한 프레임 동안에도 레이아웃이 성립해야 하기 때문이다.
+       ★ #ui-overlay 에만 건다 — :root 에 걸면 Phaser 캔버스 크기 계산까지 흔들린다. */
+    --ui-scale: 1;
+
+    --font-pixel: "Mulmaru", monospace;
+    --font-body: "Pretendard", -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+
+    font-family: var(--font-pixel);
+    line-height: 1.5;
+    font-weight: 400;
+    color: var(--text);
+    background-color: var(--bg);
+
+    color-scheme: dark;
+    font-synthesis: none;
+    /* 픽셀 폰트는 안티앨리어싱을 끄는 쪽이 선명하다 */
+    -webkit-font-smoothing: none;
+    -moz-osx-font-smoothing: unset;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+/* ── 전역 차단 ──────────────────────────────────────────────────
+ * 브라우저 스크롤·바운스·확대·텍스트선택·롱프레스 메뉴를 전부 끈다.
+ * 하나라도 빠지면 모바일에서 게임 조작이 브라우저 제스처와 충돌한다.
+ */
+html,
+body,
+#root {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    overscroll-behavior: none;
+    background-color: var(--bg);
+
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: none;
+}
+
+/* ── 2층 구조 ───────────────────────────────────────────────────*/
+
+/* Phaser 캔버스: 풀블리드.
+   ★ Scale.RESIZE 이므로 캔버스가 컨테이너를 그대로 채운다 — 레터박스 없음.
+     좌표계 고정은 viewport.js 가 카메라 줌으로 처리한다. */
+#game-container {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+}
+
+#game-container canvas {
+    display: block;
+    /* 픽셀아트 업스케일 시 보간 금지 */
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+
+/* React UI: 세이프에어리어 패딩은 여기에만 준다. */
+/* ★ 접근성 텍스트 크기(설정 > 접근성)는 여기 한 곳에서 `zoom` 으로 건다.
+     - `font-size` 로는 안 된다: 화면들이 전부 px 로 짜여 있어 루트 폰트를 키워도
+       아무것도 커지지 않는다. em 으로 전부 고쳐 쓰는 것은 화면 수만큼의 회귀 위험이다.
+     - `transform: scale` 도 안 된다: 레이아웃 크기가 그대로라 확대분이 화면 밖으로 잘린다.
+     - `zoom` 은 레이아웃 자체를 확대하므로 **터치 타깃도 같이 커진다** —
+       저시력 접근성에서 글자만 키우는 것은 반쪽짜리다.
+   ★ zoom 은 inset/padding 도 함께 확대하므로 크기를 나눠서 상쇄한다.
+     --ui-scale 이 1이면 calc 결과가 원래 값과 완전히 같다 (기본값은 무변화). */
+#ui-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: calc(100% / var(--ui-scale, 1));
+    height: calc(100% / var(--ui-scale, 1));
+    zoom: var(--ui-scale, 1);
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    /* ★ 없으면 Phaser 로 가야 할 모든 터치를 오버레이가 먹는다 */
+    pointer-events: none;
+    padding: calc(env(safe-area-inset-top) / var(--ui-scale, 1))
+        calc(env(safe-area-inset-right) / var(--ui-scale, 1))
+        calc(env(safe-area-inset-bottom) / var(--ui-scale, 1))
+        calc(env(safe-area-inset-left) / var(--ui-scale, 1));
+}
+
+/* 인터랙티브 요소만 터치를 받는다 */
+#ui-overlay button,
+#ui-overlay a,
+#ui-overlay input,
+#ui-overlay select,
+#ui-overlay textarea,
+#ui-overlay .interactive {
+    pointer-events: auto;
+}
+
+/* ── 공통 요소 ──────────────────────────────────────────────────*/
+
+button {
+    font-family: inherit;
+    color: inherit;
+    cursor: pointer;
+    border: none;
+    outline: none;
+    background: none;
+    padding: 0;
+}
+
+button:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+input,
+textarea,
+select {
+    font-family: inherit;
+    outline: none;
+}
+
+/* ── 아이콘 ─────────────────────────────────────────────────────
+   시스템 UI 아이콘은 lucide (벡터), 게임 세계관 아이콘은 에셋 픽셀 아이콘이다.
+   경계와 이유는 src/components/GameIcon.jsx 상단 참조.
+
+   ★ lucide SVG 는 기본이 baseline 정렬이라 한글 옆에 두면 아래로 처진다.
+     물마루 모노는 x-height 가 낮아 어긋남이 더 크게 보인다.
+   ★ 선 굵기는 App.jsx 의 LucideProvider 에서 절대 굵기로 고정한다 —
+     여기서는 정렬만 본다. */
+#ui-overlay svg.lucide {
+    display: inline-block;
+    vertical-align: -0.15em;
+    flex-shrink: 0;
+}
+
+/* ── 픽셀 UI 키트 9-slice ────────────────────────────────────────
+   자체 제작 UI 키트(asset/generated/ui)를 border-image 로 늘려 쓴다.
+
+   ★ 9-slice 를 쓰는 이유: 패널은 48×48, 버튼은 48×24 한 장뿐인데
+     화면의 패널·버튼은 크기가 제각각이다. 통째로 늘이면 모서리가 뭉개진다.
+     모서리를 고정하고 변만 반복하면 한 장으로 모든 크기를 덮는다.
+
+   ★ `image-rendering: pixelated` 가 **반드시** 필요하다.
+     없으면 브라우저가 보간해서 픽셀아트가 흐려지고, 그 순간 이 키트를
+     쓰는 의미가 사라진다.
+
+   ★ slice 값은 원본 코너 크기다 (아트 브리프 §5.1: 코너 12×12).
+     버튼(48×24)·슬롯(32×32)은 8 이다.
+
+   @see docs/05-art-briefs/40-image-production-brief.md §5
+   ──────────────────────────────────────────────────────────────── */
+:root {
+    --ui-panel: url("/assets/ui/panel-base.png");
+    --ui-panel-dark: url("/assets/ui/panel-dark.png");
+    --ui-panel-accent: url("/assets/ui/panel-accent.png");
+    --ui-slot: url("/assets/ui/slot-empty.png");
+}
+
+.ui-panel,
+.ui-panel-dark,
+.ui-panel-accent,
+.ui-slot {
+    image-rendering: pixelated;
+    background: none;
+    border-radius: 0;
+}
+
+.ui-panel {
+    border: 12px solid transparent;
+    border-image: var(--ui-panel) 12 fill repeat;
+}
+.ui-panel-dark {
+    border: 12px solid transparent;
+    border-image: var(--ui-panel-dark) 12 fill repeat;
+}
+.ui-panel-accent {
+    border: 12px solid transparent;
+    border-image: var(--ui-panel-accent) 12 fill repeat;
+}
+.ui-slot {
+    border: 8px solid transparent;
+    border-image: var(--ui-slot) 8 fill repeat;
+}
+
+/* 긴 설명문은 가독성 우선 — 픽셀 폰트를 강제하지 않는다 */
+.body-text {
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+}
+
+/* 스크롤이 필요한 목록에서만 예외적으로 허용 */
+.scrollable {
+    overflow-y: auto;
+    touch-action: pan-y;
+    overscroll-behavior: contain;
+}
+
+::-webkit-scrollbar {
+    width: 4px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: var(--text-dim);
+    border-radius: 2px;
+}
+
+/* ══════════════════════════════════════════════════════════════
+ * 모바일 가로 — 터치 타깃 하한 (2026-08-04)
+ *
+ * ★★ 이 저장소는 `docs/02-design/18-ux-ui.md` §1.2 에서 **주 액션 48 · 보조 40 ·
+ *   목록 44** 를 스스로 정해 놓고, 실제로는 그보다 작은 버튼이 화면마다 있었다.
+ *   폰 가로(915×412) 에서 실측한 것들:
+ *     도움말 30 · 프리셋/탭 칩 32 · 난이도 칩 26 · 레벨업 +1/+10 30 ·
+ *     자동 추천·공유 코드 36 · 편성 바꾸기·동료 키우기 38
+ *   전부 엄지로 누르기에 작다. 데스크톱 창(1536×730)에서는 커 보여서 눈에 안 띈다.
+ *
+ * ★ 화면마다 고치지 않고 **한 곳에서 하한만 건다.** 각 화면의 CSS 는 모양을
+ *   정하고, 여기는 "누를 수 있는가"만 본다 — 새 버튼이 생겨도 자동으로 걸린다.
+ *
+ * ★ `min-height` 만 준다. 높이를 **고정**하면 두 줄짜리 라벨이 잘린다.
+ * ══════════════════════════════════════════════════════════════ */
+/**
+ * ★★ **`:where()` 로 특이도를 0 으로 만든다.** 그냥 `#ui-overlay button` 으로 쓰면
+ *   id 선택자가 컴포넌트 클래스를 이겨서, **이미 44 로 잡아 둔 탭이 40 으로 내려간다** —
+ *   하한을 깔려다 상한을 씌우는 꼴이다. 특이도 0 이면 "정하지 않은 것에만" 걸린다.
+ */
+:where(#ui-overlay) :where(button, a.interactive, [role="button"]) {
+    min-height: 40px;
+}
+
+/**
+ * 예외 — **크기가 곧 의미인 것.**
+ * 레인 선택 띠는 화면을 나눈 영역이라 하한이 의미 없다 (높이를 인라인으로 받는다).
+ */
+#ui-overlay .laneZone,
+#ui-overlay .laneCancel {
+    min-height: 0;
+}
+
+/* ── 토스트 (2026-08-04) ─────────────────────────────────────
+   ★ `uiSlice.toast()` 는 오래 전부터 있었는데 **그리는 곳이 없었다.**
+     뒤로가기 종료 안내를 붙이려다 드러났다. 라우트 밖(App 셸)에서 그린다. */
+.toastLayer {
+    position: fixed;
+    left: 50%;
+    bottom: calc(16px + env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    pointer-events: none;
+}
+
+.toastItem {
+    max-width: 80vw;
+    padding: 8px 14px;
+    font-size: 13px;
+    color: var(--text);
+    background: rgba(16, 16, 30, 0.95);
+    border: 2px solid #3a3a5e;
+    border-radius: 4px;
+    word-break: keep-all;
+}

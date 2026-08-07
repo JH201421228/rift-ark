@@ -1,0 +1,508 @@
+/**
+ * 스테이지 프리뷰 (P6-09)
+ *
+ * ★ 가로 1280 기준으로 목록과 프리뷰를 나란히 둔다. 모달로 덮으면
+ *   "다른 스테이지와 비교"가 불가능해지는데, 프리뷰의 목적이 바로 비교다.
+ * ★ 한글은 라틴의 약 2배 폭이다(절대규칙 9). 경고 문구가 2줄로 접히는 것을
+ *   전제로 줄간격과 아이콘 정렬을 잡았다.
+ * ★ 최소 터치 타깃 44px — 하단 액션 버튼이 그 기준을 지킨다.
+ */
+
+/* 목록 + 프리뷰 2단 */
+.layout {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    gap: 10px;
+    padding-right: 10px;
+    overflow: hidden;
+}
+
+.listPane {
+    flex: 1;
+    min-width: 0;
+}
+
+.panel {
+    flex-shrink: 0;
+    width: 380px;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 8px 0;
+    padding: 10px 12px;
+    background: #14142a;
+    border: 2px solid #2a2a44;
+    border-radius: 3px;
+}
+
+.placeholder {
+    margin: auto 0;
+    text-align: center;
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--text-dim);
+}
+
+.head {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.stageId {
+    margin: 0;
+    font-size: 18px;
+    color: var(--gold);
+}
+
+.mode {
+    padding: 2px 8px;
+    font-size: 11px;
+    color: var(--text);
+    background: #232342;
+    border-radius: 2px;
+}
+
+.teaches {
+    margin: 0;
+    font-size: 12px;
+    color: var(--text);
+}
+
+.modeNote {
+    margin: 0;
+    font-size: 11px;
+    line-height: 1.4;
+    color: var(--text-dim);
+}
+
+/* ── 나이트메어 규칙 배지 (P11-07) ────────────────────────────
+   ★ 아이콘이 없다. 역병·결박·고갈에 대응하는 글리프가 시트에 없고 이모지는
+     절대규칙 5 위반이라, 정보를 지는 것은 **글자**다 (22-nightmare.md §0-A #6).
+   ★ 그래서 색만으로 구분하지 않는다 (check:a11y A3 과 같은 규약) — 규칙 이름과
+     한 줄 요약이 그 자체로 내용이고, 붉은 테두리는 강조일 뿐이다.
+   ★ display:block 이다. 안내문이 두세 줄로 접히는 자리에 flex 를 두면 문장이
+     토막나 옆으로 눕는다 (src/textLayout.test.js). */
+.nightmare {
+    display: block;
+    margin: 4px 0 2px;
+    padding: 5px 8px;
+    background: #2a1626;
+    border-left: 2px solid #ff7a7a;
+    border-radius: 2px;
+}
+
+.nightmareLead {
+    display: block;
+    font-size: 10px;
+    color: #ff9a9a;
+}
+
+.nightmareName {
+    display: block;
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--text);
+}
+
+.nightmareSummary {
+    display: block;
+    margin: 1px 0 0;
+    font-size: 10px;
+    line-height: 1.45;
+    color: var(--text-dim);
+}
+
+.stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    margin: 6px 0 2px;
+    font-size: 11px;
+    color: var(--text-dim);
+}
+
+.stats b {
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+}
+
+/* 스크롤은 이 패널 안에서만 — body 가 스크롤되면 Phaser 캔버스가 밀린다 */
+.scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    touch-action: pan-y;
+    overscroll-behavior: contain;
+    padding-right: 4px;
+}
+
+.h3 {
+    margin: 10px 0 4px;
+    font-size: 11px;
+    color: var(--text-dim);
+}
+
+.h3:first-child {
+    margin-top: 0;
+}
+
+/* ── 태그 카운트 ── */
+
+.tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.tagChip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 7px;
+    font-size: 11px;
+    color: var(--text-dim);
+    background: #1c1c34;
+    border-radius: 2px;
+}
+
+.tagChip b {
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+}
+
+.share {
+    color: var(--text-dim);
+    font-size: 10px;
+}
+
+/* ── 경고 ── */
+/* 아이콘은 첫 줄에 고정한다. 본문이 2줄이 되어도 아이콘 아래로 흐르지 않게 한다 */
+.warnRow {
+    display: flex;
+    align-items: flex-start;
+    gap: 5px;
+    margin: 0 0 3px;
+    font-size: 11px;
+    line-height: 1.45;
+}
+
+.warnRow > svg {
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.critical {
+    color: #ff7a7a;
+}
+
+.warn {
+    color: var(--gold);
+}
+
+.info {
+    color: var(--text-dim);
+}
+
+/* ── 보스 페이즈 ── */
+
+.phases {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.phase {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    font-size: 10px;
+    color: var(--text-dim);
+    background: #241c34;
+    border-radius: 2px;
+}
+
+.phase b {
+    color: var(--gold);
+}
+
+/* ── 등장 적 ── */
+
+.enemies {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.enemy {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    max-width: 100%;
+    padding: 2px 7px 2px 3px;
+    font-size: 10px;
+    color: var(--text-dim);
+    background: #1c1c34;
+    border-radius: 2px;
+}
+
+/**
+ * 적 이름.
+ *
+ * ★★★ **92px → 22ch (2026-08-07, 영어 추가).**
+ *
+ *   폰트가 한글:라틴 = 1:0.5 듀오스페이스라 92px 는 한글 9자이자 **라틴 18.4자**다.
+ *   한국어 최장이 9자("짓뭉개는 외눈거인" · 90px)라 92 는 딱 맞는 값이었는데,
+ *   영어 최장은 **22자**다:
+ *
+ *     Royal Scarab Matriarch (22) · Mother of the Sewers (20) · Lizardfolk Spearman (19)
+ *
+ *   92px 에서는 "Royal Scarab Matri…" 로 잘린다. 프리뷰의 존재 이유가
+ *   "무엇이 오는지 전투 **전에** 알려 주는 것"인데 이름이 잘리면 그 목적이 반쯤 죽는다.
+ *
+ * ★ `px` 가 아니라 `ch` 다. `1ch` 는 라틴 한 글자의 폭(= 0.5em)이므로 이 값은
+ *   "라틴 22자"라는 **의도 그대로**이고, `.enemy` 의 font-size 를 만져도 따라온다.
+ *   한글은 2ch 를 먹으므로 한국어 최장 9자 = 18ch < 22ch — 한국어 쪽은 그대로다.
+ * ★ 상한이지 고정폭이 아니다. 짧은 이름은 그만큼만 쓰고, 칩이 줄 폭(`.enemy`의
+ *   `max-width: 100%`)에 닿으면 이 span 이 줄어들며 말줄임이 그대로 작동한다.
+ *   긴 이름 하나가 그 줄을 독차지할 뿐 다른 칩을 밀어내지 않는다 (`.enemies` 는 wrap).
+ */
+.enemyName {
+    max-width: 22ch;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.enemy b {
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+}
+
+.more {
+    align-self: center;
+    font-size: 10px;
+    color: var(--text-dim);
+}
+
+/* ── 추천 편성 ── */
+
+.recNote {
+    margin: 0 0 5px;
+    font-size: 10px;
+    line-height: 1.4;
+    color: var(--text-dim);
+}
+
+.rec {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+}
+
+.recUnit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+    padding: 4px 2px;
+    font-size: 10px;
+    text-align: center;
+    background: #171730;
+    border: 2px solid #2a2a44;
+    border-radius: 3px;
+}
+
+/**
+ * 추천 편성 카드의 동료 이름.
+ * ★ 3열 그리드라 한 칸이 약 105px 인데, 영어 이름은 최장 20자 = 100px 이다
+ *   ("Lizardfolk Gladiator" · 한국어 "리자드 검투사" 는 70px). 낱말 사이에서
+ *   접히면 되지만, 접힐 곳이 없는 긴 낱말은 칸 밖으로 삐져나간다 —
+ *   `overflow-wrap` 이 그 경우를 막는다. 한국어는 어절이 짧아 영향이 없다.
+ */
+.recUnit b {
+    max-width: 100%;
+    font-size: 10px;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+}
+
+.recRole {
+    color: var(--text-dim);
+    font-size: 10px;
+}
+
+/*
+ * 보유분으로 못 채운 답안 — **획득 경로까지** 적는다.
+ * "이 편성으로는 못 깬다"까지만 말하면 진단이지 안내가 아니다.
+ */
+.recGap {
+    margin: 0 0 6px;
+    padding: 5px 8px;
+    list-style: none;
+    font-size: 10px;
+    line-height: 1.5;
+    background: #201a2e;
+    border-left: 2px solid var(--gold);
+    border-radius: 2px;
+}
+
+.recGap li {
+    display: flex;
+    justify-content: space-between;
+    gap: 6px;
+}
+
+/* ── 액션 ── */
+
+.actions {
+    display: flex;
+    flex-shrink: 0;
+    gap: 5px;
+    padding-top: 8px;
+}
+
+/**
+ * ★★ **`flex: 1` 이었다 — 세 버튼이 폭을 똑같이 나눠 갖고, 그래서 가장 긴 라벨이
+ *   접혔다** (2026-08-07 실측). 380px 패널에서 한 칸이 약 115px 인데
+ *   "추천 편성 적용" 은 아이콘·여백까지 124px 이라 **"적 용" 으로 두 줄이 됐다.**
+ *   (영어 "Apply Squad" 는 100px 이라 우연히 안 접혔다 — 한국어만 깨져 있었다.)
+ *
+ * ★ `flex: 1 1 auto` — 기준 폭을 **내용**으로 잡고 남는 공간만 나눈다. 세 버튼의
+ *   내용 합이 264px 이라 356px 안에 여유롭게 들어가고, 비율은 거의 그대로 남는다.
+ * ★ `white-space: nowrap` 은 버튼에만 건다. 아래 `.btnLocked` 는 버튼이 아니라
+ *   **문장**이라 접혀야 한다 ("이전 스테이지를 먼저 클리어하세요" 는 한 줄에 192px).
+ */
+.btn {
+    flex: 1 1 auto;
+    min-width: 0;
+    white-space: nowrap;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 4px 8px;
+    font-family: inherit;
+    font-size: 12px;
+    color: var(--text);
+    text-decoration: none;
+    background: #232342;
+    border: 2px solid #3a3a5e;
+    border-radius: 3px;
+}
+
+.btn:hover:not(:disabled) {
+    border-color: var(--gold);
+}
+
+.btn:disabled {
+    opacity: 0.4;
+}
+
+.btnPrimary {
+    color: #14142a;
+    background: var(--gold);
+    border-color: var(--gold);
+    font-weight: bold;
+}
+
+/* 잠긴 출격 — 버튼 자리를 비우지 않는다. 사라진 버튼은 고장으로 읽힌다. */
+.btnLocked {
+    flex: 1.6 1 auto;
+    /* ★ 이것은 버튼이 아니라 문장이다 — `.btn` 의 nowrap 을 되돌린다 */
+    white-space: normal;
+    color: var(--text-dim);
+    background: #1a1a2c;
+    border-style: dashed;
+    cursor: not-allowed;
+}
+
+/* ── 토스트 ── */
+
+.toast {
+    position: absolute;
+    left: 50%;
+    bottom: 76px;
+    transform: translateX(-50%);
+    padding: 8px 16px;
+    font-size: 12px;
+    color: var(--text);
+    background: rgba(20, 20, 42, 0.96);
+    border: 2px solid var(--gold);
+    border-radius: 3px;
+    pointer-events: none;
+    animation: toastIn 0.16s ease-out;
+}
+
+@keyframes toastIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, 6px);
+    }
+}
+
+/* 세로 여유가 없는 좁은 화면에서는 프리뷰를 접어 목록을 우선한다 */
+@media (max-width: 900px) {
+    .panel {
+        width: 300px;
+    }
+
+    .rec {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* ── 출전 프리셋 선택 (2026-08-05) ────────────────────────────
+   ★ 편성 화면의 프리셋 탭과 같은 것을 가리킨다 — 여기서 고른 것이 곧 출전 편성이다. */
+.presetRow {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.presetChip {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    min-height: 40px;
+    padding: 4px 6px;
+    font-size: 11px;
+    color: var(--text-dim);
+    background: #1a1a2e;
+    border: 2px solid #2a2a44;
+    border-radius: 3px;
+}
+
+/* 선택 상태는 색만으로 표시하지 않는다 — 테두리 굵기와 글자색이 함께 바뀐다 */
+.presetOn {
+    color: var(--text);
+    border-color: var(--gold);
+    background: #241f14;
+}
+
+.presetCount {
+    font-size: 10px;
+}
+
+/* 원거리 적 표기 (2026-08-05) — 적 카드 안.
+   ★ 색만으로 구분하지 않는다: 글자가 곧 정보다 (check:a11y A3 규약).
+   ★ 최소 10px (A4). */
+.enemyRanged {
+    display: inline-block;
+    margin-top: 1px;
+    padding: 0 4px;
+    font-size: 10px;
+    line-height: 1.4;
+    color: #7ad0ff;
+    background: rgba(42, 90, 126, 0.28);
+    border: 1px solid #2a5a7e;
+    border-radius: 2px;
+    white-space: nowrap;
+}

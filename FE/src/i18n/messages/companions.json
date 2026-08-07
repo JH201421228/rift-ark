@@ -1,0 +1,138 @@
+{
+    "$doc": "네임스페이스 'companions' — 키는 'companions.<키>' 다 (파일 이름이 곧 네임스페이스). 항목은 반드시 { \"ko\", \"en\" } 두 언어를 함께 갖는다 — 한쪽만 적으면 npm run check:i18n 이 막는다.",
+
+    "$scope": "동료 화면(CompanionsScreen.jsx) 세 탭 전부 — 성장 · 영입 · 별 트리.",
+
+    "$sentences": "★ 문장은 **통째로** 한 키다. 라벨과 값을 코드에서 이어 붙이면 영어가 깨진다 — 한국어 '아군 공격력 +20%' 는 영어에서 '+20% Ally ATK' 로 **어순이 역전**된다.",
+
+    "title": { "ko": "동료", "en": "Companions" },
+    "tabGrowth": { "ko": "성장", "en": "Growth" },
+    "tabRecruit": { "ko": "영입", "en": "Recruit" },
+    "tabStars": { "ko": "별 트리", "en": "Star Tree" },
+
+    "$rarity": "등급 이름. `terms` 는 전투 개념의 표기라 등급이 없고, 등급을 글자로 읽는 곳은 이 화면의 상세 한 줄뿐이다 (카드는 `RarityName` 의 코드 문자 C·R·E·L 을 쓴다).",
+    "rarityL": { "ko": "레전더리", "en": "Legendary" },
+    "rarityE": { "ko": "에픽", "en": "Epic" },
+    "rarityR": { "ko": "레어", "en": "Rare" },
+    "rarityC": { "ko": "커먼", "en": "Common" },
+
+    "$growth": "── 성장 탭 ──",
+
+    "noneOwned": { "ko": "아직 보유한 동료가 없습니다.", "en": "You have no companions yet." },
+    "noneOwnedHint": {
+        "ko": "· 스테이지를 클리어하면 동료가 하나씩 합류합니다.",
+        "en": "· Clear stages and companions join, one at a time."
+    },
+    "grantAllDev": { "ko": "전체 지급 (개발용)", "en": "Grant all (dev)" },
+
+    "cost": { "ko": "코스트 {n}", "en": "Cost {n}" },
+    "statRange": { "ko": "사거리", "en": "Range" },
+    "statSpeed": { "ko": "이동", "en": "Move" },
+    "statAtkCycle": { "ko": "공격 주기", "en": "Attack Cycle" },
+    "statBlock": { "ko": "블록", "en": "Block" },
+    "blockCount": { "ko": "{n}체", "en": "{n}" },
+
+    "armoryNote": {
+        "ko": "· 모든 동료의 공격력·체력은 방주 무기고가 함께 올립니다. 한 명만 키우는 것이 아니라 편성 전체가 같이 강해집니다.",
+        "en": "· The Ark's Armory raises attack and health for every companion. You are not raising one — the whole squad grows with it."
+    },
+
+    "levelUpCost": { "ko": "레벨업 · 골드 {n}", "en": "Level up · {n} Gold" },
+    "capReason": {
+        "ko": "· 레벨 상한입니다 — 방주의 훈련장을 올리면 상한이 오릅니다 (현재 {n})",
+        "en": "· Level cap reached — raise the Ark's Training Yard to lift it (now {n})"
+    },
+    "goldShort": { "ko": "· 골드가 부족합니다 (보유 {n})", "en": "· Not enough gold — you hold {n}" },
+
+    "levelUpTitle": { "ko": "레벨을 올리시겠습니까?", "en": "Raise the level?" },
+    "levelSubject": { "ko": "{name} — Lv.{from} → Lv.{to}", "en": "{name} — Lv.{from} → Lv.{to}" },
+    "confirmRaise": { "ko": "올린다", "en": "Raise" },
+
+    "$partial": "★★ '10번 중 3번만 오릅니다 — 골드에 걸립니다' 는 한국어에서 조사 '에' 가 조각을 문장에 묶는다. 영어에는 그 조사가 없으므로 조각을 **완결된 절**로 만들고 틀은 대시로 잇는다 — 그래야 두 언어 모두 자연스럽다.",
+    "levelPartial": {
+        "ko": "{n}번 중 {steps}번만 오릅니다 — {cond}",
+        "en": "Only {steps} of {n} will apply — {cond}"
+    },
+    "levelPartialCap": { "ko": "레벨 상한에 걸립니다.", "en": "the level cap stops it." },
+    "levelPartialGold": { "ko": "골드가 모자랍니다.", "en": "your gold runs out." },
+    "levelFull": { "ko": "레벨 {n}단계가 오릅니다.", "en": "Raises the level by {n}." },
+
+    "$recruit": "── 영입 탭 ──",
+
+    "recruitCount": { "ko": "{mine}/{all}종", "en": "{mine}/{all}" },
+    "noChance": {
+        "ko": "· 확률이 없습니다. 값을 치르면 그 동료가 옵니다.",
+        "en": "· No chance involved. Pay the price and they come."
+    },
+    "guaranteedNote": {
+        "ko": "· 확정 지급 동료는 여기 없습니다 — 스테이지를 깨면 합류합니다.",
+        "en": "· Stage-granted companions are not here — clear stages and they join."
+    },
+
+    "denyOwned": {
+        "ko": "· 이미 보유한 동료입니다 — 성장 탭에서 레벨을 올릴 수 있습니다.",
+        "en": "· Already yours — raise their level on the Growth tab."
+    },
+    "denyLocked": {
+        "ko": "· 스테이지 {stage} 까지 진행하면 영입할 수 있습니다 (지금 {now}).",
+        "en": "· Reach stage {stage} to recruit this one (you are at {now})."
+    },
+    "denyGold": {
+        "ko": "· 골드가 {n} 부족합니다 (보유 {have}).",
+        "en": "· {n} more gold needed (you hold {have})."
+    },
+    "denyOther": { "ko": "· 지금은 영입할 수 없습니다.", "en": "· Not available right now." },
+
+    "stageAt": { "ko": "스테이지 {id}", "en": "Stage {id}" },
+    "goldAmount": { "ko": "골드 {n}", "en": "{n} Gold" },
+
+    "$cardTitle": "★ 카드의 `title` 은 라벨 셋에 '보유 중' 꼬리가 조건부로 붙던 자리다. 꼬리를 문자열로 이어 붙이면 영어에서 구두점이 어색해지므로 **문장을 둘로 나눈다** — 보유일 때는 완성된 앞 문장을 통째로 {base} 에 넣는다.",
+    "cardTitle": {
+        "ko": "{name} — {role} · {dmg} · 코스트 {cost}",
+        "en": "{name} — {role} · {dmg} · Cost {cost}"
+    },
+    "cardTitleOwned": { "ko": "{base} · 보유 중", "en": "{base} · Owned" },
+
+    "recruitPrice": { "ko": "영입가", "en": "Price" },
+    "recruitDo": { "ko": "영입한다", "en": "Recruit" },
+    "recruitTitle": { "ko": "이 동료를 영입하시겠습니까?", "en": "Recruit this companion?" },
+    "recruitSubject": { "ko": "{name} — {role} · {dmg}", "en": "{name} — {role} · {dmg}" },
+    "joined": { "ko": "{name} 합류", "en": "{name} joined" },
+
+    "$stars": "── 별 트리 탭 ──",
+
+    "starsEarned": { "ko": "/ 획득 {n}", "en": "/ {n} earned" },
+    "starNote": {
+        "ko": "· 막혔다면 이전 스테이지를 다시 돌아 별을 벌고 공통 스탯을 올리세요. 결제가 유일한 돌파구가 되지 않도록 만든 경로입니다.",
+        "en": "· Stuck? Replay earlier stages, earn stars, and raise the shared stats. This path exists so paying is never the only way through."
+    },
+    "nodeDone": { "ko": "완료", "en": "Maxed" },
+    "nodeLocked": { "ko": "선행 필요", "en": "Needs prereq" },
+
+    "starTitle": { "ko": "별을 쓰시겠습니까?", "en": "Spend a star?" },
+    "starSubject": { "ko": "{name} — {from} → {to} / {max}", "en": "{name} — {from} → {to} / {max}" },
+    "confirmSpend": { "ko": "찍는다", "en": "Spend" },
+    "starCost": { "ko": "별 {cost} 소모 · 남는 별 {left}", "en": "Costs {cost} · {left} left" },
+    "starNoRefund": {
+        "ko": "별은 되돌릴 수 없습니다 — 다른 가지에 쓸 별이 그만큼 줄어듭니다.",
+        "en": "Stars cannot be refunded — every one spent here is one fewer for another branch."
+    },
+
+    "branchMight": { "ko": "위력", "en": "Might" },
+    "branchEndurance": { "ko": "인내", "en": "Endurance" },
+    "branchFlow": { "ko": "흐름", "en": "Flow" },
+    "branchInsight": { "ko": "통찰", "en": "Insight" },
+
+    "$effects": "★★★ 별 트리 효과 10종. 한국어는 '대상 + 값', 영어는 '값 + 대상' 이라 **어순이 정확히 뒤집힌다** — 라벨과 값을 코드에서 이어 붙이면 영어가 'Ally ATK +20%' 라는 어색한 형태로 굳는다. 그래서 문장 전체가 한 키이고, 코드는 숫자 **서식**(소수 자릿수)만 만든다.",
+    "effect.allyAtkPct": { "ko": "아군 공격력 +{v}%", "en": "+{v}% Ally ATK" },
+    "effect.allyHpPct": { "ko": "아군 체력 +{v}%", "en": "+{v}% Ally HP" },
+    "effect.allyPierce": { "ko": "투사체 관통 +{v}", "en": "+{v} Projectile Pierce" },
+    "effect.arkHpPct": { "ko": "방주 체력 +{v}%", "en": "+{v}% Ark HP" },
+    "effect.blockerDefFlat": { "ko": "방벽 방어력 +{v}", "en": "+{v} Blocker DEF" },
+    "effect.manaRegenPct": { "ko": "마나 재생 +{v}%", "en": "+{v}% Mana Regen" },
+    "effect.startManaFlat": { "ko": "시작 마나 +{v}", "en": "+{v} Starting Mana" },
+    "effect.summonCostPct": { "ko": "소환 코스트 {v}%", "en": "{v}% Summon Cost" },
+    "effect.sigilRerolls": { "ko": "각인 리롤 +{v}", "en": "+{v} Sigil Reroll" },
+    "effect.sigilOptions": { "ko": "각인 선택지 +{v}", "en": "+{v} Sigil Choice" },
+    "perRank": { "ko": "— 랭크당 {effect}", "en": "— {effect} per rank" }
+}

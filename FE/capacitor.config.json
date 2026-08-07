@@ -1,0 +1,29 @@
+{
+    "appId": "com.superdimension.app",
+    "appName": "균열의 방주",
+    "webDir": "dist",
+    "android": {
+        "allowMixedContent": false,
+        "captureInput": true,
+        "webContentsDebuggingEnabled": false,
+        "backgroundColor": "#0f0f1e"
+    },
+    "ios": {
+        "contentInset": "never",
+        "scrollEnabled": false,
+        "backgroundColor": "#0f0f1e"
+    },
+    "plugins": {
+        "SplashScreen": {
+            "launchShowDuration": 0,
+            "launchAutoHide": false,
+            "backgroundColor": "#0f0f1eff",
+            "androidScaleType": "CENTER_CROP",
+            "showSpinner": false
+        },
+        "StatusBar": {
+            "overlaysWebView": true,
+            "style": "DARK"
+        }
+    }
+}

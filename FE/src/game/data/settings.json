@@ -1,0 +1,244 @@
+{
+    "_doc": "설정 기본값 · 선택지 정의 (P7-15). 코드에 기본치를 박지 않는다 — 여기가 단일 출처다. defaults 의 키가 곧 settingsSlice 의 settings 객체 형태이며, migrate/normalizeSettings 가 이 표를 기준으로 구세이브를 채운다.",
+    "version": 1,
+    "defaults": {
+        "bgmVolume": 0.6,
+        "bgmMuted": false,
+        "sfxVolume": 0.8,
+        "sfxMuted": false,
+        "screenShake": 1,
+        "damageNumbers": "all",
+        "effectIntensity": "high",
+        "qualityTier": "auto",
+        "colorBlindMode": false,
+        "textScale": 1,
+        "hitStop": true,
+        "autoAdvanceSpeed": 1,
+        "battleSpeed": 1,
+        "summonMode": "oneTouch",
+        "autoCommander": false,
+        "haptics": true,
+        "language": "ko"
+    },
+    "_screenShakeDoc": "화면 연출 강도 (P7-15 · P9-04 확장). 이름은 '흔들림'이지만 **화면 전체가 움직이거나 번쩍이는 연출 전부**를 지배한다 — 셰이크 · 줌 펄스(보스 등장 · 페이즈 전환 · 진화 각인 · 승리) · 방주 피격 섬광. 셋을 따로 두지 않은 이유: 전정 장애·광과민성의 원인은 '흔들림'이라는 특정 기법이 아니라 예고 없는 전체 화면 변화이고, 스위치를 셋으로 쪼개면 사용자는 셋을 다 찾아야 하며 우리는 새 연출을 추가할 때마다 셋 다 배선했는지 확인해야 한다. 0 이면 전부 정지한다. 패배 암전(fade)만은 예외다 — 움직이지도 번쩍이지도 않고, 끄면 전장이 멈춰 선 것처럼 보인다. 배선은 CameraFx 한 곳이고 tools/check-a11y.mjs 의 M1 이 우회를 막는다.",
+    "_gachaSkipDoc": "소환 연출 건너뛰기 (P7-07). 화면에서 [건너뛰기]를 한 번 누르면 여기에 저장되고, 다음 뽑기부터는 연출 없이 결과가 바로 뜬다. 매번 다시 누르게 하는 것은 스킵이 아니라 통행세다. 설정 > 게임플레이에서 되돌릴 수 있다.",
+    "_notifyDoc": "로컬 알림 스위치 (P7-13). 종류 정의와 문구는 notifications.json 이고, 여기 있는 것은 켜짐/꺼짐뿐이다. notifyAsked 는 '권한을 이미 한 번 물었는가' 다 — 거부한 사용자에게 같은 요청을 반복하지 않기 위한 기록이며, 설정이 아니라 상태에 가깝지만 세이브 최상위 키를 늘리지 않으려고 여기 둔다(설정만 초기화하면 다시 물을 수 있게 되는 것은 의도된 동작이다). 기본값이 전부 true 인 이유: 이 값들은 **권한을 허용한 뒤에만** 의미가 있고, 허용한 사용자가 다시 종류별로 켜야 한다면 그것은 두 번 묻는 것이다.",
+    "_optionsDoc": "열거형 설정의 선택지. ★★ label 은 { ko, en } 두 언어를 함께 갖는다 (2026-08-07 i18n). 한쪽만 적으면 tools/check-i18n.mjs 의 I5 가 막는다. value 는 defaults 와 같은 타입이어야 한다 — validate-data 가 검사한다.",
+    "options": {
+        "screenShake": [
+            {
+                "value": 1,
+                "label": {
+                    "ko": "강하게",
+                    "en": "Strong"
+                }
+            },
+            {
+                "value": 0.5,
+                "label": {
+                    "ko": "약하게",
+                    "en": "Subtle"
+                }
+            },
+            {
+                "value": 0,
+                "label": {
+                    "ko": "끄기",
+                    "en": "Off"
+                }
+            }
+        ],
+        "damageNumbers": [
+            {
+                "value": "all",
+                "label": {
+                    "ko": "전부",
+                    "en": "All"
+                }
+            },
+            {
+                "value": "big",
+                "label": {
+                    "ko": "큰 피해만",
+                    "en": "Big hits only"
+                }
+            },
+            {
+                "value": "off",
+                "label": {
+                    "ko": "끄기",
+                    "en": "Off"
+                }
+            }
+        ],
+        "effectIntensity": [
+            {
+                "value": "high",
+                "label": {
+                    "ko": "높음",
+                    "en": "High"
+                }
+            },
+            {
+                "value": "medium",
+                "label": {
+                    "ko": "보통",
+                    "en": "Medium"
+                }
+            },
+            {
+                "value": "low",
+                "label": {
+                    "ko": "낮음",
+                    "en": "Low"
+                }
+            }
+        ],
+        "qualityTier": [
+            {
+                "value": "auto",
+                "label": {
+                    "ko": "자동",
+                    "en": "Auto"
+                }
+            },
+            {
+                "value": "high",
+                "label": {
+                    "ko": "높음",
+                    "en": "High"
+                }
+            },
+            {
+                "value": "medium",
+                "label": {
+                    "ko": "보통",
+                    "en": "Medium"
+                }
+            },
+            {
+                "value": "low",
+                "label": {
+                    "ko": "낮음",
+                    "en": "Low"
+                }
+            }
+        ],
+        "textScale": [
+            {
+                "value": 1,
+                "label": {
+                    "ko": "100%",
+                    "en": "100%"
+                }
+            },
+            {
+                "value": 1.15,
+                "label": {
+                    "ko": "115%",
+                    "en": "115%"
+                }
+            },
+            {
+                "value": 1.3,
+                "label": {
+                    "ko": "130%",
+                    "en": "130%"
+                }
+            }
+        ],
+        "autoAdvanceSpeed": [
+            {
+                "value": 1,
+                "label": {
+                    "ko": "1배",
+                    "en": "1x"
+                }
+            },
+            {
+                "value": 1.5,
+                "label": {
+                    "ko": "1.5배",
+                    "en": "1.5x"
+                }
+            },
+            {
+                "value": 2,
+                "label": {
+                    "ko": "2배",
+                    "en": "2x"
+                }
+            }
+        ],
+        "battleSpeed": [
+            {
+                "value": 1,
+                "label": {
+                    "ko": "1배",
+                    "en": "1x"
+                }
+            },
+            {
+                "value": 2,
+                "label": {
+                    "ko": "2배",
+                    "en": "2x"
+                }
+            }
+        ],
+        "summonMode": [
+            {
+                "value": "oneTouch",
+                "label": {
+                    "ko": "원터치",
+                    "en": "One touch"
+                }
+            },
+            {
+                "value": "precise",
+                "label": {
+                    "ko": "정밀 배치",
+                    "en": "Precise"
+                }
+            }
+        ],
+        "language": [
+            {
+                "value": "ko",
+                "label": {
+                    "ko": "한국어",
+                    "en": "한국어"
+                }
+            },
+            {
+                "value": "en",
+                "label": {
+                    "ko": "English",
+                    "en": "English"
+                }
+            }
+        ]
+    },
+    "_effectBudgetDoc": "이펙트 강도 → 동시 이펙트 예산 비율. EffectSystem 이 풀 용량에 곱해 상한으로 쓴다. 저사양 기기에서 필레이트가 프레임을 먹는 것을 막는 가장 직접적인 손잡이다.",
+    "effectBudget": {
+        "high": 1,
+        "medium": 0.6,
+        "low": 0.35
+    },
+    "_colorBlindDoc": "색약 모드에서 데미지 숫자 앞에 붙이는 데미지 타입 표기. 상성 정보를 색으로만 전달하지 않기 위한 것이다 (18-ux-ui.md §6). 한 글자로 두는 이유: 숫자를 밀어내면 원래 읽어야 할 정보가 가려진다. ★★ 영어는 한 글자로 physical/holy 가 갈리지 않아 두 글자를 쓴다 — 그리고 그 글자들은 game/pools/damageFont.js 의 DAMAGE_GLYPHS 화이트리스트에 반드시 들어가야 한다. Phaser BitmapText 는 없는 글자를 경고 없이 건너뛴다.",
+    "damageTypeShort": {
+        "physical": {
+            "ko": "물",
+            "en": "Ph"
+        },
+        "arcane": {
+            "ko": "술",
+            "en": "Ar"
+        },
+        "holy": {
+            "ko": "신",
+            "en": "Ho"
+        }
+    },
+    "_languageDoc": "표시 언어. ★★ 라벨은 두 언어 모두 **그 언어 자신의 이름(endonym)** 이다 — 영어 화면에서 'Korean' 이라고만 적어 두면 영어를 못 읽는 사람이 한국어로 돌아올 방법이 없다. ★ 이 키는 defaults 에 처음부터 있었지만 options 가 없어 normalizeSettings 의 검증 루프를 타지 않았다 — 즉 어떤 값이 들어와도 그대로 저장됐다. options 를 채우는 것이 곧 검증을 켜는 것이다."
+}

@@ -1,0 +1,328 @@
+{
+    "$comment": [
+        "지휘관 주문 (11-core-loop.md §4.4).",
+        "",
+        "★ 균열력(riftEnergy)은 P2 부터 시뮬에 있었지만 **소비처가 없었다** —",
+        "  재생·처치 보너스로 쌓이기만 하고 아무도 쓰지 않는 자원이었다.",
+        "  HUD 의 주문 버튼 4개는 `disabled` 인 채였고, 결국 죽은 UI 로 제거됐다.",
+        "  이 파일이 그 자원의 소비 규칙이다.",
+        "",
+        "★★ **수치는 전부 여기 있다** (절대 규칙 4). 규칙은 logic/spells.js 다.",
+        "",
+        "★★★ **12종을 만들고 4종만 들고 나간다** (2026-08-05, 사용자 결정).",
+        "  HUD 의 주문 도크는 네 칸이고, 그 칸이 늘어나면 화면이 무너진다. 그러나",
+        "  진짜 이유는 화면이 아니다 — **배제가 곧 결정이다** (CLAUDE.md 설계 결정 1).",
+        "  50 로스터 중 6칸이 편성을 결정으로 만드는 것과 **완전히 같은 규약**이고,",
+        "  지휘관 장구(commander.json)가 슬롯마다 4점 중 1점인 것과도 같다.",
+        "  12종을 전부 띄우면 '무엇을 고를까'가 '어느 순서로 누를까'로 바뀐다.",
+        "",
+        "★ 그래서 12종은 **수치가 아니라 판단이 다르다.** 각 항목의 `$why` 가",
+        "  '왜 이것이 다른 선택인가'를 한 줄로 적는다. 수치만 다른 12종은 4종보다",
+        "  나쁘다 — 고르는 화면만 늘고 고를 이유는 늘지 않기 때문이다.",
+        "",
+        "★ 균열력은 초당 2.0 재생 + 처치당 0.5, 최대 100 이다 (11-core-loop §2.2).",
+        "  즉 90초 전투에서 총 예산은 대략 180 + 처치보너스이고,",
+        "  아래 코스트는 그 예산 안에서 **4~6회** 발동을 상정한다."
+    ],
+    "$balance": [
+        "★ 주문은 **자동 플레이도 쓴다** (`logic/autoPlay.js`). 그래야 밸런스 하네스가",
+        "  플레이어와 같은 게임을 잰다 — 이 저장소가 반복해서 겪은 실패가",
+        "  '검증 도구가 플레이어와 다른 것을 재고 있었다' 이다.",
+        "  따라서 이 수치를 바꾸면 `npm run balance:check` 를 다시 돌려야 한다.",
+        "",
+        "★★ 하네스는 `defaultLoadout` 그대로 싸운다 (아무도 `opts.spells` 를 넘기지",
+        "  않는다). 그러므로 **기본 4종의 수치·자동 정책을 건드리지 않는 한** 새 주문",
+        "  8종을 아무리 추가해도 게이트 수치는 움직이지 않는다. 이것이 12종을 한 번에",
+        "  넣으면서도 밸런스를 잃지 않는 방법이었다."
+    ],
+    "$icons": [
+        "★ 전용 아이콘이 아직 없다. **기존 아이콘을 의미가 맞는 것으로 빌려 쓴다** —",
+        "  새 인덱스를 추측해서 넣으면 화면에서 엉뚱한 그림이 나오는데,",
+        "  아이콘 시트는 눈으로 확인하지 않으면 틀린 것을 알 수 없다.",
+        "  전용 아트가 생기면 여기 12개 값만 바꾼다 (icons.json 에 spell.* 추가).",
+        "★ 12종으로 늘리면서 **의미가 덜 맞는 차용이 생겼다** — 반발 파동(FLYING),",
+        "  방주 수리(LIVING), 징집 나팔(SWARM) 셋이 그렇다. 억지로 맞는 척하지 않고",
+        "  여기 적어 둔다. 전용 아트가 오면 이 셋부터 바꾼다."
+    ],
+    "$target": [
+        "대상 축은 셋이고, **어느 것도 플레이어에게 대상을 묻지 않는다** —",
+        "누르면 즉시 나간다. 조작이 한 단계 늘어나는 것을 피한 결정이다.",
+        "  lane — 지휘관이 **지금 서 있는 레인** 전체 (HUD 는 레인을 보내지 않고,",
+        "         `castSpell` 이 `s.commander.lane` 으로 떨어진다). 즉 이 주문들의",
+        "         조준은 **지휘관을 어디에 세워 두었는가**이고, 그것이 이 게임의",
+        "         핵심 조작과 같은 축이다.",
+        "  aura — 오라 안 아군 전원. 지휘관 위치가 곧 사거리다.",
+        "  self — 아무것도 묻지 않는다 (방주·마나 등 전역 자원)."
+    ],
+    "$effectKinds": [
+        "`effect.kind` 는 `logic/spells.js:castSpell` 이 처리하는 이름이다.",
+        "★ 데이터에만 있고 코드가 모르는 kind, 코드에만 있고 아무도 안 쓰는 kind 를",
+        "  `tools/validate-data.mjs` 가 **양방향으로** 잡는다.",
+        "",
+        "  damage    — 레인의 적 전원에게 `dmgType` 피해 (상성은 평타와 같은 함수)",
+        "  heal      — 오라 안 아군 최대 HP 의 `pctOfMax` 회복",
+        "  buff      — 오라 안 아군의 `stat` 을 `amount`(절대) 또는 `pct`(비율) 만큼",
+        "              `durationMs` 동안. `role` 을 적으면 그 역할에만 붙는다",
+        "  shield    — 오라 안 아군에게 무효화 횟수 `hits` 부여 (combat.js 가 소비)",
+        "  execute   — 레인의 적 중 HP 비율 `pct` 이하를 즉시 처치",
+        "  knockback — 레인의 **붙들리지 않은** 적을 균열 쪽으로 `pushPx` 밀어냄",
+        "  mana      — 마나 `amount` 즉시 획득 (최대치 초과 없음)",
+        "  arkHeal   — 방주 최대 HP 의 `pctOfMax` 회복 (최대치 초과 없음)"
+    ],
+    "$power": [
+        "지휘관 유물이 미는 **주문 위력**(`spellPowerMult`)은 연속량에만 곱한다 —",
+        "피해 · 회복 · 마나 · 방주 회복 · 버프 수치 · 밀어냄 거리.",
+        "",
+        "★ **이산량에는 곱하지 않는다**: 결계의 무효화 '횟수'와 처형의 '임계 비율'.",
+        "  횟수에 1.25 를 곱하면 2 → 2.5 가 되어 반올림 한 번에 50% 가 뛰고,",
+        "  처형 임계에 곱하면 유물 하나로 '거의 전부 즉사'가 만들어진다.",
+        "  두 주문은 유물의 수혜를 못 받는다 — 그것이 그 둘을 고르는 값의 일부다."
+    ],
+    "riftCostScale": 1.0,
+
+    "$loadout": [
+        "★★ **장착 4칸.** `logic/spells.js` 가 이 값을 강제한다:",
+        "  `createSpellState(equipped)` 가 4종만 담고, `canCast` 는 그 밖의 주문에",
+        "  `reason: 'unequipped'` 를 돌려주며, `pickAutoSpell` 도 그 4종 안에서만 돈다.",
+        "  **화면이 잠그는 것이 아니라 규칙이 잠근다** — 화면에만 자물쇠를 그리면",
+        "  다음 호출부가 그대로 통과한다 (CLAUDE.md 진행 게이트 규약).",
+        "",
+        "★ `defaultLoadout` 은 신규 계정이 **빈 손으로 전투에 들어가지 않게** 하는",
+        "  기본값이다. 지금의 4종 그대로이므로, 아무것도 고르지 않은 계정은",
+        "  12종 이전과 완전히 같은 게임을 한다.",
+        "",
+        "★★ **가장 싼 4종의 코스트 합이 riftMax(100) 를 넘어야 한다.** 넘지 않으면",
+        "  가득 찬 균열력 하나로 장착 4종을 전부 쏠 수 있고, 그러면 전투 중의 결정이",
+        "  '무엇을 쓸까'에서 '어느 순서로 누를까'로 내려앉는다. 지금은 22+24+25+30=101 이고",
+        "  `data:validate` 가 이 부등식을 강제한다 — 코스트를 내릴 때 먼저 실패한다."
+    ],
+    "loadoutSize": 4,
+    "defaultLoadout": ["rift_bolt", "healing_wave", "steel_command", "purging_light"],
+
+    "$unlock": [
+        "★ `unlockStage` 는 **확정 지급** 스테이지다. 지휘관 장구(`commander.json:",
+        "  items[].stage`)와 **같은 규약**이고, 확률이 하나도 없다 (절대 규칙 6) —",
+        "  어떤 주문이 언제 오는지가 이 파일에 적혀 있고 화면이 미리 보여 줄 수 있다.",
+        "★ `unlockStage` 가 없으면 처음부터 열려 있다 (= `defaultLoadout` 의 4종).",
+        "  `data:validate` 가 '기본 장착은 전부 기본 해금'을 강제한다 — 그렇지 않으면",
+        "  신규 계정이 **자기 기본 장착을 쓸 수 없는** 상태로 시작한다."
+    ],
+
+    "spells": [
+        {
+            "id": "rift_bolt",
+            "name": { "ko": "균열 낙뢰", "en": "Rift Bolt" },
+            "cost": 25,
+            "cooldownMs": 3000,
+            "target": "lane",
+            "effect": { "kind": "damage", "dmgType": "arcane", "amount": 42 },
+            "desc": {
+                "ko": "지휘관이 선 레인에 술식 광역 피해. 술식이므로 DEF 를 무시한다",
+                "en": "Arcane splash damage on the Commander's lane. Arcane ignores DEF"
+            },
+            "icon": "dmg.arcane",
+            "$why": "가장 짧은 쿨다운. DEF 를 무시하므로 **어떤 판에서도 최소 성능이 보장된다** — 판을 읽을 여유가 없을 때의 답이고, 그래서 특효도 없다"
+        },
+        {
+            "id": "healing_wave",
+            "name": { "ko": "치유의 파동", "en": "Healing Wave" },
+            "cost": 35,
+            "cooldownMs": 8000,
+            "target": "aura",
+            "effect": { "kind": "heal", "pctOfMax": 0.3 },
+            "desc": {
+                "ko": "오라 안 아군의 최대 HP 30% 회복",
+                "en": "Allies in the aura recover 30% of max HP"
+            },
+            "icon": "tag.REGEN",
+            "$why": "**이미 받은 피해**를 되돌린다. 오라 밖은 못 받으므로 '지휘관을 어디에 세웠는가'가 회복량을 정한다 — 위치가 곧 위력인 유일한 회복"
+        },
+        {
+            "id": "steel_command",
+            "name": { "ko": "강철 명령", "en": "Steel Command" },
+            "cost": 30,
+            "cooldownMs": 12000,
+            "target": "aura",
+            "effect": { "kind": "buff", "stat": "def", "amount": 40, "durationMs": 8000 },
+            "desc": {
+                "ko": "오라 안 아군 DEF +40, 8초",
+                "en": "Allies in the aura gain DEF +40 for 8s"
+            },
+            "icon": "tag.ARMORED",
+            "$why": "DEF 는 **물리 피해만** 절대 감산한다. 잡졸이 다단히트로 방벽을 갉는 판에서 최고이고, 술식을 쓰는 적 앞에서는 아무 일도 하지 않는다"
+        },
+        {
+            "id": "purging_light",
+            "name": { "ko": "정화의 빛", "en": "Purging Light" },
+            "cost": 40,
+            "cooldownMs": 10000,
+            "target": "lane",
+            "effect": { "kind": "damage", "dmgType": "holy", "amount": 38 },
+            "desc": {
+                "ko": "지휘관이 선 레인에 신성 광역 피해. CORRUPT 에 특효, LIVING 에는 반감",
+                "en": "Holy splash damage on the Commander's lane. Strong vs Corrupt, halved vs Living"
+            },
+            "icon": "dmg.holy",
+            "$why": "**적 구성을 읽어야 하는** 유일한 공격 주문. 타락 웨이브에서는 낙뢰를 압도하고 생명체 웨이브에서는 낙뢰보다 나쁘다 — 스테이지 프리뷰를 보게 만드는 자리"
+        },
+        {
+            "id": "shatter_volley",
+            "name": { "ko": "파쇄 일제사격", "en": "Shatter Volley" },
+            "cost": 22,
+            "cooldownMs": 2500,
+            "target": "lane",
+            "effect": { "kind": "damage", "dmgType": "physical", "amount": 55 },
+            "desc": {
+                "ko": "지휘관이 선 레인에 물리 광역 피해. DEF 만큼 깎인다",
+                "en": "Physical splash damage on the Commander's lane. Reduced by DEF"
+            },
+            "icon": "dmg.physical",
+            "unlockStage": "1-8",
+            "$why": "가장 싸고 가장 자주 나가지만 **DEF 에 그대로 깎인다.** 물리 축을 대표하고, 무장 없는 무리에게는 최고 효율이며 중장갑 앞에서는 최소 피해로 떨어진다 — '싼 것이 언제 틀리는가'를 가르치는 자리"
+        },
+        {
+            "id": "repulsion_wave",
+            "name": { "ko": "반발 파동", "en": "Repulsion Wave" },
+            "cost": 24,
+            "cooldownMs": 9000,
+            "target": "lane",
+            "effect": { "kind": "knockback", "pushPx": 90 },
+            "desc": {
+                "ko": "지휘관이 선 레인에서 붙들리지 않은 적을 균열 쪽으로 90px 밀어낸다. 피해는 없다",
+                "en": "Pushes unblocked enemies in the Commander's lane 90px back toward the Rift. No damage"
+            },
+            "icon": "tag.FLYING",
+            "unlockStage": "1-16",
+            "$why": "피해가 **0** 이다. 균열력을 시간으로 바꾸는 유일한 주문이고, 붙들린 적은 밀지 않으므로 정확히 '방벽이 놓친 것'만 되돌린다 — 죽이는 대신 다시 세우는 선택"
+        },
+        {
+            "id": "war_horn",
+            "name": { "ko": "진격 나팔", "en": "War Horn" },
+            "cost": 32,
+            "cooldownMs": 11000,
+            "target": "aura",
+            "effect": { "kind": "buff", "stat": "atkInterval", "pct": -0.25, "durationMs": 6000 },
+            "desc": {
+                "ko": "오라 안 아군의 공격 간격 25% 감소, 6초",
+                "en": "Attack interval −25% for allies in the aura, 6s"
+            },
+            "icon": "sigil.reactive",
+            "unlockStage": "2-6",
+            "$why": "강철 명령의 반대편이다 — 맞고 버티는 대신 **더 빨리 죽인다.** 원거리·술사가 많을수록 값이 오르고, 방벽만 오라에 든 판에서는 거의 헛돈다"
+        },
+        {
+            "id": "warding_seal",
+            "name": { "ko": "수호의 결계", "en": "Warding Seal" },
+            "cost": 45,
+            "cooldownMs": 16000,
+            "target": "aura",
+            "effect": { "kind": "shield", "hits": 2 },
+            "desc": {
+                "ko": "오라 안 아군이 다음 2회 피해를 무효화한다",
+                "en": "Allies in the aura negate the next 2 hits"
+            },
+            "icon": "tag.SHIELDED",
+            "unlockStage": "2-14",
+            "$why": "**타입을 가리지 않는다.** 술식은 DEF 를 무시하므로 강철 명령이 통하지 않는데, 결계는 그 한 방을 통째로 지운다 — 다만 다단히트 앞에서는 두 대 만에 사라진다. 강철 명령과 정확히 반대의 판에서 옳다"
+        },
+        {
+            "id": "execution_decree",
+            "name": { "ko": "처형 선고", "en": "Execution Decree" },
+            "cost": 34,
+            "cooldownMs": 13000,
+            "target": "lane",
+            "effect": { "kind": "execute", "pct": 0.22 },
+            "desc": {
+                "ko": "지휘관이 선 레인에서 HP 22% 이하인 적을 즉시 처치한다",
+                "en": "Instantly slays enemies at or below 22% HP in the Commander's lane"
+            },
+            "icon": "tag.CORRUPT",
+            "unlockStage": "3-6",
+            "$why": "갓 나온 웨이브에는 **아무 일도 하지 않는다.** 위력이 수치가 아니라 **타이밍**인 유일한 주문 — 언제 누르는가만이 값어치를 정한다. 최대 HP 가 큰 적일수록 지운 HP 도 크다"
+        },
+        {
+            "id": "conscript_call",
+            "name": { "ko": "징집 나팔", "en": "Conscript Call" },
+            "cost": 32,
+            "cooldownMs": 18000,
+            "target": "self",
+            "effect": { "kind": "mana", "amount": 45 },
+            "desc": {
+                "ko": "마나 45 를 즉시 얻는다",
+                "en": "Gain 45 Mana at once"
+            },
+            "icon": "tag.SWARM",
+            "unlockStage": "3-14",
+            "$why": "균열력을 **마나**로 바꾼다. 주문 한 번을 포기하고 동료를 한 기 더 세우는 거래이고, 무거운 편성일수록 값이 오른다 — 이 게임에서 두 자원이 만나는 유일한 지점"
+        },
+        {
+            "id": "hold_the_line",
+            "name": { "ko": "사수 명령", "en": "Hold the Line" },
+            "cost": 30,
+            "cooldownMs": 15000,
+            "target": "aura",
+            "effect": {
+                "kind": "buff",
+                "stat": "blockCount",
+                "amount": 1,
+                "role": "BLOCKER",
+                "durationMs": 10000
+            },
+            "desc": {
+                "ko": "오라 안 방벽이 적을 한 체 더 붙든다, 10초",
+                "en": "Blockers in the aura hold 1 more enemy, 10s"
+            },
+            "icon": "tag.WARDED",
+            "unlockStage": "4-8",
+            "$why": "방벽이 없으면 **완전히 무효**다. 편성이 조건인 유일한 주문이고, 용량을 넘긴 무리가 절반 속도로 새는 그 순간에만 답이 된다 — 피해도 회복도 아닌 '용량'을 사는 선택"
+        },
+        {
+            "id": "ark_mending",
+            "name": { "ko": "방주 수리", "en": "Ark Mending" },
+            "cost": 50,
+            "cooldownMs": 24000,
+            "target": "self",
+            "effect": { "kind": "arkHeal", "pctOfMax": 0.12 },
+            "desc": {
+                "ko": "방주 최대 HP 의 12% 를 회복한다",
+                "en": "Restores 12% of the Ark's max HP"
+            },
+            "icon": "tag.LIVING",
+            "unlockStage": "5-4",
+            "$why": "유일하게 **패배 조건 자체**를 되돌린다. 가장 비싸고 가장 느리며, 이미 새고 난 뒤에야 값이 생긴다 — 전장을 포기하고 시계를 되감는 선택"
+        }
+    ],
+
+    "$autoPlay": [
+        "자동 플레이의 발동 규칙 (`logic/spells.js:pickAutoSpell` 이 읽는다).",
+        "★ 사람이 '아무 때나' 쓰지 않는다는 것을 흉내낸다 — 아끼다 쓰는 것이",
+        "  실제 플레이에 가깝고, 그렇지 않으면 하네스가 게임을 실제보다 쉽게 잰다.",
+        "",
+        "★★ 정책은 **효과 종류(kind)별 계층**이다. 주문 id 를 코드에 적지 않는다 —",
+        "  적으면 새 주문이 들어올 때마다 정책이 조용히 그 주문을 무시하고,",
+        "  플레이어와 하네스가 다른 게임을 하게 된다.",
+        "  계층 순서: 방주 수리 → 회복 → 처형 → 피해 → 밀어내기 → 마나 → 버프/결계",
+        "  같은 계층 안에서는 **싼 것 먼저, 동가면 id 순** (결정론).",
+        "",
+        "minEnemiesForDamage: 레인에 이 수 이상 있을 때만 공격 주문을 쓴다",
+        "healBelowPct: 오라 안 아군 평균 HP 가 이 비율 아래일 때만 회복한다",
+        "buffMinEnemiesInAura: 오라 안 아군이 이 수 이상일 때만 버프·결계를 건다",
+        "arkBelowPct: 방주 HP 비율이 이 값 이하일 때만 방주를 수리한다",
+        "executeMinTargets: 임계 이하 적이 이 수 이상 모였을 때만 처형한다",
+        "knockbackArkPx: 선두 적이 방주에서 이 거리 안까지 왔을 때만 밀어낸다",
+        "manaBelowPct: 마나가 최대치의 이 비율 아래일 때만 징집한다",
+        "damageTypeOrder: 공격 주문을 고르는 순서. 신성을 먼저 보는 것은 CORRUPT",
+        "  특효라 값어치가 상황 의존적이기 때문이고, 물리를 마지막에 두는 것은",
+        "  DEF 에 깎이기 때문이다 (기본 4종 시절의 순서를 그대로 보존한다)"
+    ],
+    "autoPlay": {
+        "minEnemiesForDamage": 3,
+        "healBelowPct": 0.6,
+        "buffMinEnemiesInAura": 4,
+        "arkBelowPct": 0.5,
+        "executeMinTargets": 2,
+        "knockbackArkPx": 260,
+        "manaBelowPct": 0.25,
+        "damageTypeOrder": ["holy", "arcane", "physical"]
+    }
+}

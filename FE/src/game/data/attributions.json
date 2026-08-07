@@ -1,0 +1,134 @@
+{
+    "_doc": "★ 크레딧의 단일 출처(SSOT)는 이 파일이다. docs/legal/ATTRIBUTIONS.md 는 `npm run docs:attributions` 로 이 JSON 에서 생성된다 — 문서를 직접 고치지 마라. 게임 내 '설정 > 라이선스' 화면도 이 파일을 읽는다.",
+    "_rule": "새 에셋(SFX 포함)을 도입하면 같은 PR 에서 여기에 출처를 추가하고 생성기를 돌린다.",
+    "updated": "2026-08-03",
+
+    "intro": [
+        "`FE/asset/` 의 모든 에셋은 자유롭게 사용 가능하다 (2026-08-02 확인, `docs/01-research/04-license-audit.md`).",
+        "크레딧이 의무가 아닌 팩도 전부 기재한다 — 비용이 0이고, 원작자에 대한 예의이며, 커뮤니티 인상에도 좋다."
+    ],
+
+    "sections": [
+        {
+            "id": "art-characters",
+            "title": "아트 — 캐릭터 · 보스",
+            "entries": [
+                { "name": "Bringer of Death", "author": "Clembod", "note": "상업 사용 허용 (동봉 License.txt)" },
+                { "name": "Evil Wizard 2", "note": "CC-0 (퍼블릭 도메인 헌정)" },
+                { "name": "Samurai 2D Pixel Art v1.2", "note": "상업 사용 허용 (동봉 라이선스)" },
+                { "name": "Adventurer 2D Pixel Art", "note": "상업 사용 허용 (동봉 라이선스)" },
+                { "name": "Main Character (Free Pack)", "author": "KBPixelArt", "note": "상업 게임 사용 허용" },
+                { "name": "NightBorne", "author": "Diamond / CreativeKind (itch.io)" },
+                { "name": "Necromancer", "author": "creativekind" },
+                { "name": "Mecha-stone Golem" },
+                { "name": "Undead Executioner" }
+            ]
+        },
+        {
+            "id": "art-units",
+            "title": "아트 — 유닛 · 몬스터",
+            "entries": [
+                {
+                    "name": "Basic Asset Pack 시리즈 (10팩) — Monsters · Animals · Holy · Undead · Demons · Dragons · Vermin · Magical · Humanoid · Humanoid II",
+                    "note": "크리처 150종"
+                },
+                {
+                    "name": "Lively NPCs v3.1",
+                    "note": "캐릭터 49종 (Medieval 30 · Steampunk 12 · Elementals 7)"
+                }
+            ]
+        },
+        {
+            "id": "art-environment",
+            "title": "아트 — 환경 · UI · 이펙트",
+            "entries": [
+                {
+                    "name": "Dungeon Tileset (mainlevbuild, decorative)",
+                    "author": "Szadi art",
+                    "note": "퍼블릭 도메인. 타일 2,816개 + 애니메이션 소품 4종"
+                },
+                {
+                    "name": "Raven Fantasy Icons",
+                    "author": "Caio / Clockwork Raven Studios",
+                    "note": "아이콘 2,192종"
+                },
+                {
+                    "name": "Effect Pack (Free 티어)",
+                    "note": "이펙트 애니메이션 252종 (색상 변형 포함 2,268)"
+                },
+                { "name": "Pixel Items", "note": "아이템 아이콘 약 448종" },
+                { "name": "All Fire Bullet Pixel 16×16", "note": "발사체 애니메이션 약 200종" }
+            ]
+        },
+        {
+            "id": "fonts",
+            "title": "폰트",
+            "entries": [
+                {
+                    "name": "물마루 모노 (Mulmaru Mono)",
+                    "author": "Mushsooni — © 2025",
+                    "url": "https://github.com/mushsooni/mulmaru",
+                    "note": "한글 음절 11,172자 전체 + 호환 자모 51자. unitsPerEm 192 픽셀 그리드"
+                }
+            ]
+        },
+        {
+            "id": "music",
+            "title": "음악",
+            "note": "Pixabay Audio 수록곡 20곡.",
+            "entries": [
+                { "name": "11325622-epic-strings-intro-239971" },
+                { "name": "5xbeatz-percussion-loop-118-bpm-free-385692", "author": "5xbeatz" },
+                { "name": "5xbeatz-percussion-loop-130bpm-387865", "author": "5xbeatz" },
+                { "name": "5xbeatz-percussion-loop-132bpm-387866", "author": "5xbeatz" },
+                { "name": "audioknap-drums-only-448491", "author": "audioknap" },
+                { "name": "dragon-studio-slow-cinematic-clock-ticking-405471", "author": "dragon-studio" },
+                {
+                    "name": "grand_project-deep-epic-cinematic-when-time-collapses_outro-501526",
+                    "author": "grand_project"
+                },
+                { "name": "ncprime-cinematic-background-291979", "author": "ncprime" },
+                { "name": "ncprime-cinematic-background-293547", "author": "ncprime" },
+                { "name": "ncprime-noncopyright-music-pianos-295174", "author": "ncprime" },
+                {
+                    "name": "niteshnaagodiya-bongo-and-drum-instrumental-music-21295",
+                    "author": "niteshnaagodiya"
+                },
+                { "name": "simplesound-dark-horror-opener-443328", "author": "simplesound" },
+                { "name": "soundreality-cinematic-drums-percussion-474175", "author": "soundreality" },
+                { "name": "soundreality-cinematic-music-487645", "author": "soundreality" },
+                { "name": "soundreality-cinematic-percussion-471495", "author": "soundreality" },
+                { "name": "soundreality-cinematic-percussion-kick-474176", "author": "soundreality" },
+                {
+                    "name": "universfield-atmospheric-cinematic-soundscape-152493",
+                    "author": "universfield"
+                },
+                { "name": "universfield-dark-horror-soundscape-345814", "author": "universfield" },
+                {
+                    "name": "universfield-horror-background-atmosphere-025-499631",
+                    "author": "universfield"
+                },
+                { "name": "universfield-paranormal-horror-cinematic-498207", "author": "universfield" }
+            ]
+        },
+        {
+            "id": "sfx",
+            "title": "효과음",
+            "note": "미정 — P3-14 에서 소싱한다. 에셋에 SFX 가 0개이므로 새로 도입된다. CC0 우선 (Kenney · Freesound CC0 · ZapSplat). 도입 시 이 목록에 출처를 즉시 기록한다.",
+            "entries": []
+        },
+        {
+            "id": "oss",
+            "title": "오픈소스 소프트웨어",
+            "entries": [
+                { "name": "Phaser 3", "note": "MIT" },
+                { "name": "React", "note": "MIT" },
+                { "name": "Zustand", "note": "MIT" },
+                { "name": "Vite", "note": "MIT" },
+                { "name": "Capacitor", "note": "MIT" },
+                { "name": "React Router", "note": "MIT" },
+                { "name": "TanStack Query", "note": "MIT" }
+            ]
+        }
+    ]
+}

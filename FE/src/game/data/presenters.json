@@ -1,0 +1,671 @@
+{
+    "$comment": [
+        "★ 이 파일이 이 프로젝트의 아트 전략 전체를 지탱한다.",
+        "",
+        "유닛 스프라이트에는 공격·이동·사망 애니메이션이 없다.",
+        "몬스터 150종은 전부 16×16 4프레임 아이들 루프뿐이다.",
+        "따라서 전투 연출은 전적으로",
+        "  트윈(돌진·리코일·스쿼시) + 틴트 플래시 + 이펙트 오버레이 + 히트스톱",
+        "조합으로 만든다. 프로파일 하나를 고치면 그 역할의 모든 유닛 연출이 바뀐다.",
+        "",
+        "docs/02-design/19-art-audio-direction.md §2"
+    ],
+    "$note": "값은 디자인 해상도 1280×720 기준 (유닛 화면 크기 64px)",
+    "profiles": {
+        "BLOCKER": {
+            "idle": {
+                "bounceY": 2,
+                "bouncePeriod": 1100
+            },
+            "move": {
+                "bounceY": 4,
+                "bouncePeriod": 620,
+                "tiltDeg": 2
+            },
+            "attack": {
+                "lungePx": 8,
+                "lungeMs": 90,
+                "recoilPx": -3,
+                "recoilMs": 140,
+                "squash": [
+                    1.1,
+                    0.9
+                ],
+                "hitStopMs": 20,
+                "effect": "impact_blunt",
+                "effectAt": "target",
+                "hitByDamageType": true
+            },
+            "hurt": {
+                "tintMs": 60,
+                "knockbackPx": -2,
+                "squash": [
+                    0.9,
+                    1.1
+                ]
+            },
+            "death": {
+                "spinDeg": 540,
+                "durationMs": 320,
+                "effect": "death_puff"
+            },
+            "spawn": {
+                "fadeMs": 150,
+                "scaleFrom": 0.6,
+                "overshoot": 1.12,
+                "ringEffect": "summon_ring"
+            }
+        },
+        "MELEE": {
+            "idle": {
+                "bounceY": 2,
+                "bouncePeriod": 900
+            },
+            "move": {
+                "bounceY": 5,
+                "bouncePeriod": 480,
+                "tiltDeg": 3
+            },
+            "attack": {
+                "lungePx": 20,
+                "lungeMs": 80,
+                "recoilPx": -8,
+                "recoilMs": 120,
+                "squash": [
+                    1.15,
+                    0.85
+                ],
+                "hitStopMs": 40,
+                "effect": "slash_a",
+                "effectAt": "target",
+                "hitByDamageType": true
+            },
+            "hurt": {
+                "tintMs": 60,
+                "knockbackPx": -6,
+                "squash": [
+                    0.85,
+                    1.15
+                ]
+            },
+            "death": {
+                "spinDeg": 720,
+                "durationMs": 300,
+                "effect": "death_puff"
+            },
+            "spawn": {
+                "fadeMs": 150,
+                "scaleFrom": 0.6,
+                "overshoot": 1.15,
+                "ringEffect": "summon_ring"
+            }
+        },
+        "RANGED": {
+            "idle": {
+                "bounceY": 1,
+                "bouncePeriod": 1000
+            },
+            "move": {
+                "bounceY": 4,
+                "bouncePeriod": 520,
+                "tiltDeg": 2
+            },
+            "attack": {
+                "lungePx": 0,
+                "recoilPx": -10,
+                "recoilMs": 110,
+                "squash": [
+                    0.94,
+                    1.06
+                ],
+                "hitStopMs": 0,
+                "effect": null
+            },
+            "hurt": {
+                "tintMs": 60,
+                "knockbackPx": -6,
+                "squash": [
+                    0.85,
+                    1.15
+                ]
+            },
+            "death": {
+                "spinDeg": 720,
+                "durationMs": 300,
+                "effect": "death_puff"
+            },
+            "spawn": {
+                "fadeMs": 150,
+                "scaleFrom": 0.6,
+                "overshoot": 1.15,
+                "ringEffect": "summon_ring"
+            }
+        },
+        "CASTER": {
+            "idle": {
+                "bounceY": 2,
+                "bouncePeriod": 1300
+            },
+            "move": {
+                "bounceY": 3,
+                "bouncePeriod": 560
+            },
+            "attack": {
+                "risePx": 6,
+                "riseMs": 160,
+                "squash": [
+                    0.92,
+                    1.12
+                ],
+                "hitStopMs": 60,
+                "glow": true,
+                "effect": null
+            },
+            "hurt": {
+                "tintMs": 60,
+                "knockbackPx": -6,
+                "squash": [
+                    0.85,
+                    1.15
+                ]
+            },
+            "death": {
+                "spinDeg": 720,
+                "durationMs": 320,
+                "effect": "death_burst"
+            },
+            "spawn": {
+                "fadeMs": 180,
+                "scaleFrom": 0.5,
+                "overshoot": 1.18,
+                "ringEffect": "summon_ring"
+            }
+        },
+        "SUPPORT": {
+            "idle": {
+                "bounceY": 2,
+                "bouncePeriod": 1200
+            },
+            "move": {
+                "bounceY": 3,
+                "bouncePeriod": 580
+            },
+            "attack": {
+                "risePx": 4,
+                "riseMs": 200,
+                "hitStopMs": 0,
+                "effect": "heal",
+                "effectAt": "target"
+            },
+            "hurt": {
+                "tintMs": 60,
+                "knockbackPx": -6,
+                "squash": [
+                    0.85,
+                    1.15
+                ]
+            },
+            "death": {
+                "spinDeg": 540,
+                "durationMs": 300,
+                "effect": "death_puff"
+            },
+            "spawn": {
+                "fadeMs": 180,
+                "scaleFrom": 0.6,
+                "overshoot": 1.15,
+                "ringEffect": "summon_ring"
+            }
+        },
+        "SIEGE": {
+            "idle": {
+                "bounceY": 1,
+                "bouncePeriod": 1400
+            },
+            "move": {
+                "bounceY": 2,
+                "bouncePeriod": 700
+            },
+            "attack": {
+                "recoilPx": -16,
+                "recoilMs": 130,
+                "squash": [
+                    1.08,
+                    0.92
+                ],
+                "hitStopMs": 80,
+                "cameraShake": 2,
+                "effect": null
+            },
+            "hurt": {
+                "tintMs": 60,
+                "knockbackPx": -3,
+                "squash": [
+                    0.92,
+                    1.08
+                ]
+            },
+            "death": {
+                "spinDeg": 360,
+                "durationMs": 360,
+                "effect": "explosion_large"
+            },
+            "spawn": {
+                "fadeMs": 200,
+                "scaleFrom": 0.7,
+                "overshoot": 1.1,
+                "ringEffect": "summon_ring"
+            }
+        },
+        "SPECIALIST": {
+            "idle": {
+                "bounceY": 2,
+                "bouncePeriod": 800
+            },
+            "move": {
+                "bounceY": 6,
+                "bouncePeriod": 400,
+                "tiltDeg": 4
+            },
+            "attack": {
+                "lungePx": 24,
+                "lungeMs": 70,
+                "recoilPx": -10,
+                "recoilMs": 100,
+                "squash": [
+                    1.2,
+                    0.8
+                ],
+                "hitStopMs": 40,
+                "effect": "pierce",
+                "effectAt": "target",
+                "hitByDamageType": true
+            },
+            "hurt": {
+                "tintMs": 60,
+                "knockbackPx": -8,
+                "squash": [
+                    0.85,
+                    1.15
+                ]
+            },
+            "death": {
+                "spinDeg": 900,
+                "durationMs": 280,
+                "effect": "death_puff"
+            },
+            "spawn": {
+                "fadeMs": 120,
+                "scaleFrom": 0.5,
+                "overshoot": 1.2,
+                "ringEffect": "summon_ring"
+            }
+        },
+        "FLYER": {
+            "idle": {
+                "bounceY": 5,
+                "bouncePeriod": 700
+            },
+            "move": {
+                "bounceY": 7,
+                "bouncePeriod": 500
+            },
+            "$attack": [
+                "★★★ 2026-08-05: 근접 프로파일에서 발사체 프로파일로 바꿨다.",
+                "  FLYER 가 roles.js:PROJECTILE_ROLES 에 들어가면서 즉발이 아니게 됐는데,",
+                "  여기에는 lungePx 12 + effect 'impact_small' @target 이 남아 있었다 —",
+                "  **탄이 아직 날아가는 중에 표적에서 타격이 먼저 터진다.** 인과가 뒤집힌다",
+                "  (바로 위 $hitEffect 가 RANGED·CASTER·SIEGE 에 대해 경고해 둔 바로 그 함정).",
+                "  돌진도 지운다: 쏘는 유닛이 표적 쪽으로 달려들 이유가 없다."
+            ],
+            "attack": {
+                "lungePx": 0,
+                "recoilPx": -8,
+                "recoilMs": 110,
+                "squash": [
+                    0.95,
+                    1.08
+                ],
+                "hitStopMs": 20,
+                "effect": null
+            },
+            "hurt": {
+                "tintMs": 60,
+                "knockbackPx": -8,
+                "squash": [
+                    0.9,
+                    1.1
+                ]
+            },
+            "death": {
+                "spinDeg": 720,
+                "durationMs": 340,
+                "effect": "death_puff"
+            },
+            "spawn": {
+                "fadeMs": 150,
+                "scaleFrom": 0.6,
+                "overshoot": 1.15
+            }
+        }
+    },
+    "$giant": "거대화 엘리트는 모든 연출 값을 스케일에 비례해 키운다",
+    "giantMultiplier": {
+        "lunge": 0.6,
+        "hitStop": 1.8,
+        "shake": 2.5,
+        "effectScale": 1.6
+    },
+    "$hitEffect": [
+        "★★ **타격 이펙트는 데미지 타입이 정한다** (2026-08-05).",
+        "",
+        "위 프로파일의 `attack.effect` 는 역할별 **물리 타격의 모양**이다",
+        "(베기 slash_a · 둔격 impact_blunt · 관통 pierce · 타격 impact_small).",
+        "술식과 신성이 같은 칼자국을 남기면서 색만 파랗고 노랗게 바뀌면,",
+        "이 게임의 심장인 상성(물리 DEF · 술식 RES · 신성 CORRUPT 특효)이",
+        "화면에서 읽히지 않는다 — 색만으로는 색각 이상 사용자에게 차이가 0 이다.",
+        "그래서 **그림 자체**를 바꾼다. 색(damageTypeTint)은 그 위에 그대로 얹힌다.",
+        "",
+        "★ physical 은 여기 적지 않는다. 물리는 역할이 정한 모양 그대로다 —",
+        "  적으면 '물리 = 한 그림'이 되어 역할별 연출 위계가 사라진다.",
+        "",
+        "★ giant 는 배율이 아니라 **다른 그림**이다. giantMultiplier.effectScale 로",
+        "  같은 12프레임을 1.6배 늘리면 보스의 한 방이 잡몹 타격을 확대한 것으로만",
+        "  보인다. burst 계열은 프레임 수는 같고 퍼짐이 넓어 무게가 다르게 읽힌다.",
+        "",
+        "★★ 발사체를 쓰는 역할(RANGED · CASTER · SIEGE · FLYER)은 `attack.effect` 가 null 이라",
+        "  여기서도 아무것도 나지 않는다. 그쪽에 이펙트를 붙이면 **발사체가 아직",
+        "  날아가는 중에 표적에서 타격이 먼저 터진다** — 인과가 뒤집힌다.",
+        "",
+        "★★★ **적용 여부는 역할이 `attack.hitByDamageType` 로 밝힌다.**",
+        "  이 표를 '이펙트가 있는 모든 공격'에 자동으로 걸면 **SUPPORT 가 깨진다** —",
+        "  SUPPORT 의 attack.effect 는 힐(`heal`)이고, 그 동료들은 대부분 신성이라",
+        "  치유 연출이 통째로 신성 타격으로 바뀐다. 회복을 피해처럼 그리는 것은",
+        "  연출 실수가 아니라 **오독을 유발하는 거짓말**이다.",
+        "  그래서 옵트인이다: 새 역할을 만드는 사람은 '이 공격이 타격인가'를",
+        "  한 번 답해야 한다. 지금 켜져 있는 것은 BLOCKER · MELEE · SPECIALIST 다.",
+        "",
+        "docs/02-design/19-art-audio-direction.md §2"
+    ],
+    "hitEffect": {
+        "arcane": {
+            "normal": "arcane_hit",
+            "giant": "arcane_burst"
+        },
+        "holy": {
+            "normal": "holy_hit",
+            "giant": "holy_burst"
+        }
+    },
+    "$commander": [
+        "지휘관 평타 연출 (`presenters/CommanderPresenter.js`).",
+        "",
+        "★ 이펙트 이름을 코드에 박지 않는다 (절대규칙 5). 한때 `\"slash_a\"` 가",
+        "  CommanderPresenter 안에 문자열로 있었다.",
+        "★ 병사와 **다른 검격**을 쓴다 — 굵은 픽셀=병력 / 고운 픽셀=이름 있는 존재라는",
+        "  스케일 위계(CLAUDE.md '아트 제약')를 타격에서도 유지한다.",
+        "★ 지휘관은 `hitEffect` 를 타지 않는다. 평타는 항상 물리이고",
+        "  (balance.json:commander.attack), 데미지 타입이 바뀔 계획이 없다."
+    ],
+    "commander": {
+        "attack": {
+            "effect": "slash_b",
+            "effectScale": 0.9,
+            "$rangeBand": [
+                "★★★ **평타 사거리 표시** (2026-08-07, 전수조사 ③).",
+                "",
+                "  화면이 그리던 유일한 원은 **오라 반경(192)** 이고 평타 사거리는 **140** 이다.",
+                "  게다가 오라는 원이라 레인 간격 96 을 넘어 **이웃 레인을 ±166px 까지 덮는다.**",
+                "  실측(자동 조작): 전투 시간의 **35~54%** 동안 '금색 원 안에 서 있는 적을",
+                "  지휘관이 절대 때리지 않는' 그림이 화면에 있었다. 로직은 정상인데",
+                "  플레이어가 읽을 수 있는 단서가 **틀린 원 하나뿐**이었다.",
+                "",
+                "★ 그래서 사거리는 **원이 아니라 그 레인의 띠**로 그린다. '같은 레인만' 과",
+                "  '이만큼만' 이라는 두 제약이 한 도형으로 동시에 읽힌다.",
+                "★ 반경은 여기 적지 않는다 — `balance.json:commander.attack.range` 가 정본이고",
+                "  프레젠터가 `sim.cfg` 에서 읽는다 (절대규칙 4)."
+            ],
+            "rangeBand": {
+                "height": 40,
+                "fillAlpha": 0.1,
+                "edgeAlpha": 0.45,
+                "color": "0xf2b33d"
+            }
+        },
+        "$hurt": [
+            "지휘관 피격 연출. 2026-08-05 이전에는 지휘관이 맞는 일 자체가 보스 슬램뿐이었고",
+            "그마저 아무 연출도 없었다 — 일반 적이 지휘관을 노리게 되면서",
+            "(logic/engage.js:tryHitCommander) '왜 갑자기 쓰러졌지' 를 없애야 했다.",
+            "tintMs 는 유닛(profiles[].hurt.tintMs)과 같은 규약·같은 자릿수.",
+            "",
+            "★ effect 는 FLYER 가 발사체 역할이 되면서 쓰지 않게 된 'impact_small' 이다.",
+            "  같은 날 두 변경이 맞물렸고, 마침 '작은 타격 한 번'이라는 뜻이 그대로 맞다."
+        ],
+        "hurt": {
+            "tintMs": 70,
+            "effect": "impact_small"
+        },
+        "$spells": [
+            "★★★ **지휘관 주문의 연출 프로파일** (2026-08-07, 사용자 요청).",
+            "",
+            "  그 전까지 EV.SPELL_CAST 는 emit 만 되고 **소비처가 저장소 전체에 0개**였다.",
+            "  주문을 눌러 성공하면 전장이 무음·무연출이고, 실패해야만 화면이 흔들렸다.",
+            "  반응이 실패에만 있는 UI 는 '이 버튼은 작동하지 않는다'로 읽힌다.",
+            "",
+            "★★★ **그리고 처음 붙인 이펙트는 뜻과 맞지 않았다** (같은 날, 사용자 제보 —",
+            "  '치유를 쓰는데 공격 모션이 나오고 버프에도 공격적인 이펙트가 들어간다').",
+            "",
+            "  원인은 둘이었다:",
+            "    ① `fx.json` 의 `heal`·`summon_ring` 이 **베기 궤적**을 가리키고 있었다",
+            "       (접두 945·946 — 아틀라스에서 945~948 은 전부 초승달 슬래시다).",
+            "       이름만 보고 고른 것이라 회복·소환·버프가 전부 칼질이었다.",
+            "    ② 지원·방어 계열 이펙트가 표에 **아예 없어서** 결계는 `holy_hit`(신성 타격),",
+            "       사수 명령은 `impact_blunt`(둔기 타격)를 빌려 쓰고 있었다.",
+            "  아틀라스에 48종이 있는데 16종만 등록돼 있던 것이 진짜 원인이다 (`fx.json` 머리말).",
+            "",
+            "★ 규칙: **효과의 종류(effect.kind)가 이펙트 계열을 정한다.**",
+            "    damage/execute → 타격·폭발      heal/arkHeal → 개화(회복)",
+            "    buff           → 광선·꽃·마법진  shield       → 방울(보호막)",
+            "    knockback      → 동심원 충격파   mana         → 고리(집결)",
+            "  **공격 이펙트를 지원 주문에 쓰지 않는다.** 그 한 줄이 이 절의 전부다.",
+            "",
+            "★ effect 이름은 fx.json:effects 의 키여야 하고, tools/validate-data.mjs 의",
+            "  '선언 ↔ 소비 대조' 절이 그것을 강제한다.",
+            "",
+            "★★ tint 는 **모양 위에 얹는 2차 단서**다 (색만으로 구분하지 않는다 — CLAUDE.md).",
+            "  회복 초록 · 버프 금색 · 보호막 하늘색 · 밀어내기 균열 보라.",
+            "  값이 없으면 EffectSystem 이 월드 색보정으로 떨어진다.",
+            "",
+            "★ shape 는 연출을 **어디에** 그릴지다 — 대상 축(spells.json:target)과 같은 축이다:",
+            "    lane  : 그 레인을 따라 방주→균열 방향으로 count 번",
+            "    aura  : 지휘관 중심 + 오라 반경 좌우",
+            "    self  : 지휘관 발밑에 한 번",
+            "    target: 이번 주문으로 죽은 적마다 (처형)",
+            "  count 는 저사양 티어의 동시 이펙트 예산(12)을 먹으므로 3을 넘기지 않는다."
+        ],
+        "spells": {
+            "$default": {
+                "effect": "summon_ring",
+                "shape": "self",
+                "scale": 1.0,
+                "count": 1,
+                "shake": 0,
+                "hitStop": 0
+            },
+            "rift_bolt": {
+                "effect": "arcane_burst",
+                "shape": "lane",
+                "scale": 1.0,
+                "count": 3,
+                "shake": 2,
+                "hitStop": 0
+            },
+            "purging_light": {
+                "effect": "holy_burst",
+                "shape": "lane",
+                "scale": 1.1,
+                "count": 3,
+                "shake": 2,
+                "hitStop": 0
+            },
+            "shatter_volley": {
+                "effect": "impact_blunt",
+                "shape": "lane",
+                "scale": 1.3,
+                "count": 3,
+                "shake": 3,
+                "hitStop": 40
+            },
+            "execution_decree": {
+                "effect": "death_burst",
+                "shape": "target",
+                "scale": 1.1,
+                "count": 1,
+                "shake": 3,
+                "hitStop": 60
+            },
+            "repulsion_wave": {
+                "effect": "shockwave",
+                "shape": "lane",
+                "scale": 1.0,
+                "count": 2,
+                "shake": 4,
+                "hitStop": 0,
+                "tint": "0xb45ad6"
+            },
+            "healing_wave": {
+                "effect": "heal",
+                "shape": "aura",
+                "scale": 1.2,
+                "count": 1,
+                "shake": 0,
+                "hitStop": 0,
+                "tint": "0x6ee07a"
+            },
+            "ark_mending": {
+                "effect": "heal",
+                "shape": "self",
+                "scale": 1.6,
+                "count": 1,
+                "shake": 0,
+                "hitStop": 0,
+                "tint": "0x6ee07a"
+            },
+            "war_horn": {
+                "effect": "rally",
+                "shape": "aura",
+                "scale": 1.2,
+                "count": 1,
+                "shake": 0,
+                "hitStop": 0,
+                "tint": "0xf2b33d"
+            },
+            "steel_command": {
+                "effect": "seal",
+                "shape": "aura",
+                "scale": 1.2,
+                "count": 1,
+                "shake": 0,
+                "hitStop": 0,
+                "tint": "0xf2b33d"
+            },
+            "hold_the_line": {
+                "effect": "guard",
+                "shape": "aura",
+                "scale": 1.2,
+                "count": 1,
+                "shake": 0,
+                "hitStop": 0,
+                "tint": "0xf2b33d"
+            },
+            "warding_seal": {
+                "effect": "barrier",
+                "shape": "aura",
+                "scale": 1.3,
+                "count": 1,
+                "shake": 0,
+                "hitStop": 0,
+                "tint": "0x7ad0ff"
+            },
+            "conscript_call": {
+                "effect": "summon_ring",
+                "shape": "self",
+                "scale": 1.3,
+                "count": 1,
+                "shake": 0,
+                "hitStop": 0,
+                "tint": "0xf2b33d"
+            }
+        },
+        "$down": [
+            "★★ 지휘관이 쓰러지고 일어서는 순간의 연출 (2026-08-07).",
+            "  EV.COMMANDER_DOWN / EV.COMMANDER_UP 은 lifecycle.js 가 방출하는데",
+            "  **소비처가 0개**였다. 지휘관이 쓰러지는 것은 8초간 오라가 통째로 사라지는,",
+            "  전투에서 가장 큰 단일 사건인데 화면에는 알파 0.3 과 머리 위 '재출격 N' 뿐이었다.",
+            "  HUD 의 금색 바는 10Hz 동기화 뒤에야 0 이 된다 — 즉 사건이 일어난 순간에는",
+            "  아무 일도 일어나지 않는다."
+        ],
+        "down": {
+            "effect": "death_burst",
+            "scale": 1.6,
+            "shake": 6,
+            "hitStop": 90
+        },
+        "up": {
+            "effect": "summon_ring",
+            "scale": 1.6,
+            "shake": 0,
+            "hitStop": 0
+        }
+    },
+    "$outline": [
+        "적 외곽선 — enemies.json 의 art.outline(색)이 있는 적에게만 붙는다 (24-data-schema.md §2).",
+        "엘리트·보스를 잡몹 무리 속에서 한눈에 가려내기 위한 것이다. 색은 데이터가 정하고,",
+        "두께·투명도·맥동은 여기가 정한다 — 적 10종에 같은 값을 열 번 적지 않는다.",
+        "",
+        "px 는 디자인 좌표(1280×720) 기준 두께이고, 배율이 다른 적에게도 화면에서 같은 굵기로 보인다.",
+        "pulse 는 alpha 에 더해지는 진폭이다. 0 이면 맥동하지 않는다."
+    ],
+    "outline": {
+        "px": 3,
+        "alpha": 0.7,
+        "pulse": 0.18,
+        "pulsePeriodMs": 1300
+    },
+    "$sideMark": [
+        "발밑 피아 표식 — 아군/적군을 **언제나** 구분해 준다 (2026-08-05, 사용자 제보).",
+        "",
+        "★★ 그전까지 피아 단서는 **체력바 색 하나**였는데, 아군 체력바는 '피해를 입은",
+        "  뒤에만' 뜬다 (막대밭을 피하려고 일부러 그렇게 했다). 그래서 만피 아군은",
+        "  화면에 식별 단서가 **하나도 없었다.** 스프라이트는 양 진영이 같은 시트에서",
+        "  오고, 바라보는 방향(flipX)은 16×16 대칭 그림이 많아 믿을 수 없다.",
+        "",
+        "★ **색만으로 구분하지 않는다.** 아군은 채운 타원, 적은 빈 링이다 —",
+        "  색약 모드에서도 모양으로 갈린다 (check:a11y 의 원칙과 같은 이유).",
+        "★ 유닛 **뒤**에 그린다 (depth 60 < 유닛 100). 발밑을 덮으면 픽셀아트가 상한다.",
+        "★ 크기는 스프라이트 폭에서 파생시킨다 — 고정값으로 두면 ×2 대형과 ×4 잡몹이",
+        "  같은 표식을 다른 비율로 달게 된다 (외곽선이 이미 그 교훈을 적어 두었다).",
+        "★ `smoothness` 는 타원을 몇 조각으로 쪼갤지다. Phaser 기본값은 **32** 인데,",
+        "  이 표식은 가로 40px 남짓이라 그만큼 잘게 쪼갤 이유가 없다. 그리고 이것은",
+        "  **개체마다 · 프레임마다** 도는 자리다 — 동시 200체면 기본값으로 프레임당",
+        "  6,400 조각을 계산하게 된다 (체력바의 fillRect 는 2 조각이다)."
+    ],
+    "sideMark": {
+        "widthRatio": 0.62,
+        "heightRatio": 0.22,
+        "minWidth": 18,
+        "offsetY": 2,
+        "lineWidth": 2,
+        "smoothness": 12,
+        "ally": {
+            "color": "0x53d1ff",
+            "alpha": 0.85,
+            "filled": true
+        },
+        "enemy": {
+            "color": "0xff5566",
+            "alpha": 0.9,
+            "filled": false
+        }
+    }
+}

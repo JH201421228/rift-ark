@@ -1,0 +1,224 @@
+{
+    "$doc": "네임스페이스 'battle' — 전투 HUD · 일시정지 · 각인 드래프트. 키는 'battle.<키>' 다 (파일 이름이 곧 네임스페이스). 항목은 반드시 { \"ko\", \"en\" } 두 언어를 함께 갖는다 — 한쪽만 적으면 npm run check:i18n 이 막는다.",
+    "$rule": "★ 전투 중에 읽는 글자다. **영어를 짧게** 쓴다 — 슬롯은 68px, 주문 버튼은 44px 이고, 그 폭은 언어가 바뀐다고 넓어지지 않는다. 낱말이 common·terms 에 이미 있으면 여기 다시 적지 않는다 (방주 · 지휘관 · 마나 · 균열력 · 취소는 common 에서 온다).",
+    "$hudTop": "상단 — 방주·지휘관 체력, 웨이브, 템포",
+    "commanderDown": {
+        "ko": "기절",
+        "en": "Down"
+    },
+    "wave": {
+        "ko": "웨이브 {n}/{total}",
+        "en": "Wave {n}/{total}"
+    },
+    "tempoShift": {
+        "ko": "균열 확장",
+        "en": "Rift Surge"
+    },
+    "pause": {
+        "ko": "일시정지",
+        "en": "Pause"
+    },
+    "$spells": "지휘관 주문 도크. ★ aria 는 **문장을 둘로 나눈다** — 재사용 대기는 조건부라 한 문장에 이어 붙이면 영어 어순에서 무너진다.",
+    "riftCost": {
+        "ko": "균열력 {cost}",
+        "en": "{cost} Rift"
+    },
+    "spellAria": {
+        "ko": "{name} — 균열력 {cost}. {desc}.",
+        "en": "{name} — {cost} Rift. {desc}."
+    },
+    "$spellAriaDot": "★ 두 항목이 **각자 마침표로 닫힌다.** 화면 코드는 공백 하나로만 잇는다 — 문장 부호를 코드에서 붙이면 그것도 번역 대상인데 카탈로그 밖에 남는다. 주문 설명(`spells.json`)은 마침표로 끝나지 않으므로 여기서 닫아 준다.",
+    "spellAriaCooldown": {
+        "ko": "재사용까지 {n}초.",
+        "en": "Ready in {n}s."
+    },
+    "spellTitle": {
+        "ko": "{name} ({cost}) — {desc}",
+        "en": "{name} ({cost}) — {desc}"
+    },
+    "$spellFail": "시전 실패 사유. ★ 사유 코드는 `logic/spells.js:canCast` 가 정한다 — 여기서 새로 만들지 않는다. 뭉뚱그리지 않는 것이 요점이다: '균열력 부족' 하나로 덮으면 지휘관이 기절해서 못 쓰는 것까지 자원 문제로 읽힌다.",
+    "spellFailRift": {
+        "ko": "균열력이 부족합니다",
+        "en": "Not enough Rift"
+    },
+    "spellFailCooldown": {
+        "ko": "재사용 대기 중입니다",
+        "en": "Still recharging"
+    },
+    "spellFailCommanderDown": {
+        "ko": "지휘관이 쓰러져 있습니다",
+        "en": "Your commander is down"
+    },
+    "spellFailPhase": {
+        "ko": "지금은 쓸 수 없습니다",
+        "en": "Not usable right now"
+    },
+    "spellFailUnequipped": {
+        "ko": "이번 출격에 들고 오지 않았습니다",
+        "en": "Not equipped for this sortie"
+    },
+    "$summon": "탭·탭 소환. ★ 레인 번호는 **서수가 아니라 자리표**다 — 한국어는 '{n}번 레인', 영어는 'lane {n}' 으로 어순이 뒤집힌다.",
+    "summonCancel": {
+        "ko": "소환 취소",
+        "en": "Cancel summon"
+    },
+    "summonToLane": {
+        "ko": "{n}번 레인에 소환",
+        "en": "Summon to lane {n}"
+    },
+    "laneHint": {
+        "ko": "소환할 레인을 탭하세요 · 바깥을 탭하면 취소",
+        "en": "Tap a lane to summon · tap outside to cancel"
+    },
+    "$slot": "동료 슬롯의 배지. 68px 안에 들어가야 한다.",
+    "costUp": {
+        "ko": "코스트 상승",
+        "en": "Cost rising"
+    },
+    "squadCount": {
+        "ko": "한 번에 {n}체가 나옵니다",
+        "en": "Summons {n} at once"
+    },
+    "blockCap": {
+        "ko": "동시에 {n}체를 붙듭니다 (넘치는 적은 지나갑니다)",
+        "en": "Blocks {n} at a time (extras walk past)"
+    },
+    "sigilChipTitle": {
+        "ko": "{name} — {desc}",
+        "en": "{name} — {desc}"
+    },
+    "$pauseModal": "일시정지 모달 — 전투 중에 규칙을 물어볼 수 있는 유일한 자리다.",
+    "pausedTitle": {
+        "ko": "일시정지",
+        "en": "Paused"
+    },
+    "pausedSub": {
+        "ko": "전투가 멈춰 있습니다",
+        "en": "The battle is on hold"
+    },
+    "pauseGiveUp": {
+        "ko": "포기",
+        "en": "Give up"
+    },
+    "pauseHelp": {
+        "ko": "도움말",
+        "en": "Help"
+    },
+    "pauseResume": {
+        "ko": "계속하기",
+        "en": "Resume"
+    },
+    "$sigilDraft": "각인 3지선다.",
+    "sigilEvolution": {
+        "ko": "진화 — {name}",
+        "en": "Evolved — {name}"
+    },
+    "sigilTitle": {
+        "ko": "균열 각인 선택",
+        "en": "Choose a Rift Sigil"
+    },
+    "sigilSub": {
+        "ko": "웨이브 {n} 돌파",
+        "en": "Wave {n} cleared"
+    },
+    "sigilBadgeCost": {
+        "ko": "대가",
+        "en": "Drawback"
+    },
+    "sigilBadgeReactive": {
+        "ko": "반응",
+        "en": "Reactive"
+    },
+    "sigilBadgeStack": {
+        "ko": "중첩 {n}",
+        "en": "Stacks {n}"
+    },
+    "sigilReroll": {
+        "ko": "리롤 {n}회",
+        "en": "Reroll ×{n}"
+    },
+    "sigilAutoIn": {
+        "ko": "{n}초 후 자동 선택",
+        "en": "Auto-picks in {n}s"
+    },
+    "sigilNoTimer": {
+        "ko": "전투는 선택할 때까지 멈춰 있습니다",
+        "en": "The battle waits until you choose"
+    },
+    "sigilRerollTitle": {
+        "ko": "다시 뽑으시겠습니까?",
+        "en": "Draw three new sigils?"
+    },
+    "sigilRerollSubject": {
+        "ko": "남은 리롤 {n}회",
+        "en": "{n} rerolls left"
+    },
+    "sigilRerollConfirm": {
+        "ko": "다시 뽑는다",
+        "en": "Draw again"
+    },
+    "sigilRerollBody": {
+        "ko": "지금 보이는 세 장은 사라지고 새로 세 장을 뽑습니다. 리롤 횟수는 이 전투에서 다시 채워지지 않습니다.",
+        "en": "These three cards are discarded and three new ones are drawn. Rerolls do not refill during this battle."
+    },
+    "sigilPickTitle": {
+        "ko": "이 각인을 새기시겠습니까?",
+        "en": "Engrave this sigil?"
+    },
+    "sigilPickConfirm": {
+        "ko": "새긴다",
+        "en": "Engrave"
+    },
+    "sigilCostWarn": {
+        "ko": "대가가 따르는 각인입니다",
+        "en": "This sigil comes at a price"
+    },
+    "sigilPermanent": {
+        "ko": "한 번 새긴 각인은 이 전투가 끝날 때까지 바꿀 수 없습니다.",
+        "en": "Once engraved, a sigil cannot be changed for the rest of this battle."
+    },
+    "$sigilTiming": "★ 적용 시점은 셋이다 (`logic/sigils.js:sigilTiming`). 참/거짓으로 물으면 셋인 것이 거짓말을 한다 — 2026-08-06 제보 ③.",
+    "sigilTimingImmediate": {
+        "ko": "고르는 즉시 적용됩니다 — 지금 전장에 있는 것에도 걸립니다.",
+        "en": "Applies the moment you pick it — including everything already on the field."
+    },
+    "sigilTimingRetroactive": {
+        "ko": "이미 전장에 나와 있는 동료에게도 곧바로 적용됩니다.",
+        "en": "Applies at once, even to companions already on the field."
+    },
+    "sigilTimingNextSummon": {
+        "ko": "지금 서 있는 동료는 그대로이고, 다음에 소환하는 동료부터 적용됩니다.",
+        "en": "Companions already on the field are unchanged; it applies from your next summon on."
+    },
+    "$objective": "★ HUD 상단의 모드 목표 문구. **씬이 만든다** (`BattleScene.describeObjective`) — HUD 가 `modeState` 구조를 알면 React 가 전투 규칙을 알게 되고 규칙이 두 곳으로 갈라진다. 그래서 이 키들은 React 가 아니라 Phaser 씬이 `t()` 로 부른다.",
+    "objBossWait": {
+        "ko": "보스 출현 대기",
+        "en": "Awaiting boss"
+    },
+    "objBossDead": {
+        "ko": "보스 격파",
+        "en": "Boss defeated"
+    },
+    "objBossPhase": {
+        "ko": "보스 {label} · {pct}%",
+        "en": "Boss {label} · {pct}%"
+    },
+    "objPhaseShift": {
+        "ko": "형태 변화",
+        "en": "Shifting"
+    },
+    "objPhaseN": {
+        "ko": "{n}페이즈",
+        "en": "Phase {n}"
+    },
+    "$sceneTag": "진단 오버레이가 '지금 어느 화면인가'를 기록하는 이름 (utils/diagnostics).",
+    "sceneTag": {
+        "ko": "전투 {stage}",
+        "en": "Battle {stage}"
+    },
+    "$respawn": "★ 지휘관 머리 위의 재출격 카운트다운. Phaser 가 그리므로 씬/프레젠터가 t() 를 직접 부른다.",
+    "commanderRespawn": {
+        "ko": "재출격 {n}",
+        "en": "Respawn {n}"
+    }
+}

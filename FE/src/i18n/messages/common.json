@@ -1,0 +1,192 @@
+{
+    "$doc": "네임스페이스 'common' — 화면 두 곳 이상에서 쓰는 낱말. 키는 'common.<키>'. 항목은 반드시 { ko, en } 두 언어를 함께 갖는다 (npm run check:i18n 이 강제).",
+    "$rule": "★ 여기에 넣는 기준: **두 화면 이상에서 글자 그대로 같은 뜻으로** 쓰이는 것만. 한 화면에서만 쓰는 문구를 여기 넣으면 그 화면을 고칠 때 남의 화면이 같이 바뀐다.",
+    "$appName": "★ 앱 이름. 웹뷰의 `document.title` 과 타이틀 화면이 같은 값을 쓴다. 런처 아이콘 아래 글자는 **여기서 오지 않는다** — 안드로이드는 `res/values-en/strings.xml`, iOS 는 `InfoPlist.strings` 가 정하고 그것은 OS 로케일을 따른다.",
+    "appName": {
+        "ko": "균열의 방주",
+        "en": "Rift Ark"
+    },
+    "confirm": {
+        "ko": "확인",
+        "en": "Confirm"
+    },
+    "cancel": {
+        "ko": "취소",
+        "en": "Cancel"
+    },
+    "close": {
+        "ko": "닫기",
+        "en": "Close"
+    },
+    "back": {
+        "ko": "뒤로",
+        "en": "Back"
+    },
+    "yes": {
+        "ko": "예",
+        "en": "Yes"
+    },
+    "no": {
+        "ko": "아니오",
+        "en": "No"
+    },
+    "on": {
+        "ko": "켜기",
+        "en": "On"
+    },
+    "off": {
+        "ko": "끄기",
+        "en": "Off"
+    },
+    "save": {
+        "ko": "저장",
+        "en": "Save"
+    },
+    "loading": {
+        "ko": "불러오는 중",
+        "en": "Loading"
+    },
+    "locked": {
+        "ko": "잠김",
+        "en": "Locked"
+    },
+    "owned": {
+        "ko": "보유",
+        "en": "Owned"
+    },
+    "level": {
+        "ko": "레벨",
+        "en": "Level"
+    },
+    "levelShort": {
+        "ko": "Lv.{n}",
+        "en": "Lv.{n}"
+    },
+    "max": {
+        "ko": "최대",
+        "en": "Max"
+    },
+    "maxLevel": {
+        "ko": "만렙",
+        "en": "Max level"
+    },
+    "none": {
+        "ko": "없음",
+        "en": "None"
+    },
+    "empty": {
+        "ko": "비어 있음",
+        "en": "Empty"
+    },
+    "total": {
+        "ko": "합계",
+        "en": "Total"
+    },
+    "gold": {
+        "ko": "골드",
+        "en": "Gold"
+    },
+    "star": {
+        "ko": "별",
+        "en": "Star"
+    },
+    "mana": {
+        "ko": "마나",
+        "en": "Mana"
+    },
+    "rift": {
+        "ko": "균열력",
+        "en": "Rift"
+    },
+    "ark": {
+        "ko": "방주",
+        "en": "Ark"
+    },
+    "commander": {
+        "ko": "지휘관",
+        "en": "Commander"
+    },
+    "companion": {
+        "ko": "동료",
+        "en": "Companion"
+    },
+    "stage": {
+        "ko": "스테이지",
+        "en": "Stage"
+    },
+    "world": {
+        "ko": "월드",
+        "en": "World"
+    },
+    "wave": {
+        "ko": "웨이브",
+        "en": "Wave"
+    },
+    "lane": {
+        "ko": "레인",
+        "en": "Lane"
+    },
+    "sigil": {
+        "ko": "각인",
+        "en": "Sigil"
+    },
+    "spell": {
+        "ko": "주문",
+        "en": "Spell"
+    },
+    "guide": {
+        "ko": "가이드",
+        "en": "Guide"
+    },
+    "settings": {
+        "ko": "설정",
+        "en": "Settings"
+    },
+    "$counts": "★ 개수 세는 말은 영어에서 어순이 다르다. '{n}개' 를 '{n} items' 로 옮기면 되지만, **문장 안에서 결합하지 말고** 문장 전체를 키로 둘 것 (i18n 규약).",
+    "countItems": {
+        "ko": "{n}개",
+        "en": "{n}"
+    },
+    "countKinds": {
+        "ko": "{n}종",
+        "en": "{n}"
+    },
+    "seconds": {
+        "ko": "{n}초",
+        "en": "{n}s"
+    },
+    "percent": {
+        "ko": "{n}%",
+        "en": "{n}%"
+    },
+    "$lang": "★ 언어 이름은 **그 언어로** 적는다 (endonym). 'Korean' 이라고 영어로 써 두면 영어를 못 읽는 사람이 한국어로 되돌아올 수 없다 — 언어 전환 UI 의 기본 규약이다.",
+    "langKo": {
+        "ko": "한국어",
+        "en": "한국어"
+    },
+    "langEn": {
+        "ko": "English",
+        "en": "English"
+    },
+    "language": {
+        "ko": "언어",
+        "en": "Language"
+    },
+    "languageSwitchAria": {
+        "ko": "언어 전환 — 현재 한국어",
+        "en": "Switch language — currently English"
+    },
+    "langKoShort": {
+        "ko": "한",
+        "en": "한"
+    },
+    "langEnShort": {
+        "ko": "EN",
+        "en": "EN"
+    },
+    "$exitConfirm": "★ 안드로이드 뒤로가기 두 번으로 종료할 때의 안내 (App.jsx · native/lifecycle).",
+    "exitConfirm": {
+        "ko": "한 번 더 누르면 종료됩니다",
+        "en": "Press back again to exit"
+    }
+}

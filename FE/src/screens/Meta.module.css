@@ -1,0 +1,1056 @@
+/**
+ * 메타 화면 공용 스타일 — 편성 · 방주 · 동료 (P5)
+ *
+ * ★ 최소 터치 타깃 44px 를 지킨다. 가로 모드에서 세로 공간이 좁다고
+ *   버튼을 줄이면 이동 중에 못 누른다.
+ * ★ 스크롤은 내부 패널에만 준다. body 가 스크롤되면 Phaser 캔버스가 밀린다.
+ */
+
+/**
+ * ★★ 메타 화면은 **전부 불투명하다** (2026-08-04).
+ *   반투명으로 두면 뒤의 Phaser 캔버스가 비쳐서 목록 글자와 겹친다.
+ *   예전에는 방주만 `.screenAmbient` 로 88% 불투명이었고, 그 12% 사이로
+ *   방주 씬의 도형들이 보였다 — 사용자가 "이상한 배경"이라고 부른 것이 그것이다.
+ *   `ArkScene` 은 이제 아무것도 그리지 않고, 이 클래스도 불투명해졌다.
+ */
+.screen {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    background: #0b0b18;
+    pointer-events: auto;
+}
+
+/**
+ * 방주 화면.
+ * ★ 이름은 남기지만 **투명도는 없앴다.** `ArkScreen` 이 이 클래스를 쓰고,
+ *   보여 줄 씬이 생기는 날 여기 한 줄만 되돌리면 된다.
+ */
+.screenAmbient {
+    background: #0b0b18;
+}
+
+.header {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    /* ★ 폰 가로(915px)에서는 제목 + 부제 + [도움말] + 재화 칩이 한 줄에 안 들어가
+       **오른쪽 끝의 골드·별이 화면 밖으로 잘렸다** (2026-08-04 실측). 접어 준다. */
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    padding: 8px 14px;
+    border-bottom: 2px solid #2a2a44;
+}
+
+.title {
+    margin: 0;
+    font-size: 18px;
+    color: var(--gold);
+}
+
+.h2 {
+    margin: 0 0 6px;
+    font-size: 13px;
+    color: var(--text);
+}
+
+.dim {
+    color: var(--text-dim);
+    font-size: 11px;
+}
+
+/**
+ * ★★ **두 칸은 좁은 화면에서 접힌다** (2026-08-04).
+ *   1280×720 기준으로 나란히 두었는데, 폰 가로(915×412)에서는 오른쪽 칸이
+ *   화면 밖으로 밀려 **시설 카드가 잘렸다.** 폭이 모자라면 아래로 내려온다.
+ */
+.body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    gap: 12px;
+    padding: 10px 14px;
+    /* 접힌 뒤에는 세로로 길어지므로 여기서 스크롤한다 */
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
+}
+
+/**
+ * ★★ **칸 안이 잘리지 않는다.** 예전에는 `.body { overflow: hidden }` 이고
+ *   칸에는 스크롤이 없어서, 세로가 모자라면 아래쪽 버튼(편성 바꾸기 · 동료 키우기)이
+ *   **그냥 사라졌다** — 눌릴 수 없는 UI 였다 (폰 가로 실측).
+ */
+.col {
+    flex: 1 1 380px;
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* ── 프리셋 탭 ── */
+
+.presetTabs {
+    display: flex;
+    gap: 4px;
+}
+
+.presetTab {
+        /* ★ 터치 타깃 40px 하한 — 폰 가로 실측에서 이 값이 32px 였다 (18-ux-ui.md §1.2) */
+    min-height: 40px;
+    padding: 4px 12px;
+    font-size: 12px;
+    color: var(--text-dim);
+    background: #191930;
+    border: 2px solid #2a2a44;
+    border-radius: 3px;
+}
+
+.presetTab.on {
+    color: var(--gold);
+    border-color: var(--gold);
+}
+
+.stagePick {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-dim);
+}
+
+.stagePick select {
+        /* ★ 터치 타깃 40px 하한 — 폰 가로 실측에서 이 값이 32px 였다 (18-ux-ui.md §1.2) */
+    min-height: 40px;
+    padding: 2px 6px;
+    font-family: inherit;
+    font-size: 12px;
+    color: var(--text);
+    background: #191930;
+    border: 2px solid #2a2a44;
+    border-radius: 3px;
+}
+
+/* ── 편성 슬롯 ── */
+
+/**
+ * ★ 6칸은 왼쪽 칸의 **머리**다 — 줄어들지 않는다.
+ *   `.splitPane` 안에서 이 격자가 눌리면 슬롯 높이가 무너져 이름이 잘린다.
+ * ★ `1fr` 은 최소 폭이 `auto`(내용) 라, 이름이 긴 동료가 들어오면 격자가 칸을
+ *   밀어낸다. `minmax(0, 1fr)` 로 여섯 칸이 **언제나 정확히 1/6** 이 되게 한다 —
+ *   이것이 없으면 `.splitPane` 의 `min-width: 0` 이 있어도 내용이 폭을 정한다.
+ */
+.slots {
+    flex-shrink: 0;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 6px;
+}
+
+.slot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    min-height: 88px;
+    padding: 6px 4px;
+    /* 격자 트랙이 0 까지 줄 수 있으므로(minmax(0,1fr)) 내용은 칸 안에서 잘린다 */
+    min-width: 0;
+    overflow: hidden;
+    font-size: 10px;
+    color: var(--text-dim);
+    background: #14142a;
+    border: 2px solid #2a2a44;
+    border-radius: 3px;
+}
+
+.slot b {
+    font-size: 11px;
+    line-height: 1.2;
+    text-align: center;
+    /**
+     * ★★ **영어 이름이 한 단어로 칸보다 길 수 있다** (2026-08-07, i18n 실측).
+     *
+     *   본문 폰트는 듀오스페이스라 라틴이 한글의 절반 폭이지만, **띄어쓰기가
+     *   없는 긴 단어**는 그 이점을 못 쓴다. 폰 가로(915px)에서 이 칸의 내용 폭은
+     *   약 61px 인데 `Sharpshooter` 는 11px 기준 66px 다. `.slot` 이
+     *   `overflow: hidden` 이므로 줄바꿈이 없으면 **글자가 잘려 사라진다** —
+     *   이름을 못 읽는 6칸은 편성 화면이 아니다.
+     *
+     *   한국어는 영향이 없다: 한글은 원래 음절 사이에서 줄바꿈되고, 실측으로도
+     *   50종 전부 두 줄 안에 든다 (영어도 최장 `Bold Man-at-Arms` 가 두 줄).
+     *   즉 이 한 줄은 **영어만 고치고 한국어를 건드리지 않는다.**
+     */
+    overflow-wrap: anywhere;
+}
+
+.slot.on {
+    border-color: var(--gold);
+    background: #1c1c38;
+}
+
+.empty {
+    color: var(--text-muted);
+}
+
+/* ── 분석 패널 ── */
+
+.analysis {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 12px;
+    background: #14142a;
+    border: 2px solid #2a2a44;
+    border-radius: 3px;
+}
+
+.fitRow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+}
+
+.fitBar {
+    flex: 1;
+    height: 8px;
+    background: #0d0d1c;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.fitBar > div {
+    height: 100%;
+    transition: width 0.2s;
+}
+
+.dist {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 7px;
+    font-size: 10px;
+    color: var(--text-dim);
+    background: #1c1c34;
+    border-radius: 2px;
+}
+
+.chip b {
+    color: var(--text);
+}
+
+.chipDmg {
+    background: #241c34;
+}
+
+/* 아이콘은 첫 줄에 붙이고, 본문이 2줄이 되어도 아이콘 아래로 흐르지 않게 한다 */
+.warn {
+    display: flex;
+    align-items: flex-start;
+    gap: 4px;
+    margin: 0;
+    font-size: 11px;
+    line-height: 1.4;
+}
+.warn > svg {
+    margin-top: 1px;
+}
+
+/**
+ * ★★ 아이콘 없이 **문장만** 있는 안내는 flex 를 쓰면 안 된다 (2026-08-04, 사용자 제보).
+ *
+ *   `.warn` 은 `아이콘 + 한 줄` 을 위해 flex 다. 그런데 문장 안에 `<b>` 가 들어가면
+ *   flex 가 **`<b>` 앞 텍스트 · `<b>` · 뒤 텍스트를 각각 별개의 플렉스 아이템**으로
+ *   만들어 한 줄에 나란히 세운다 — 문장이 세 토막으로 갈라져 옆으로 눕는다
+ *   ("설명이 옆으로 이상하게 배치되어 있다").
+ *
+ *   줄바꿈이 필요한 안내문에는 이 클래스를 함께 준다. 색(.info/.warn/.critical)은
+ *   그대로 쓸 수 있다.
+ */
+.prose {
+    display: block;
+}
+
+.warn.critical {
+    color: #ff7a7a;
+}
+.warn.warn {
+    color: var(--gold);
+}
+.warn.info {
+    color: var(--text-dim);
+}
+.warn.ok {
+    color: #4caf7d;
+}
+
+/* ── 액션 ── */
+
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.btn {
+        /* ★ 터치 타깃 40px 하한 — 폰 가로 실측에서 이 값이 36px 였다 (18-ux-ui.md §1.2) */
+    min-height: 40px;
+    padding: 4px 12px;
+    font-family: inherit;
+    font-size: 12px;
+    color: var(--text);
+    background: #232342;
+    border: 2px solid #3a3a5e;
+    border-radius: 3px;
+}
+
+.btn:hover:not(:disabled) {
+    border-color: var(--gold);
+}
+
+.btn:disabled {
+    opacity: 0.4;
+}
+
+.btnPrimary {
+    color: #14142a;
+    background: var(--gold);
+    border-color: var(--gold);
+    font-weight: bold;
+}
+
+.codeInput {
+    flex: 1;
+    min-width: 140px;
+        /* ★ 터치 타깃 40px 하한 — 폰 가로 실측에서 이 값이 36px 였다 (18-ux-ui.md §1.2) */
+    min-height: 40px;
+    padding: 4px 8px;
+    font-family: inherit;
+    font-size: 11px;
+    color: var(--text);
+    background: #0d0d1c;
+    border: 2px solid #2a2a44;
+    border-radius: 3px;
+}
+
+/* ── 보유 목록 ── */
+
+.roster {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.roleGroup {
+    margin-bottom: 8px;
+}
+
+.roleTitle {
+    margin: 0 0 4px;
+    font-size: 11px;
+    color: var(--text-dim);
+}
+
+.cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+/* 자체 UI 키트 9-slice 슬롯 프레임 (아트 브리프 §5.3).
+   ★ 도형 테두리와 달리 프레임 자체가 배경을 포함하므로 background 를 지운다. */
+.card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+    width: 92px;
+    /**
+     * ★ 아트 64 + 이름 2줄 + 메타 1줄. 고정해야 그리드가 흔들리지 않는다.
+     *
+     * ★★ **"이름 2줄"이 영어에서도 참인가를 실측했다** (2026-08-07, i18n).
+     *   내용 폭은 92 − 테두리 16 − 여백 4 = **72px** 이고, 본문 폰트는
+     *   한글:라틴 = 1:0.5 인 듀오스페이스라 10px 기준 라틴 한 글자가 5px 다
+     *   (= 한 줄에 14자). 동료 50종의 영어 이름 전부가 **두 줄 안**에 들었고
+     *   (최장 `Bold Man-at-Arms`), 한 단어가 72px 를 넘는 이름도 없다
+     *   (최장 단어 `Sharpshooter` = 60px). 그러므로 **폭도 높이도 그대로 둔다** —
+     *   영어가 넓다는 이유로 칸을 키우면 폰 가로에서 한 줄에 들어가는 카드 수가
+     *   줄어들고, 그 손해는 두 언어가 함께 본다.
+     * ★ 그래도 아래 `overflow-wrap` 은 남긴다: 이름이 하나 늘 때마다 이 계산을
+     *   다시 하게 만들지 않기 위한 안전망이다.
+     */
+    min-height: 108px;
+    padding: 2px;
+    font-size: 10px;
+    color: var(--text);
+    image-rendering: pixelated;
+    border: 8px solid transparent;
+    border-image: url("/assets/ui/slot-empty.png") 8 fill repeat;
+}
+
+/**
+ * 카드 안의 스프라이트 자리.
+ *
+ * ★★ **크기를 고정한다.** 동료 스프라이트는 16×16(소형)과 32×32(대형)이 섞여 있어
+ *   같은 배율로 그리면 화면 높이가 2배 차이 난다 — 목록에서 카드마다 높이가 달라지고
+ *   그리드가 들쭉날쭉해진다 (사용자가 지적, 2026-08-04).
+ *   `Sprite` 는 프레임 크기 × 배율로 렌더하므로 **바깥 상자가 크기를 잡아야** 한다.
+ *
+ * ★ 스프라이트를 축소하지 않는다. 대형 유닛이 실제로 더 크게 보이는 것은
+ *   의도된 스케일 위계다 (12-unit-roster.md §0). 여기서 맞추는 것은 **칸**이다.
+ */
+.cardArt {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.card b {
+    font-size: 10px;
+    line-height: 1.2;
+    text-align: center;
+    /* ★ 안전망 — 칸보다 긴 **한 단어**(띄어쓰기 없는 영어 이름)가 들어와도
+       칸을 밀어내지 않고 그 안에서 꺾인다. 한국어는 원래 음절에서 꺾이므로
+       영향이 없다. 지금 데이터에서는 걸리지 않는다 (위 `.card` 주석의 실측). */
+    overflow-wrap: anywhere;
+}
+
+.card:hover {
+    border-color: #5a5a8e;
+}
+
+/* ★ 선택 상태는 border-color 로 표현할 수 없다 (테두리가 이미지다).
+   전용 강조 프레임으로 바꾼다 — 색만 바꾸는 것보다 오히려 더 잘 읽힌다. */
+.card.picked {
+    border-image: url("/assets/ui/slot-l.png") 8 fill repeat;
+}
+
+.cardMeta {
+    color: var(--text-dim);
+    font-size: 10px;
+}
+
+/* ── 토스트 ── */
+
+.toast {
+    position: absolute;
+    left: 50%;
+    bottom: 76px;
+    transform: translateX(-50%);
+    padding: 8px 16px;
+    font-size: 12px;
+    color: var(--text);
+    background: rgba(20, 20, 42, 0.96);
+    border: 2px solid var(--gold);
+    border-radius: 3px;
+    pointer-events: none;
+    animation: toastIn 0.16s ease-out;
+}
+
+@keyframes toastIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, 6px);
+    }
+}
+
+/* ══════════════════════ 방주 화면 ══════════════════════ */
+
+/* ★ 3열 고정이면 좁은 화면에서 카드가 잘린다. 폭에 맞춰 열 수가 준다. */
+.arkGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 6px;
+}
+
+.facility {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 8px 10px;
+    text-align: left;
+    font-size: 11px;
+    color: var(--text);
+    background: #14142a;
+    border: 2px solid #2a2a44;
+    border-radius: 3px;
+}
+
+.facility:hover:not(:disabled) {
+    border-color: var(--gold);
+}
+
+.facility:disabled {
+    opacity: 0.5;
+}
+
+.facilityTop {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+}
+
+.facilityTop b {
+    font-size: 12px;
+}
+
+.lv {
+    margin-left: auto;
+    color: var(--gold);
+}
+
+.cost {
+    display: flex;
+    gap: 8px;
+    font-size: 10px;
+    color: var(--text-dim);
+}
+
+/**
+ * 모자란 값 — 방주 시설 카드 · 영입 카드 · 영입 상세가 같이 쓴다.
+ *
+ * ★★ 예전에는 `.cost .lack` 이라 **`.cost` 안에서만** 색이 됐다. 영입 카드의
+ *   `골드 4,000` 은 `.cardMeta` 안에 있어서 클래스를 붙여도 **아무 색도 되지
+ *   않았다** — 선언했는데 아무도 읽지 않던 자리다 (CLAUDE.md 의 그 실패 유형).
+ * ★ 색만으로 말하지 않는다. 왜 못 사는지는 상세 발의 **문장**이 따로 말한다.
+ */
+.lack {
+    color: #ff7a7a;
+}
+
+/* ── 방치 · 파견 ── */
+
+.idleBox {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 12px;
+    background: #14142a;
+    border: 2px solid #2a2a44;
+    border-radius: 3px;
+}
+
+.idleRow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+}
+
+.idleRow b {
+    color: var(--gold);
+}
+
+.capBar {
+    flex: 1;
+    height: 8px;
+    background: #0d0d1c;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.capBar > div {
+    height: 100%;
+    background: var(--rift);
+    transition: width 0.4s;
+}
+
+.capBar.full > div {
+    background: #e05555;
+}
+
+.slotRow {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 8px;
+    font-size: 11px;
+    background: #171730;
+    border: 2px solid #2a2a44;
+    border-radius: 3px;
+}
+
+.slotRow .grow {
+    flex: 1;
+    color: var(--text-dim);
+}
+
+.slotRow select {
+        /* ★ 터치 타깃 40px 하한 — 폰 가로 실측에서 이 값이 30px 였다 (18-ux-ui.md §1.2) */
+    min-height: 40px;
+    font-family: inherit;
+    font-size: 11px;
+    color: var(--text);
+    background: #0d0d1c;
+    border: 2px solid #2a2a44;
+    border-radius: 3px;
+}
+
+.miniBtn {
+        /* ★ 터치 타깃 40px 하한 — 폰 가로 실측에서 이 값이 30px 였다 (18-ux-ui.md §1.2) */
+    min-height: 40px;
+    padding: 2px 10px;
+    font-family: inherit;
+    font-size: 11px;
+    color: var(--text);
+    background: #232342;
+    border: 2px solid #3a3a5e;
+    border-radius: 3px;
+}
+
+.miniBtn:hover:not(:disabled) {
+    border-color: var(--gold);
+}
+
+.miniBtn:disabled {
+    opacity: 0.4;
+}
+
+.miniBtn.ready {
+    color: #14142a;
+    background: var(--gold);
+    border-color: var(--gold);
+}
+
+.toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-dim);
+}
+
+/* ══════════════════════ 동료 · 별 트리 ══════════════════════ */
+
+.detail {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 12px;
+    background: #14142a;
+    border: 2px solid #2a2a44;
+    border-radius: 3px;
+}
+
+.statGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 3px 12px;
+    font-size: 11px;
+    color: var(--text-dim);
+}
+
+.statGrid b {
+    float: right;
+    color: var(--text);
+}
+
+.rankStars {
+    letter-spacing: 2px;
+    color: var(--gold);
+}
+
+.gearRow {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+}
+
+.gearRow .grow {
+    flex: 1;
+}
+
+.tree {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-right: 4px;
+}
+
+.branch {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.node {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    text-align: left;
+    font-size: 11px;
+    color: var(--text);
+    background: #171730;
+    border: 2px solid #2a2a44;
+    border-radius: 3px;
+}
+
+.node:hover:not(:disabled) {
+    border-color: var(--gold);
+}
+
+.node:disabled {
+    opacity: 0.45;
+}
+
+.node.maxed {
+    border-color: #4caf7d;
+    opacity: 1;
+}
+
+.node .grow {
+    flex: 1;
+}
+
+.node .rank {
+    color: var(--gold);
+    font-variant-numeric: tabular-nums;
+}
+
+.starCount {
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--gold);
+}
+
+/* ═════════ 방주 대시보드 (2026-08-04) ═════════
+ *
+ * ★ 홈에 필요한 것은 "오늘 받을 것"이 아니라 **"어디까지 왔고 다음은 어디인가"** 다.
+ *   경량화로 방치·파견 카드가 사라진 자리를 진행 요약이 채운다.
+ */
+
+.nextCard {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    color: var(--text);
+    text-decoration: none;
+    background: #16162a;
+    border: 2px solid #3a3a5e;
+    border-radius: 3px;
+}
+
+.nextCard:hover {
+    border-color: var(--gold);
+}
+
+.nextLabel {
+    font-size: 11px;
+    color: var(--text-dim);
+}
+
+.nextStage {
+    font-size: 22px;
+    color: var(--gold);
+}
+
+/* ── 월드 진행 ── */
+
+.worldList {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 12px;
+}
+
+.worldRow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+}
+
+/**
+ * 월드 이름 — `World 1 · The Collapsed Sewers` 처럼 **번호 + 이름**이 한 줄이다.
+ *
+ * ★★ 132px 은 한국어 기준이었다 (`월드 1 · 무너진 하수도` = 한글 11자 ≒ 110px).
+ *   영어는 라틴 30자(=150px)라 실기에서 `World 1 · The Collapse…` 로 잘렸고,
+ *   월드 3·5 도 같이 잘려 **다섯 줄 중 셋이 이름을 말하지 못했다.**
+ * ★ `ch` 로 적는다 — 이 폰트에서 `1ch` 는 라틴 한 글자 폭(0.5em)이므로 값이
+ *   곧 "라틴 몇 자까지"라는 의도다. 한글은 그 두 배를 먹으므로 한국어 11자는
+ *   22ch 에 여유롭게 들어간다 (`StagePreview .enemyName` 과 같은 처방).
+ * ★ 진행 바(`.worldBar`)가 `flex:1` 이라 늘어난 만큼만 바가 짧아진다 —
+ *   바에는 `min-width: 40px` 하한이 이미 있어 좁은 기기에서도 읽힌다.
+ */
+.worldName {
+    flex-shrink: 0;
+    width: 31ch;
+    color: var(--text);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.worldBar {
+    flex: 1;
+    min-width: 40px;
+    height: 8px;
+    background: #14142a;
+    border: 1px solid #2a2a46;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.worldBar > span {
+    display: block;
+    height: 100%;
+    background: var(--gold);
+}
+
+.worldNum {
+    flex-shrink: 0;
+    width: 48px;
+    text-align: right;
+    color: var(--text-dim);
+}
+
+.worldStar {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    flex-shrink: 0;
+    width: 52px;
+    justify-content: flex-end;
+    color: var(--text-dim);
+}
+
+/* ── 바로가기 ── */
+
+.quickRow {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.quick {
+    flex: 1;
+    /* ★ 44px 터치 타깃 (18-ux-ui.md §1.2) — 주석은 44 라고 적혀 있는데
+       값은 38 이었다. 폰 가로에서 실측으로 잡혔다 (2026-08-04). */
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: var(--text);
+    text-decoration: none;
+    background: #16162a;
+    border: 1px solid #2e2e4c;
+    border-radius: 3px;
+}
+
+.quick:hover {
+    color: var(--gold);
+    border-color: var(--gold);
+}
+
+/* ── 지휘관 패널 (2026-08-05) ─────────────────────────────────
+   ★ 편성 화면 왼쪽 열 아래에 붙는다. 동료 카드 그리드(.cards)를 그대로 쓰되
+     슬롯 사이 간격만 준다. */
+.commanderSlot {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 6px;
+}
+
+.cardName {
+    font-size: 11px;
+    color: var(--text);
+}
+
+/* ── 편성 칸 드래그 앤 드롭 (2026-08-05, 사용자 요청) ──────────
+   ★ 터치에서도 되게 포인터 이벤트로 만들었다 (HTML5 draggable 은 터치에서 발화하지 않는다).
+   ★ 상태를 **색만으로** 표시하지 않는다 — 들린 칸은 흐려지고 작아지며,
+     놓을 칸은 테두리가 굵어진다. */
+.slot.dragging {
+    opacity: 0.45;
+    transform: scale(0.94);
+}
+
+.slot.dragOver {
+    border-color: var(--gold);
+    border-style: dashed;
+    background: #241f14;
+}
+
+/* 드래그 중에 브라우저의 텍스트 선택·스크롤이 끼어들지 않게 한다 */
+.slots {
+    touch-action: none;
+    user-select: none;
+}
+
+/* 동료 서사 (2026-08-05) — 수치 표 위에 놓인다.
+   ★ 기울임으로 "규칙이 아니라 이야기"임을 표시한다. 색은 안내문과 같은 계열이라
+     새 색을 만들지 않는다. */
+.lore {
+    font-style: italic;
+    line-height: 1.6;
+    padding: 6px 8px;
+    background: rgba(255, 255, 255, 0.03);
+    border-left: 2px solid #3a3a5e;
+    border-radius: 2px;
+}
+
+/* 주문 홀드 툴팁 (2026-08-05) — 전투 HUD 의 것과 같은 시각 언어 */
+.spellTip {
+    display: block;
+    margin: 4px 0 6px;
+    padding: 8px 10px;
+    background: rgba(18, 18, 31, 0.96);
+    border: 2px solid #3a3a5e;
+    border-radius: 4px;
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.spellTipName {
+    display: block;
+    color: var(--gold);
+    font-size: 12px;
+}
+
+.spellTipCost {
+    display: block;
+    margin-bottom: 2px;
+    color: var(--text-dim);
+}
+
+.spellTipDesc {
+    display: block;
+    color: var(--text);
+}
+
+/* 확인 모달 안의 별 안내 (2026-08-05) — 모달 본문은 block 이라 문장이 정상으로 흐른다 */
+.confirmStars {
+    margin: 6px 0 0;
+    color: var(--text-dim);
+}
+
+/* ═ 좌우 반반 2단 — 동료 > 성장 · 동료 > 영입 · 편성 > 편성 (2026-08-05, 사용자 요청) ═
+ *
+ * ★ 쓰는 곳은 셋이다: **동료 > 성장**(좌 목록 / 우 상세) · **동료 > 영입**
+ *   (좌 목록 / 우 상세+[영입한다]) · **편성 > 편성**(좌 편성 6칸+분석 / 우 보유 동료).
+ *   같은 게임에서 세 화면이 다른 규칙으로 움직이면 그 자체가 배워야 할 비용이라,
+ *   새 클래스를 만들지 않고 이것을 쓴다.
+ *
+ * ★★ **출격 탭과 같은 관습이다** (`StagePreview.module.css` `.layout`):
+ *   바깥은 스크롤하지 않고 **각 칸이 자기 안에서만** 스크롤한다. 같은 게임 안에서
+ *   두 화면이 서로 다른 규칙으로 움직이면 그 자체가 배워야 할 비용이 된다.
+ *
+ * ★★ 여기서 `.body` 를 쓰지 않는 이유. `.body` 는 폭이 모자라면 칸을 **아래로
+ *   접고**(방주·영입·별 트리가 그것에 기대고 있다) 자신이 통째로 스크롤한다.
+ *   그 규약을 성장 탭에 쓰면 세로 412px 짜리 폰 가로에서 **상세가 목록 아래로
+ *   내려가** 레벨업 버튼을 보려면 목록 전체를 지나쳐 스크롤해야 한다.
+ *   목록과 상세는 **동시에 보여야** 고르는 행위가 성립한다.
+ */
+.split {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    gap: 12px;
+    padding: 10px 14px;
+    /* 스크롤은 안쪽 칸에만 준다 — 바깥이 스크롤되면 Phaser 캔버스가 밀린다 */
+    overflow: hidden;
+}
+
+/* 반반. 두 칸 모두 최소 폭 0 이라 어느 쪽도 상대를 밀어내지 않는다 */
+.splitPane {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+/**
+ * 칸의 **머리글·안내문은 줄어들지 않는다.**
+ *
+ * ★ 플렉스 아이템은 기본이 `flex-shrink: 1` 이라, 세로가 모자라면 문단 상자가 눌리고
+ *   글자는 상자 **밖으로 넘친다** (아래 카드 격자와 겹쳐 찍힌다). 세로 412px 짜리
+ *   폰 가로에서 영입 탭 왼쪽은 머리글 1줄 + 안내 2줄 + 목록이라 여유가 없다.
+ *   줄어들어야 할 것은 **자기 안에서 스크롤하는 목록**(`.roster`) 하나뿐이다.
+ */
+.splitPane > .h2,
+.splitPane > .warn {
+    flex-shrink: 0;
+}
+
+/* 상세 상자가 오른쪽 칸을 꽉 채운다 — 내용이 짧다고 상자가 줄면 빈 화면으로 보인다 */
+.detailPane {
+    flex: 1;
+    min-height: 0;
+}
+
+/**
+ * 칸의 **본문만** 스크롤한다.
+ * ★ 머리(성장: 이름·등급 / 편성: 6칸)와 발(성장: 레벨업 / 편성: 자동 추천)은
+ *   고정이다. 세로 412px 에서 본문이 길어졌을 때 버튼이 스크롤 밖으로 밀리면,
+ *   그 탭에서 할 수 있는 행동이 화면에서 사라진다.
+ */
+.detailScroll {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-right: 4px;
+}
+
+.detailFoot {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-top: 8px;
+    border-top: 2px solid #2a2a44;
+}
+
+/* 상세 머리 — 이름 옆의 등급·역할·데미지 타입 한 줄 */
+.detailHead {
+    flex-shrink: 0;
+}
+
+.detailMeta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 6px;
+    margin-top: 3px;
+    font-size: 11px;
+    color: var(--text-dim);
+}
+
+/* 좁은 화면(폰 가로)에서는 목록 칸을 조금 줄여 상세의 수치 표가 접히지 않게 한다 */
+@media (max-width: 960px) {
+    .split {
+        gap: 8px;
+        padding: 8px 10px;
+    }
+}

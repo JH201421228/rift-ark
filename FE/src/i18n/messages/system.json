@@ -1,0 +1,319 @@
+{
+    "$doc": "네임스페이스 'system' — 키는 'system.<키>' 다 (파일 이름이 곧 네임스페이스). 항목은 반드시 { \"ko\", \"en\" } 두 언어를 함께 갖는다 — 한쪽만 적으면 npm run check:i18n 이 막는다.",
+    "$scope": [
+        "★★ 여기 들어오는 것: **화면 하나에 속하지 않는 공용 부품**의 문구 —",
+        "  탭 바 · 확인 모달 · 오류 경계 · 진단(배너·기록) · 표식(대공·보유·등급) ·",
+        "  Phaser 부팅/보스 배너 · 데미지 숫자. 화면 하나만 쓰는 문구는 그 화면의",
+        "  네임스페이스에 둔다 (ark · stages · loadout …).",
+        "★★★ **개발자용 콘솔 문구는 키로 만들지 않는다.** `console.warn('[store] …')` 은",
+        "  사용자가 볼 수 없는 자리이고, 그것들을 카탈로그에 넣으면 번역 대상이 30줄",
+        "  늘면서 정작 화면 문구가 그 안에 묻힌다. 그 자리는 **영어 리터럴**로 적는다 —",
+        "  스택 트레이스·이슈 리포트와 같은 언어여야 검색이 된다.",
+        "★ 반대로 `FaultOverlay` · `FaultLog` 는 **개발 UI 처럼 생겼지만 배포 빌드에서",
+        "  사용자에게 보인다** (그 파일 머리말: '유일한 창'). 그래서 전부 번역한다."
+    ],
+    "$common": "★ 확인·취소·닫기·보유 같은 낱말은 여기 만들지 않는다 — `common.*` 에 이미 있다.",
+    "help": {
+        "ko": "도움말",
+        "en": "Help"
+    },
+    "openAria": {
+        "ko": "{label} 열기",
+        "en": "Open {label}"
+    },
+    "$tabs": "★★ 탭 낱말은 **화면 제목과 글자까지 같아야 한다.** 탭에서 'Squad' 라고 배운 사람이 그 화면 머리글에서 'Loadout' 을 보면 서로 다른 곳으로 배운다 — 한국어에서는 두 곳이 모두 '편성' 이라 문제가 없었고, 영어에서만 갈라졌다 (2026-08-07). 정본은 **화면 제목**이다: Ark · Deploy · Loadout · Companions · Settings.",
+    "tabArk": {
+        "ko": "방주",
+        "en": "Ark"
+    },
+    "tabStages": {
+        "ko": "출격",
+        "en": "Deploy"
+    },
+    "tabLoadout": {
+        "ko": "편성",
+        "en": "Loadout"
+    },
+    "tabCompanions": {
+        "ko": "동료",
+        "en": "Companions"
+    },
+    "tabSettings": {
+        "ko": "설정",
+        "en": "Settings"
+    },
+    "$confirm": "확인 모달 — 치를 값과 남는 값을 숫자로 말한다 (ConfirmModal.jsx 머리말).",
+    "costLabel": {
+        "ko": "치르는 값",
+        "en": "Cost"
+    },
+    "goldAfter": {
+        "ko": "남는 골드 {n}",
+        "en": "{n} gold left"
+    },
+    "$marks": "카드에 붙는 한 낱말 표식. ★ 색으로만 구분하지 않는다 — 글자가 1차 단서다.",
+    "airCanTitle": {
+        "ko": "공중의 적을 공격할 수 있습니다",
+        "en": "Can attack flying enemies"
+    },
+    "airCantTitle": {
+        "ko": "공중의 적에게 닿지 않습니다",
+        "en": "Cannot reach flying enemies"
+    },
+    "airCant": {
+        "ko": "지상만",
+        "en": "Ground only"
+    },
+    "airCantShort": {
+        "ko": "지상",
+        "en": "Ground"
+    },
+    "ownedTitle": {
+        "ko": "이미 보유한 동료입니다",
+        "en": "You already own this companion"
+    },
+    "ownedLong": {
+        "ko": "보유 중",
+        "en": "Owned"
+    },
+    "rarityTier": {
+        "ko": "{name} 등급",
+        "en": "{name} tier"
+    },
+    "$difficulty": "난이도 이름 자체는 `terms.difficulty.*` 다 — 여기 있는 것은 그 주변 문장뿐이다.",
+    "worldDifficultyAria": {
+        "ko": "월드 {n} 난이도",
+        "en": "World {n} difficulty"
+    },
+    "difficultyPending": {
+        "ko": "준비 중 — {note}",
+        "en": "Coming soon — {note}"
+    },
+    "guideDialogAria": {
+        "ko": "게임 가이드",
+        "en": "Game guide"
+    },
+    "guideFactsLabel": {
+        "ko": "· 지금 적용 중인 값",
+        "en": "· Values currently in effect"
+    },
+    "$screenError": "라우트 화면이 못 떴을 때. ★ 세이브 초기화를 제안하지 않는다 (ScreenErrorBoundary.jsx 머리말).",
+    "screenErrorTitle": {
+        "ko": "화면을 불러오지 못했습니다",
+        "en": "This screen failed to load"
+    },
+    "screenErrorNote": {
+        "ko": "저장된 진행도는 안전합니다. 다시 시도해도 같은 화면이 뜨면 앱을 새로고침해 주세요.",
+        "en": "Your saved progress is safe. If retrying shows the same screen, reload the app."
+    },
+    "retry": {
+        "ko": "다시 시도",
+        "en": "Retry"
+    },
+    "reloadApp": {
+        "ko": "앱 새로고침",
+        "en": "Reload app"
+    },
+    "$fault": [
+        "★★★ 진단은 **배포 빌드에서 사용자에게 보인다.** 실기기 사용자가 개발자 도구",
+        "  없이 우리에게 줄 수 있는 유일한 화면이고, 그가 읽지 못하면 제보가 성립하지",
+        "  않는다. 그래서 개발 UI 처럼 생겼어도 전량 번역한다.",
+        "★ 기록 문구(`msg*`)는 **기록되는 순간의 언어로 굳는다** — 링버퍼가 문자열을",
+        "  들고 있기 때문이다. 종류 이름(`fault*`)과 맥락(`ctx*`)은 그릴 때 번역하므로",
+        "  언어를 바꾸면 즉시 따라온다."
+    ],
+    "faultUnknown": {
+        "ko": "오류",
+        "en": "Error"
+    },
+    "faultException": {
+        "ko": "예외",
+        "en": "Exception"
+    },
+    "faultPromise": {
+        "ko": "비동기 실패",
+        "en": "Async failure"
+    },
+    "faultScene": {
+        "ko": "전투 갱신 예외",
+        "en": "Battle update error"
+    },
+    "faultFrame": {
+        "ko": "프레임 예외",
+        "en": "Frame error"
+    },
+    "faultScreen": {
+        "ko": "화면 렌더 실패",
+        "en": "Screen render failure"
+    },
+    "faultContextLost": {
+        "ko": "그래픽 컨텍스트 손실",
+        "en": "Graphics context lost"
+    },
+    "faultContextRestored": {
+        "ko": "그래픽 컨텍스트 복원",
+        "en": "Graphics context restored"
+    },
+    "faultLoopDead": {
+        "ko": "게임 루프 정지",
+        "en": "Game loop stopped"
+    },
+    "faultStall": {
+        "ko": "프레임 지연",
+        "en": "Frame stall"
+    },
+    "faultHang": {
+        "ko": "무응답 종료",
+        "en": "Unresponsive exit"
+    },
+    "detailsExpand": {
+        "ko": "자세히",
+        "en": "Details"
+    },
+    "detailsCollapse": {
+        "ko": "접기",
+        "en": "Collapse"
+    },
+    "faultDismissAria": {
+        "ko": "진단 배너 닫기",
+        "en": "Dismiss diagnostic banner"
+    },
+    "faultBannerNote": {
+        "ko": "· 이 기록은 설정 > 데이터 > 진단 기록 에 남습니다. 저장된 진행도는 안전합니다.",
+        "en": "· This entry is kept in Settings > Data > Diagnostics. Your saved progress is safe."
+    },
+    "faultLogTitle": {
+        "ko": "진단 기록",
+        "en": "Diagnostics"
+    },
+    "faultLogNote": {
+        "ko": "· 게임이 멈추거나 오류가 났을 때 그 순간의 상황을 남깁니다. 앱을 껐다 켜도 남아 있으며, 아무 데도 전송되지 않습니다.",
+        "en": "· Records what was happening when the game stalled or errored. It survives restarts and is never sent anywhere."
+    },
+    "faultLogEmpty": {
+        "ko": "기록이 없습니다 — 지금까지 아무 문제도 없었습니다.",
+        "en": "No entries — nothing has gone wrong so far."
+    },
+    "faultLogClear": {
+        "ko": "기록 지우기",
+        "en": "Clear log"
+    },
+    "$ctx": "기록 한 줄의 맥락. ★ 이 한 줄이 제보의 전부가 된다 — 재현에 필요한 숫자가 전부 있어야 한다.",
+    "ctxWave": {
+        "ko": "웨이브 {n}",
+        "en": "Wave {n}"
+    },
+    "ctxActives": {
+        "ko": "엔티티 {n}",
+        "en": "Entities {n}"
+    },
+    "ctxProjectiles": {
+        "ko": "발사체 {n}",
+        "en": "Projectiles {n}"
+    },
+    "ctxUndrawn": {
+        "ko": "미표시 {n}",
+        "en": "Undrawn {n}"
+    },
+    "ctxDmgText": {
+        "ko": "숫자 {n}",
+        "en": "Numbers {n}"
+    },
+    "ctxTweens": {
+        "ko": "트윈 {n}",
+        "en": "Tweens {n}"
+    },
+    "ctxHeap": {
+        "ko": "힙 {n}MB",
+        "en": "Heap {n}MB"
+    },
+    "$stall": "★ 지연은 **구간으로 뭉갠다** — 숫자를 넣으면 매번 다른 문구가 되어 링버퍼가 지연으로 가득 찬다.",
+    "stallOver2s": {
+        "ko": "2초 이상",
+        "en": "over 2s"
+    },
+    "stall1to2s": {
+        "ko": "1~2초",
+        "en": "1–2s"
+    },
+    "stallUnder1s": {
+        "ko": "1초 미만",
+        "en": "under 1s"
+    },
+    "msgStall": {
+        "ko": "프레임 지연 {b}",
+        "en": "Frame stall {b}"
+    },
+    "msgLoopDead": {
+        "ko": "화면은 보이는데 게임 루프가 멈춰 있었습니다 — 다시 시작했습니다",
+        "en": "The screen was live but the game loop had stopped — restarted it"
+    },
+    "msgHang": {
+        "ko": "지난 실행이 응답 없이 끝났습니다 — {scene} 웨이브 {wave}",
+        "en": "The last run ended unresponsive — {scene}, wave {wave}"
+    },
+    "msgContextLost": {
+        "ko": "그래픽 컨텍스트를 잃었습니다 — 화면이 멈춥니다. 앱을 새로고침해 주세요",
+        "en": "Lost the graphics context — the screen will freeze. Please reload the app"
+    },
+    "msgContextRestored": {
+        "ko": "그래픽 컨텍스트가 복원되었습니다",
+        "en": "Graphics context restored"
+    },
+    "msgFrameError": {
+        "ko": "프레임 처리 중 예외: {m}",
+        "en": "Error while processing a frame: {m}"
+    },
+    "unknownScene": {
+        "ko": "화면 미상",
+        "en": "unknown screen"
+    },
+    "unknownException": {
+        "ko": "알 수 없는 예외",
+        "en": "Unknown exception"
+    },
+    "unknownFailure": {
+        "ko": "알 수 없는 실패",
+        "en": "Unknown failure"
+    },
+    "$boss": "보스 페이즈 배너 (Phaser). ★ 태그 이름은 `terms.tag.*` 하나가 출처다.",
+    "bossPhase": {
+        "ko": "페이즈 {n} / {total}",
+        "en": "Phase {n} / {total}"
+    },
+    "bossShifting": {
+        "ko": "형태가 바뀐다",
+        "en": "Its form is changing"
+    },
+    "bossDefenseless": {
+        "ko": "무방비",
+        "en": "Defenseless"
+    },
+    "$dmg": "데미지 숫자. ★ '약점'·'저항'은 `terms.effective`·`terms.resisted` 다 — 여기 만들지 않는다.",
+    "dmgImmune": {
+        "ko": "무효",
+        "en": "Immune"
+    },
+    "$preset": [
+        "★★ 편성 프리셋의 **기본 이름**. 예전에는 이 한국어 문자열이 세이브에 그대로",
+        "  적혀서, 언어를 바꿔도 프리셋 탭만 한국어로 남았다. 지금은 세이브가",
+        "  `nameDefault: true` 표식만 들고 이름은 여기서 그릴 때마다 온다",
+        "  (`rosterSlice.js:sanitizePresets` · `relocalizePresets`)."
+    ],
+    "presetBasic": {
+        "ko": "기본",
+        "en": "Basic"
+    },
+    "presetAntiArmor": {
+        "ko": "대장갑",
+        "en": "Anti-Armor"
+    },
+    "presetAntiAir": {
+        "ko": "대공",
+        "en": "Anti-Air"
+    },
+    "presetN": {
+        "ko": "편성 {n}",
+        "en": "Loadout {n}"
+    }
+}

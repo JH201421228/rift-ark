@@ -1,0 +1,56 @@
+/**
+ * 등급 이름 (P9-04)
+ *
+ * ★ `--rarity-*` 를 쓰는 유일한 자리다. 다른 곳에서 쓰면 색약 모드가 닿지 않는
+ *   두 번째 경로가 생긴다 — `tools/check-a11y.mjs` A3 가 막는다.
+ */
+
+/**
+ * ★ `white-space: nowrap` 을 쓰지 않는다. 편성·동료 카드의 이름은 원래 줄바꿈되며
+ *   (한글 이름은 라틴의 2배 폭이다 — 절대규칙 9), 표식 한 글자를 붙이겠다고
+ *   nowrap 을 걸면 긴 이름이 카드 밖으로 넘친다.
+ * ★ 크기·정렬은 지정하지 않는다. 쓰는 쪽 CSS(`.card b` 등)가 이미 정하고 있고,
+ *   여기서 덮으면 화면마다 글자 크기가 바뀐다.
+ */
+.name {
+    font-weight: 700;
+    color: var(--text);
+}
+
+.name[data-rarity="C"] {
+    color: var(--rarity-c);
+}
+.name[data-rarity="R"] {
+    color: var(--rarity-r);
+}
+.name[data-rarity="E"] {
+    color: var(--rarity-e);
+}
+.name[data-rarity="L"] {
+    color: var(--rarity-l);
+}
+
+/**
+ * 등급 표식 — 색약 모드에서만 나타난다.
+ *
+ * ★ `display: none` 이 기본이다. 켜는 스위치는 `App.jsx` 가 세우는
+ *   `:root[data-colorblind="on"]` 하나뿐이고, 화면 쪽에는 아무 배선도 없다.
+ * ★ 색을 상속하지 않고 `--text` 로 고정한다. 표식까지 등급 색으로 칠하면
+ *   "색 없이 읽히는 채널"을 만들려던 것이 다시 색 채널이 된다.
+ */
+.mark {
+    display: none;
+    margin-left: 3px;
+    padding: 0 2px;
+    border: 1px solid currentColor;
+    border-radius: 2px;
+    font-size: 10px;
+    line-height: 1.2;
+    vertical-align: 1px;
+    color: var(--text);
+    opacity: 0.85;
+}
+
+:root[data-colorblind="on"] .mark {
+    display: inline-block;
+}

@@ -1,0 +1,190 @@
+{
+    "$doc": "네임스페이스 'rules' — 키는 'rules.<키>' 다 (파일 이름이 곧 네임스페이스). 항목은 반드시 { \"ko\", \"en\" } 두 언어를 함께 갖는다 — 한쪽만 적으면 npm run check:i18n 이 막는다.",
+
+    "$why": [
+        "★★ 여기 있는 것은 **규칙 모듈이 만드는 문장**이다 — 화면이 아니라",
+        "  `game/logic/loadoutAnalysis.js` · `stagePreview.js` · `difficulty.js` 가 부른다.",
+        "  그 모듈들은 순수 함수라 스토어도 DOM 도 볼 수 없고, 그래서 문장을 코드에",
+        "  들고 있었다. 지금은 **안정 code 를 키로** 조회한다 —",
+        "  경고 code(`no_blocker` · `flying_heavy`)는 이미 화면·테스트가 쓰는 식별자였으므로",
+        "  번역 키를 따로 만들면 사본이 하나 더 생긴다.",
+        "",
+        "★★ **문장을 런타임에 이어 붙이지 않는다.** `'…입니다' + (조건 ? '(…)' : '')` 는",
+        "  한국어에서는 굴러가지만 영어·독일어에서는 어순이 달라 그 자리에서 무너진다.",
+        "  조건마다 **문장 전체를 키로** 둔다 (difficulty.notImplemented / …Note 가 그 예다).",
+        "",
+        "★ 낱말은 탭 이름과 맞춘다 — 편성은 영어에서 **Squad** 다 (Ark · Deploy · Squad ·",
+        "  Allies · Settings). 같은 개념을 여기서 'loadout' 이라 부르면 플레이어는 그것을",
+        "  서로 다른 것으로 배운다.",
+        "",
+        "★ 복수형: 이 게임의 마릿수는 대개 두 자리라 영어 복수만 적는다. **실제로 1이",
+        "  나오는 규칙만** `…One` 을 따로 둔다 — 2026-08-07 에 100 스테이지를 전수로 돌려",
+        "  1이 나오는 것을 확인한 규칙은 armored · warded · shielded · giant · thin 다섯이다."
+    ],
+
+    "$rarity": "★ 등급 이름. 개념상 'terms' 에 속하지만 그 파일에는 등급 절이 없었고, 병렬 작업 중에 남의 파일을 늘리지 않는다. terms.json 에 등급 절이 생기면 이리로 옮길 것 — 조회는 `labels.js:rarityLabel()` 하나를 지나므로 옮겨도 호출부는 바뀌지 않는다.",
+    "rarity.L": { "ko": "레전더리", "en": "Legendary" },
+    "rarity.E": { "ko": "에픽", "en": "Epic" },
+    "rarity.R": { "ko": "레어", "en": "Rare" },
+    "rarity.C": { "ko": "커먼", "en": "Common" },
+
+    "$warn": "편성 분석 경고 (`loadoutAnalysis.js:analyzeLoadout`). 키의 뒷부분이 그 경고의 `code` 다.",
+    "warn.empty": { "ko": "편성이 비어 있습니다", "en": "Your squad is empty" },
+    "warn.no_blocker": {
+        "ko": "방벽이 없습니다 — 적이 아무에게도 막히지 않고 방주까지 걸어옵니다",
+        "en": "No Blocker — nothing stops the enemy from walking straight to the Ark"
+    },
+    "warn.no_damage": {
+        "ko": "후열 화력이 없습니다 — 막기만 하고 죽이지 못합니다",
+        "en": "No backline damage — you will hold the line but never kill anything"
+    },
+    "warn.thinOne": {
+        "ko": "편성이 {n}칸뿐입니다 — 빈 칸은 그냥 손해입니다",
+        "en": "Only {n} slot is filled — empty slots are pure loss"
+    },
+    "warn.thin": {
+        "ko": "편성이 {n}칸뿐입니다 — 빈 칸은 그냥 손해입니다",
+        "en": "Only {n} slots are filled — empty slots are pure loss"
+    },
+    "warn.expensive": {
+        "ko": "평균 코스트가 높습니다 — 초반 전개가 늦어집니다",
+        "en": "Average cost is high — your early deployment will be slow"
+    },
+    "warn.cheap": {
+        "ko": "저코스트 위주 — 후반 물량에 화력이 밀릴 수 있습니다",
+        "en": "Mostly low-cost units — late waves may outscale your damage"
+    },
+    "warn.physical_only": {
+        "ko": "전부 물리 피해입니다 — 중장갑 앞에서 피해가 급감합니다",
+        "en": "Every unit deals Physical damage — Armored enemies will blunt all of it"
+    },
+    "warn.no_anti_air": {
+        "ko": "이 스테이지에 비행 적이 있는데 대공이 없습니다",
+        "en": "This stage has Flying enemies and your squad has no anti-air"
+    },
+    "warn.thin_anti_air": {
+        "ko": "대공이 1기뿐입니다 — 비행 물량에 뚫릴 수 있습니다",
+        "en": "Only one anti-air unit — a flying swarm can break through"
+    },
+    "warn.no_armor_break": {
+        "ko": "중장갑이 나오는데 술식·신성 피해가 없습니다 — 방어력을 뚫지 못합니다",
+        "en": "Armored enemies appear and you have no Arcane or Holy damage — you cannot break their DEF"
+    },
+    "warn.no_splash": {
+        "ko": "군집 적이 나옵니다 — 광역 피해가 있으면 훨씬 수월합니다",
+        "en": "Swarm enemies appear — splash damage makes this far easier"
+    },
+
+    "$code": "편성 공유 코드 해독 실패 사유 (`loadoutAnalysis.js:decodeLoadout`). 플레이어가 붙여넣기 창에서 그대로 읽는다.",
+    "code.malformed": { "ko": "형식이 올바르지 않습니다", "en": "That is not a valid code" },
+    "code.version": {
+        "ko": "지원하지 않는 코드 버전입니다",
+        "en": "That code version is not supported"
+    },
+    "code.corrupt": { "ko": "코드가 손상되었습니다", "en": "That code is corrupted" },
+    "code.unknownUnits": {
+        "ko": "알 수 없는 동료뿐입니다",
+        "en": "That code contains no companions this version knows"
+    },
+
+    "$stage": "스테이지 프리뷰 경고 (`stagePreview.js`). 키의 뒷부분이 그 경고의 `code` 다. {count} 는 마릿수, {share} 는 전체 스폰 대비 비율(%)이다.",
+    "stage.flying_heavy": {
+        "ko": "비행 적이 {count}마리({share}%)입니다 — 지상 전용 편성은 닿지 않습니다. 원거리·시전·대공을 넣으세요",
+        "en": "{count} Flying enemies ({share}%) — a ground-only squad can never reach them. Bring Ranged, Caster or anti-air"
+    },
+    "stage.flying": {
+        "ko": "비행 적이 {count}마리 섞여 있습니다 — 대공 수단이 최소 1기 필요합니다",
+        "en": "{count} Flying enemies are mixed in — you need at least one anti-air unit"
+    },
+    "stage.armored_heavy": {
+        "ko": "중장갑이 {count}마리({share}%)입니다 — 물리는 DEF 에 막힙니다. 술식 딜러가 반드시 필요합니다",
+        "en": "{count} Armored enemies ({share}%) — Physical damage stalls on DEF. An Arcane dealer is mandatory"
+    },
+    "stage.armoredOne": {
+        "ko": "중장갑이 {count}마리 섞여 있습니다 — 물리 일변도는 피해가 크게 깎입니다",
+        "en": "{count} Armored enemy is mixed in — an all-Physical squad loses a lot of damage"
+    },
+    "stage.armored": {
+        "ko": "중장갑이 {count}마리 섞여 있습니다 — 물리 일변도는 피해가 크게 깎입니다",
+        "en": "{count} Armored enemies are mixed in — an all-Physical squad loses a lot of damage"
+    },
+    "stage.warded_heavy": {
+        "ko": "결계 적이 {count}마리({share}%)입니다 — 술식·신성이 RES 에 깎입니다. 물리 딜러를 넣으세요",
+        "en": "{count} Warded enemies ({share}%) — RES eats Arcane and Holy damage. Bring a Physical dealer"
+    },
+    "stage.wardedOne": {
+        "ko": "결계 적이 {count}마리 있습니다 — 술식 일변도는 후반에 화력이 사라집니다",
+        "en": "{count} Warded enemy appears — an all-Arcane squad runs out of damage late"
+    },
+    "stage.warded": {
+        "ko": "결계 적이 {count}마리 있습니다 — 술식 일변도는 후반에 화력이 사라집니다",
+        "en": "{count} Warded enemies appear — an all-Arcane squad runs out of damage late"
+    },
+    "stage.regen": {
+        "ko": "재생 적이 {count}마리 — 잔딜로는 회복량을 넘지 못합니다. 순간 화력이 필요합니다",
+        "en": "{count} Regen enemies — chip damage never outpaces their healing. You need burst"
+    },
+    "stage.swarm_heavy": {
+        "ko": "군집이 {count}마리({share}%)입니다 — 단일 대상 화력만으로는 처리 속도가 모자랍니다",
+        "en": "{count} Swarm enemies ({share}%) — single-target damage cannot clear them fast enough"
+    },
+    "stage.swarm": {
+        "ko": "군집 적이 {count}마리 — 광역 피해가 있으면 훨씬 수월합니다",
+        "en": "{count} Swarm enemies — splash damage makes this far easier"
+    },
+    "stage.shieldedOne": {
+        "ko": "보호막 적이 {count}마리 — 첫 타를 흡수합니다. 다단 히트보다 한 방이 유리합니다",
+        "en": "{count} Shielded enemy — it absorbs the first hit. One big hit beats many small ones"
+    },
+    "stage.shielded": {
+        "ko": "보호막 적이 {count}마리 — 첫 타를 흡수합니다. 다단 히트보다 한 방이 유리합니다",
+        "en": "{count} Shielded enemies — they absorb the first hit. One big hit beats many small ones"
+    },
+    "stage.corrupt": {
+        "ko": "타락 적이 {count}마리 — 신성 피해가 특효입니다",
+        "en": "{count} Corrupt enemies — Holy damage is especially effective"
+    },
+    "stage.living_heavy": {
+        "ko": "생명체 위주({share}%)입니다 — 신성 피해는 오히려 줄어듭니다",
+        "en": "Mostly Living enemies ({share}%) — Holy damage is reduced against them"
+    },
+    "stage.boss_phases": {
+        "ko": "보스는 페이즈마다 태그가 바뀝니다 — 한 편성 안에 서로 다른 답을 같이 넣어야 합니다",
+        "en": "The boss changes tags every phase — one squad has to carry two different answers"
+    },
+    "stage.giantOne": {
+        "ko": "거대화 엘리트가 {count}마리 등장합니다 — 방벽이 한 기로는 버티지 못합니다",
+        "en": "{count} giant elite appears — a single Blocker will not hold it"
+    },
+    "stage.giant": {
+        "ko": "거대화 엘리트가 {count}마리 등장합니다 — 방벽이 한 기로는 버티지 못합니다",
+        "en": "{count} giant elites appear — a single Blocker will not hold them"
+    },
+    "stage.no_threat": {
+        "ko": "특별한 상성 요구가 없습니다 — 균형 편성으로 충분합니다",
+        "en": "No particular counter is required — a balanced squad is enough"
+    },
+
+    "$difficulty": "난이도 (`difficulty.js`). 오류 두 종을 **다른 문장으로** 구분한다 — 오타와 미구현을 뭉뚱그리면 플레이어는 자기 세이브가 깨진 줄 안다.",
+    "difficulty.unknown": {
+        "ko": "알 수 없는 난이도 '{id}' — 선택 가능: {list}",
+        "en": "Unknown difficulty '{id}' — available: {list}"
+    },
+    "difficulty.notImplemented": {
+        "ko": "'{name}' 난이도는 아직 구현되지 않았습니다. 지금은 {list} 난이도로 플레이할 수 있습니다.",
+        "en": "The '{name}' difficulty is not implemented yet. You can play {list} for now."
+    },
+    "difficulty.notImplementedNote": {
+        "ko": "'{name}' 난이도는 아직 구현되지 않았습니다 ({note}). 지금은 {list} 난이도로 플레이할 수 있습니다.",
+        "en": "The '{name}' difficulty is not implemented yet ({note}). You can play {list} for now."
+    },
+    "difficulty.unlockWorld": {
+        "ko": "월드 {world} 전 스테이지를 {difficulty}로 클리어하면 열립니다",
+        "en": "Unlocks once every stage in World {world} is cleared on {difficulty}"
+    },
+    "difficulty.unlockWorldStars": {
+        "ko": "월드 {world} 전 스테이지를 {difficulty}로 {stars}별 이상으로 클리어하면 열립니다",
+        "en": "Unlocks once every stage in World {world} is cleared on {difficulty} with {stars} stars or more"
+    },
+    "difficulty.lockedUnknown": { "ko": "아직 열리지 않았습니다", "en": "Not unlocked yet" }
+}

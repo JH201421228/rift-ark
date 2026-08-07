@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      적응형 아이콘의 배경 색.
+
+      ★★ Capacitor 기본값은 #FFFFFF 였다. 전경(금색 방주 + 보라 균열)이 어두운
+        배경을 전제로 그려져 있으므로 흰 배경 위에서는 균열의 보라가 흐려지고
+        방주의 금색이 날아간다. 앱 배경(capacitor.config.json:backgroundColor
+        #0f0f1e)과 같은 계열로 맞춘다 — 런처에서 앱으로 넘어갈 때 색이 튀지 않는다.
+
+      ★ 여기는 **단색만** 넣을 수 있다 (adaptive-icon 의 background 가 @color 다).
+        그라디언트는 레거시 PNG 아이콘(mipmap-*/ic_launcher.png)에만 들어간다.
+    -->
+    <color name="ic_launcher_background">#14122B</color>
+</resources>

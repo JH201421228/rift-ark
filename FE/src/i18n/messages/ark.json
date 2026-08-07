@@ -1,0 +1,53 @@
+{
+    "$doc": "네임스페이스 'ark' — 키는 'i18n.ark.<키>' 가 아니라 'ark.<키>' 다 (파일 이름이 곧 네임스페이스). 항목은 반드시 { \"ko\", \"en\" } 두 언어를 함께 갖는다 — 한쪽만 적으면 npm run check:i18n 이 막는다.",
+
+    "$screen": "방주(`/ark`) — 홈 대시보드. ★ 화면 제목·재화 이름은 여기 두지 않는다 (`common.ark` · `common.gold` · `common.star`).",
+
+    "arkState": { "ko": "{label} · 시설 합계 {sum}", "en": "{label} · Facility total {sum}" },
+
+    "toTitle": { "ko": "타이틀", "en": "Title" },
+    "toTitleTip": {
+        "ko": "세이브 슬롯을 고르는 화면으로 돌아갑니다",
+        "en": "Return to the save slot screen"
+    },
+
+    "$progress": "왼쪽 열 — 진행 상황.",
+    "progressHeading": { "ko": "진행", "en": "Progress" },
+    "worldOf": { "ko": "월드 {n} · {name}", "en": "World {n} · {name}" },
+    "nextChallenge": { "ko": "다음 도전", "en": "Next Challenge" },
+    "goSortie": { "ko": "출격하러 가기", "en": "Go deploy" },
+
+    "statCleared": { "ko": "클리어", "en": "Cleared" },
+    "statStarsEarned": { "ko": "모은 별", "en": "Stars earned" },
+    "statStarsSpent": { "ko": "쓴 별", "en": "Stars spent" },
+    "statCompanions": { "ko": "동료", "en": "Companions" },
+
+    "quickLoadout": { "ko": "편성 바꾸기", "en": "Edit Loadout" },
+    "quickCompanions": { "ko": "동료 키우기", "en": "Train Companions" },
+    "recruitNote": {
+        "ko": "· 영입 가능한 동료 {n}종 — 동료 화면의 [영입] 탭에서 골드로 데려옵니다",
+        "en": "· {n} companions are open to hire — recruit them with gold on the Companions screen"
+    },
+
+    "$facilities": "오른쪽 열 — 방주 시설 4종. 이름·설명은 `meta.json:ark.facilities` 에서 온다 (여기 두지 않는다).",
+    "facilitiesHeading": { "ko": "시설", "en": "Facilities" },
+    "facilitiesHint": {
+        "ko": "업그레이드가 성장 상한을 연다",
+        "en": "Upgrades raise your growth caps"
+    },
+    "facilityLocked": { "ko": "스테이지 {stage} 클리어 필요", "en": "Clear stage {stage} first" },
+    "facilityCost": { "ko": "골드 {n}", "en": "{n} gold" },
+    "facilityNote": {
+        "ko": "· 골드만 있으면 그 자리에서 올라갑니다 — 건설 시간은 없습니다",
+        "en": "· Gold is all it takes — there is no build timer"
+    },
+    "facilityLockNote": {
+        "ko": "· 스테이지를 클리어하면 시설이 하나씩 열립니다",
+        "en": "· Facilities unlock one by one as you clear stages"
+    },
+
+    "upgradeTitle": { "ko": "시설을 강화하시겠습니까?", "en": "Upgrade this facility?" },
+    "upgradeSubject": { "ko": "{name} — Lv.{from} → Lv.{to}", "en": "{name} — Lv.{from} → Lv.{to}" },
+    "upgradeConfirm": { "ko": "강화한다", "en": "Upgrade" },
+    "upgradeDone": { "ko": "{name} Lv.{n}", "en": "{name} Lv.{n}" }
+}

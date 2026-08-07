@@ -1,0 +1,476 @@
+{
+    "$comment": [
+        "밸런스 수치의 단일 진실 원천. 코드에 하드코딩하지 않는다.",
+        "★ 좌표·거리·속도는 전부 디자인 해상도 1280×720 기준이다.",
+        "  (레인 간격 96px, 전장 폭 1088px, 방주 x=96, 균열 x=1184)",
+        "docs/02-design/14-economy-balance.md"
+    ],
+    "combat": {
+        "minDamageRatio": 0.1,
+        "holyMultCorrupt": 1.6,
+        "holyMultLiving": 0.7,
+        "critChance": 0.05,
+        "critMult": 1.5,
+        "$bossSlamCommanderMult": [
+            "보스 슬램이 지휘관에게 주는 피해 배율 (보스 ATK × slamDamageMult × 이 값).",
+            "★ 지휘관 HP 600 기준 한 방에 죽지 않아야 한다.",
+            "  즉사로 두었더니 자동 조작 플레이어가 매 슬램마다 기절해",
+            "  오라가 7~10초마다 사라지고 보스 스테이지 승률이 100%→60% 로 무너졌다.",
+            "  회피는 '잘하면 이득'이어야지 '못하면 파탄'이면 안 된다."
+        ],
+        "bossSlamCommanderMult": 0.5,
+        "$bossSlamCommanderHpRatio": [
+            "슬램 한 방이 지휘관에게 줄 수 있는 **최대 피해**를 지휘관 최대 HP 비율로 제한한다.",
+            "",
+            "★★ 배율만으로는 이 규칙을 절대 지킬 수 없다. 지휘관 HP 는 600 고정인데",
+            "  보스 ATK 는 스테이지 지수 커브를 타고 자란다 —",
+            "  실측(P6-06): 1-10 보스 ATK 278 → 3-20 보스 ATK 51,260. 184배다.",
+            "  1-10 에서 '2방 버팀'이 되게 배율을 맞추면 2-10 부터는 전부 즉사고,",
+            "  3-20 기준으로 맞추면 1-10 슬램은 피해가 0에 수렴한다.",
+            "  즉 이건 튜닝 문제가 아니라 **단위가 다른 두 값을 곱한 문제**다.",
+            "",
+            "  0.3 = 최소 4방을 버틴다. 회피는 '잘하면 이득'이어야지 '못하면 파탄'이면 안 된다.",
+            "  월드 1 에서는 원래 피해(130~190)가 상한(180) 근처라 체감이 그대로 유지되고,",
+            "  월드 2 이후에만 상한이 실제로 작동한다."
+        ],
+        "bossSlamCommanderHpRatio": 0.3,
+        "$enemyHitCommanderHpRatio": [
+            "**일반 적**의 한 방이 지휘관에게 줄 수 있는 최대 피해 (지휘관 최대 HP 비율).",
+            "",
+            "★★★ 2026-08-05 이전에는 지휘관 HP 를 깎는 코드가 **보스 슬램뿐**이었다.",
+            "  설계 문서(20-commander-combat.md §2.1)는 평타의 대가를 '그러면 지휘관이",
+            "  맞는다' 라고 못박아 두었는데, 그 대가가 구현되어 있지 않았다.",
+            "",
+            "★★ 상한이 필요한 이유는 슬램과 **완전히 같다**. 지휘관 HP 는 600 고정인데",
+            "  일반 적 ATK 는 1-1 의 10 에서 5-20 의 342,133 까지 간다 (실측, 34,000배).",
+            "  배율 하나로는 절대 맞출 수 없다 — 월드 1 에서 '몇 대 버틴다' 가 되게",
+            "  맞추면 월드 2 부터 모든 적이 지휘관을 한 방에 눕힌다.",
+            "",
+            "0.08 = 최소 12방. 슬램(0.3 · 최소 4방)보다 훨씬 무른 이유는 빈도다 —",
+            "  슬램은 7~10초에 한 번 예고를 달고 오지만 일반 적은 1초에 한 대씩,",
+            "  그것도 여러 마리가 동시에 때린다. 앞으로 잠깐 나갔다 빠지는 것은",
+            "  견디고, 전선 앞에 눌러앉으면 3~4초에 쓰러진다."
+        ],
+        "enemyHitCommanderHpRatio": 0.08,
+        "$regen": [
+            "REGEN 태그의 초당 회복량 = 최대 HP × 비율.",
+            "",
+            "★★ 거대화(giant)에는 **다른 비율**을 쓴다.",
+            "  '최대 HP 의 2%' 는 400HP 잡몹(8/s)에는 맞지만 HP 배율 27~32 배를",
+            "  받은 보스에서는 무너진다. 월드 3 보스는 HP 9,637,403 · 회복",
+            "  192,748/s 가 되어 **어떤 편성으로도 죽지 않는 소프트락**이 됐다 (실측).",
+            "  거대화는 'HP 배율'이지 '회복 배율'이 아니다.",
+            "",
+            "★ 비율 규칙은 배율과 곱해지는 순간 깨진다 — 새 배율을 도입할 때",
+            "  비율로 정의된 값이 함께 부풀지 않는지 반드시 확인할 것."
+        ],
+        "regenRatio": 0.02,
+        "regenRatioGiant": 0.0025,
+        "$blockMinGap": [
+            "방벽이 적을 붙들 수 있는 **최소 간격**(px).",
+            "",
+            "★ 이 값이 없으면 이런 일이 벌어진다:",
+            "  용량이 꽉 찬 동안 적이 방벽을 지나쳐 파고들고,",
+            "  앞의 적이 죽어 슬롯이 비는 순간 **이미 방벽 위에 올라선 적**이",
+            "  그 자리에서 블록된다. 둘이 완전히 겹쳐 서기 때문에 플레이어에게는",
+            "  '적이 내 유닛을 통과했다'로 보인다 (실제 제보).",
+            "",
+            "★ 한 번 뚫린 적은 뚫린 채로 둔다. 그것이 '방벽 용량을 넘기면 샌다'는",
+            "  규칙과도 일관된다 — 뒤늦게 끌어당겨 잡는 것이 오히려 규칙 위반이다."
+        ],
+        "blockMinGap": 20
+    },
+    "resources": {
+        "manaRegenBase": 6,
+        "manaRegenTempo": 12,
+        "manaMax": 200,
+        "manaStart": 60,
+        "riftRegenBase": 2,
+        "riftMax": 100,
+        "riftPerKill": 0.5,
+        "killRefundRatio": 0.15,
+        "summonCostGrowth": 1.18,
+        "summonDecayMs": 12000
+    },
+    "commander": {
+        "$comment_attack": "지휘관 평타 — 딜이 아니라 미끼다. range < auraRadius 가 규약 (docs/02-design/20-commander-combat.md §2.1).",
+        "attack": {
+            "damage": 18,
+            "intervalMs": 900,
+            "range": 140,
+            "dmgType": "physical"
+        },
+        "auraRadius": 192,
+        "$comment_auraRadiusMax": "★★ **실제로 도달 가능한 최대 반경**이다 (2026-08-05 정정). 예전 값 336 은 어디서도 강제되지 않는 숫자였고, 실제 도달치(성소 만렙 242 → 광역 지휘 3스택 ×1.3)와 어긋난 채 가이드가 플레이어에게 '최대 반경 336' 이라고 약속하고 있었다. 지금은 tools/validate-data.mjs 가 성소 · 각인 데이터에서 이 값을 **계산해서 대조**한다 — 어느 한쪽을 바꾸면 검사가 먼저 실패한다.",
+        "auraRadiusMax": 533,
+        "respawnMs": 8000,
+        "hp": 600,
+        "moveSpeed": 120,
+        "$comment": "역할별 오라 효과. SUPPORT 만 오라 '밖'에서 작동한다 — 지휘관을 전선에 고정하는 단일 최적해를 없애는 장치.",
+        "$comment_auraEffects": [
+            "★★★ **`special: true` 는 금지한다** (2026-08-05).",
+            "  MELEE · RANGED · SIEGE 가 4개월 동안 `special: true` 였다. 그 값은 '여기에",
+            "  무언가 있다'는 표식일 뿐 무엇인지를 말하지 않으므로, 읽는 코드를 쓸 수가 없다.",
+            "  실제로 아무도 읽지 않았고 세 역할의 오라 효과는 존재하지 않았다.",
+            "  지금은 **효과마다 이름이 붙은 수치**다 — 이름이 있으면 읽는 코드를 쓸 수 있고,",
+            "  tools/validate-data.mjs 가 '선언한 키는 logic/ 어딘가에서 읽힌다'를 강제한다.",
+            "",
+            "★ 키는 전부 실재하는 역할이어야 한다. 한때 SPECIALIST 가 남아 있었는데",
+            "  그 역할은 2026-08-04 경량화(재배치 시스템 삭제)로 사라졌다 —",
+            "  logic/roles.js:ROLE_ORDER 에 없는 역할의 오라 효과는 영원히 발동하지 않는다.",
+            "",
+            "설계 정본: docs/02-design/11-core-loop.md §4.2 역할별 오라 효과 표."
+        ],
+        "auraEffects": {
+            "BLOCKER": {
+                "blockBonus": 1,
+                "damageTakenMult": 0.8
+            },
+            "$comment_MELEE": "설계 표: '특수 효과 발동 (넉백/처형/연쇄)'. 셋 중 **처형**을 역할 규칙으로 삼았다 — 넉백은 SIEGE 가 가져갔고(pushPower), 넉백을 근접에도 주면 방벽이 붙든 적의 간격이 매 틱 흔들려 스티키 블록이 풀린다. 임계는 무조건 발동하는 각인 '처형'(0.18)보다 **낮아야** 한다: 오라 안이라는 위치 조건이 붙은 대신 상시라, 각인 쪽이 여전히 고를 값이 있어야 한다.",
+            "MELEE": {
+                "execThreshold": 0.12
+            },
+            "$comment_RANGED": "설계 표: '관통 **또는** 사거리 +30%' — 둘 다 준다. pierceBonus 는 engage.js:spawnProjectile 에 1 로 **박혀 있던 것**을 옮긴 값이다 (절대규칙 4).",
+            "RANGED": {
+                "rangeMult": 1.3,
+                "pierceBonus": 1
+            },
+            "CASTER": {
+                "cooldownMult": 0.65
+            },
+            "$comment_SUPPORT": "inverted 는 aura.js:auraActiveFor 가 읽는다. 예전에는 그 함수가 'SUPPORT' 를 코드에 박고 있어서 이 값도 죽은 필드였다.",
+            "SUPPORT": {
+                "inverted": true
+            },
+            "$comment_SIEGE": "설계 표: '방주 방향 밀어내기 강화'. 한 대 맞을 때마다 적을 균열 쪽으로 pushPower(px) 민다 — 오라 안이 **강화**되는 칸이므로 방주에서 멀어지는 방향이다. ★ **방벽이 붙든 적은 밀지 않는다** (movement.js): 밀면 blockedBy 간격이 사거리를 넘어 스티키 블록이 그 자리에서 풀리고, '용량만큼은 확실히 멈춘다'(11-core-loop.md §3.3)가 무너진다. 그래서 이 효과는 **새어 나간 적**에게만 걸린다 — 공성이 뒤에서 지연시킨다는 그림 그대로다.",
+            "SIEGE": {
+                "pushPower": 12
+            },
+            "FLYER": {
+                "canHitGround": true
+            }
+        }
+    },
+    "battlefield": {
+        "arkX": 96,
+        "riftX": 1184,
+        "laneY": [
+            320,
+            416,
+            512
+        ],
+        "airY": 224,
+        "tempoShiftRatio": 0.6,
+        "deployDelayMs": 5000,
+        "waveIntervalMs": [
+            6000,
+            9000
+        ],
+        "$tempoDensityMult": "★ 템포 시프트 이후 웨이브 물량 배율. 코드(stageConfig.js)에 1.6 으로 박혀 있던 것을 옮겼다 (절대규칙 4).",
+        "tempoDensityMult": 1.6
+    },
+    "scaling": {
+        "$tuning": [
+            "★ 적 성장률은 무과금 파워 성장률(스테이지당 약 1.103)에 맞춰 잡는다.",
+            "  이전에는 1.11/1.075/1.055 였는데, 이러면 구간마다 난이도 기울기가 달라져",
+            "  월드 1 은 전 조합 100% 인데 월드 3 은 0% 가 되는 상태가 나온다.",
+            "  실제로 그랬다 — 전역 배율을 아무리 돌려도 두 구간을 동시에 맞출 수 없었다.",
+            "  기울기를 맞춘 뒤 절대 난이도는 enemyHpMult 한 손잡이로 정한다.",
+            "  (tools/sweep-difficulty.mjs 로 탐색)"
+        ],
+        "$comment_removed": [
+            "★★ `enemyHpBase`(58) · `enemyAtkBase`(6) 를 **삭제했다** (2026-08-05).",
+            "  둘은 아무도 읽지 않는 死필드였다 — scaleEnemy 는 `enemies.json` 의 개체별",
+            "  base.hp / base.atk 에 성장 커브와 배율을 곱한다. 개체별 스탯이 이미 있는데",
+            "  전역 기준값을 또 두면 **같은 사실의 두 번째 출처**가 되고, 이 저장소의",
+            "  단일 실패 유형이 정확히 그것이다 (units.json 의 projectile 2중 정의 등).",
+            "  '적 62종의 평균 HP' 같은 참고 수치가 필요하면 데이터에서 계산해라 —",
+            "  손으로 적어 두면 적을 하나 고칠 때마다 조용히 거짓말이 된다.",
+            "  재발 방지: tools/validate-data.mjs 가 scaling 의 모든 키를 소스에서 찾는다."
+        ],
+        "enemyHpGrowth": [
+            {
+                "maxStage": 60,
+                "rate": 1.103
+            },
+            {
+                "maxStage": 120,
+                "rate": 1.05
+            },
+            {
+                "maxStage": 999,
+                "rate": 1.02
+            }
+        ],
+        "enemyAtkGrowth": [
+            {
+                "maxStage": 60,
+                "rate": 1.092
+            },
+            {
+                "maxStage": 120,
+                "rate": 1.044
+            },
+            {
+                "maxStage": 999,
+                "rate": 1.017
+            }
+        ],
+        "enemyHpMult": 2.1,
+        "enemyAtkMult": 1.5
+    },
+    "difficulty": {
+        "$comment": [
+            "난이도 모드 (P6-10). 15-content-plan.md §2 의 표가 원본이다.",
+            "",
+            "★ 난이도는 '규칙'이 아니라 '배율'이다 — 코드에는 배율을 곱하는 자리만 있고",
+            "  숫자는 전부 여기 있다. 새 난이도를 추가하는 것은 이 파일을 고치는 일이어야 한다.",
+            "",
+            "★ 확률 요소가 하나도 없다. 하드는 '운이 나쁘면 지는 판'이 아니라",
+            "  '같은 판이 더 무거운 것'이다 — 결정론이 깨지면 밸런스 하네스로",
+            "  하드를 측정할 수 없고, 강화형 규제 회피 원칙(절대 규칙 6)과도 어긋난다.",
+            "",
+            "★ spawnCountMult 는 HP/ATK 와 성격이 다른 손잡이다.",
+            "  HP·ATK 는 '한 마리를 죽이기 어렵게' 만들고, 스폰 수는 '동시에 처리해야",
+            "  하는 수'를 늘려 광역·방벽 용량을 시험한다. 배율만 올리면 하드가",
+            "  그냥 '더 오래 때리기'가 되므로 둘을 함께 민다."
+        ],
+        "order": [
+            "normal",
+            "hard",
+            "nightmare"
+        ],
+        "levels": {
+            "normal": {
+                "name": {
+                    "ko": "노멀",
+                    "en": "Normal"
+                },
+                "implemented": true,
+                "enemyHpMult": 1,
+                "enemyAtkMult": 1,
+                "spawnCountMult": 1,
+                "unlock": {
+                    "type": "always"
+                },
+                "reward": {
+                    "goldMult": 1,
+                    "firstClearGoldMult": 0.5
+                }
+            },
+            "hard": {
+                "name": {
+                    "ko": "하드",
+                    "en": "Hard"
+                },
+                "implemented": true,
+                "enemyHpMult": 1.35,
+                "enemyAtkMult": 1.35,
+                "spawnCountMult": 1.15,
+                "$unlock": "해당 월드를 노멀로 전부 클리어(★1 이상)하면 열린다 — 15-content-plan.md §2",
+                "unlock": {
+                    "type": "worldCleared",
+                    "difficulty": "normal",
+                    "minStars": 1
+                },
+                "$reward": [
+                    "★ goldMult 는 economy.repeatFactor(1.8)를 넘지 않는다.",
+                    "  경제 모델은 \"스테이지 하나를 평균 1.8회 반복 클리어한다\"를 전제로 총 수입을",
+                    "  계산한다. 하드 1회가 그 반복 수입을 넘어서는 순간 calibrate-economy 의 골드",
+                    "  곡선이 통째로 틀어진다. 하드는 \"수입을 늘리는 장치\"가 아니라",
+                    "  \"반복을 도전으로 바꾸는 장치\"다.",
+                    "",
+                    "★ 강화석·젬은 2026-08-04 경량화로 사라졌다. 첫 클리어 보너스는 골드 배수다."
+                ],
+                "reward": {
+                    "goldMult": 1.8,
+                    "firstClearGoldMult": 1
+                }
+            },
+            "nightmare": {
+                "name": {
+                    "ko": "나이트메어",
+                    "en": "Nightmare"
+                },
+                "implemented": true,
+                "$note": [
+                    "배율만으로는 나이트메어가 아니다 — 15-content-plan.md §2 는 월드별 '신규 메커니즘'을 요구한다.",
+                    "그 규칙 셋이 아래 mechanics 다 (docs/02-design/22-nightmare.md).",
+                    "",
+                    "★ 규칙은 누적하지 않는다. 월드 하나에는 정확히 하나만 걸린다 —",
+                    "  data:validate 의 N1 이 월드 1–5 전수로 그것을 강제한다.",
+                    "★ 확률이 하나도 없다. 셋 다 시간·위치·사망 이벤트의 결정론적 함수다 (절대규칙 6)."
+                ],
+                "enemyHpMult": 1.9,
+                "enemyAtkMult": 1.9,
+                "spawnCountMult": 1.3,
+                "$unlock": [
+                    "해당 월드를 하드로 전관하면 열린다.",
+                    "★ ★3 → ★2 로 내렸다 (2026-08-05). ★3 은 목표 시간 조건이고 노멀 기준",
+                    "  달성률 목표가 20–35%(게이트 B11)다. 그것을 하드에서 20 스테이지 전부",
+                    "  요구하는 것은 아무도 측정한 적이 없는 조건이었고, unlockAudit 의",
+                    "  `complete` 프로필은 '하드가 열린 월드는 하드도 ★3' 을 **가정**하므로",
+                    "  켜는 순간 도달성 검사가 거짓 위에서 통과한다.",
+                    "  ★1 → ★2 는 단조롭고 읽기 쉬우며(클리어 → 한 마리도 통과시키지 않았다),",
+                    "  실제 달성 가능성은 게이트 BN8 이 잰다."
+                ],
+                "unlock": {
+                    "type": "worldCleared",
+                    "difficulty": "hard",
+                    "minStars": 2
+                },
+                "reward": {
+                    "goldMult": 1.8,
+                    "firstClearGoldMult": 1.5
+                },
+                "$mechanics": [
+                    "월드별 신규 메커니즘 3종. 각 규칙은 '더 어렵게' 가 아니라",
+                    "**지금 이기고 있는 방법 하나를 못 쓰게** 만든다 (22-nightmare.md §0.1).",
+                    "",
+                    "  ① 역병 장판 — 방벽 1체 + 근접 밀집으로 전선을 한 점에 고정하는 것을 죽인다",
+                    "  ② 결박 파열 — 붙들어 두고 뒤에서 천천히 녹이는 것을 죽인다",
+                    "  ③ 고갈     — 강한 동료 하나를 반복 소환하는 것을 죽인다",
+                    "",
+                    "★ 셋 다 동시 엔티티를 늘리지 않는다. 나이트메어의 성능 위험은 규칙이 아니라",
+                    "  spawnCountMult 1.3 × enemyHpMult 1.9 다 (§6.2)."
+                ],
+                "mechanics": {
+                    "plague_bloom": {
+                        "$": "지상에서 죽은 적이 그 자리에 남기는 장판. 아군과 지휘관만 밟는다.",
+                        "name": {
+                            "ko": "역병 장판",
+                            "en": "Plague Bloom"
+                        },
+                        "summary": {
+                            "ko": "지상에서 죽은 적이 그 자리에 장판을 남깁니다. 장판 위의 동료와 지휘관만 지속 피해를 받습니다",
+                            "en": "Ground enemies leave a pool where they fall. Only your companions and Commander take damage standing in it"
+                        },
+                        "worlds": [1, 3],
+                        "radius": 72,
+                        "durationMs": 6000,
+                        "tickMs": 500,
+                        "dpsPctOfMaxHp": 0.06,
+                        "maxPerLane": 4,
+                        "mergeGap": 48
+                    },
+                    "bond_break": {
+                        "$": "누적 결박 시간이 holdMs 를 넘으면 결박을 끊고, 그 뒤로 다시는 붙잡히지 않는다.",
+                        "name": {
+                            "ko": "결박 파열",
+                            "en": "Bond Break"
+                        },
+                        "summary": {
+                            "ko": "오래 붙들린 적은 결박을 끊고 더 빨라집니다. 끊은 적은 다시 붙잡히지 않습니다",
+                            "en": "Enemies held too long snap the bond and speed up. Once broken free, they can never be held again"
+                        },
+                        "worlds": [2, 4],
+                        "holdMs": 9000,
+                        "telegraphMs": 800,
+                        "postBreakSpeedMult": 1.25
+                    },
+                    "attrition": {
+                        "$": [
+                            "처치 환급을 끊고 소환 코스트 감쇠를 늦춘다. 새 규칙을 더하지 않고",
+                            "이미 있는 두 손잡이를 돌리기만 한다.",
+                            "",
+                            "★★ summonDecayMult 는 **감쇠 속도의 배율**이다 (0.5 = 원복이 두 배 느리다).",
+                            "  설계 원안은 0(감쇠 완전 정지)이었고, 실측에서 그것이 월드 5 를",
+                            "  **통째로 통과 불가능**하게 만들었다 (2026-08-05, BN3):",
+                            "    5-5 · 무과금 만렙 파워 · 추천 편성 — 규칙 끔 100% → 감쇠 정지 0%",
+                            "    소환 횟수가 84 → 31 로 무너진다. 코스트가 영구히 오르면 후반에",
+                            "    마나가 아무리 차도 살 수 있는 것이 없다.",
+                            "  '여섯 칸을 고르게 쓰면 유지된다'는 답이 성립하려면 감쇠가 **느려야**",
+                            "  하지 멈추면 안 된다 — 멈추면 답이 편성이 아니라 산수가 된다.",
+                            "  설계 문서가 불리언이 아니라 배율로 둔 이유가 정확히 이 튜닝이다 (§4.3)."
+                        ],
+                        "name": {
+                            "ko": "고갈",
+                            "en": "Attrition"
+                        },
+                        "summary": {
+                            "ko": "처치해도 마나가 돌아오지 않고 소환 비용이 잘 내려가지 않습니다. 여섯 칸을 고르게 써야 합니다",
+                            "en": "Kills refund no mana and summon costs barely decay. You have to use all six slots evenly"
+                        },
+                        "worlds": [5],
+                        "killRefundMult": 0,
+                        "summonDecayMult": 0.5
+                    }
+                }
+            }
+        }
+    },
+    "progression": {
+        "unitAtkGrowth": 1.055,
+        "unitHpGrowth": 1.06,
+        "unitLevelCostBase": 60,
+        "unitLevelCostGrowth": 1.12,
+        "$comment": "동료 성장 곡선. 승급·장비는 2026-08-04 경량화로 사라졌고, 그 이산 계단은 방주 무기고(meta.json:ark.armory)가 승계했다."
+    },
+    "economy": {
+        "$comment": "무과금 페이싱 상수. tools/calibrate-economy.mjs 가 이 값들이 실제로 성립하는지 검증한다.",
+        "$targetCurve": "목표 파워 곡선 — 플레이어가 그 스테이지에서 가져야 하는 성장. 수입은 여기에 맞춰 정한다.",
+        "targetLevelBase": 6,
+        "targetLevelPerStage": 1,
+        "starMultPerStage": 0.004,
+        "starMultMax": 0.25,
+        "$income": "실제 수입. 방치·던전·시험·일일이 전부 사라졌으므로 **캠페인 클리어가 유일한 골드원이다** (2026-08-04 경량화).",
+        "goldPerStageBase": 600,
+        "goldPerStageGrowth": 1.117,
+        "repeatFactor": 1.8,
+        "$pacing": "D1 스테이지 25 / D3 45 / D7 70 / D14 100 — 13-progression-meta.md §6",
+        "daysA": 36,
+        "daysB": 1,
+        "targetLevelCap": 100,
+        "$armory": "무기고 목표 레벨 = floor(stage / stagesPerArmoryLevel), 상한 20.",
+        "stagesPerArmoryLevel": 5,
+        "$startingGold": "신규 계정 시작 골드. 첫 업그레이드(FTUE 1-3 \"강화\")를 스테이지 보상만으로는 살 수 없어서 넣었다 — 튜토리얼이 요구하는 행동은 튜토리얼 시점에 가능해야 한다.",
+        "startingGold": 500
+    },
+    "stars": {
+        "$comment": [
+            "★2 방주 무손실 · ★3 목표 시간의 timeRatio 배 이내. tools/tune-stars.mjs 로 조정한다.",
+            "★ 별 판정은 가산이다 — 방주 조건과 시간 조건이 각각 +1 이므로",
+            "  ★2 = (방주 OR 시간) · ★3 = (방주 AND 시간) 이다.",
+            "",
+            "★★ 2026-08-04: **두 밴드를 동시에 만족하는 점을 찾았다** (timeRatio 0.60).",
+            "  0.58 로는 ★2 49.6% ✔ / ★3 9.2% ✗ 였고, 이 파일은 오랫동안",
+            "  \"현재 손잡이로는 동시 만족이 불가능하다\" 고 적어 두고 있었다.",
+            "  가능해진 이유는 경량화다 — 각인 풀 축소 · 변주 모드 제거로 전투 길이 분포가",
+            "  좁아지면서 시간 조건이 방주 조건과 덜 상관하게 됐다.",
+            "  실측(40시드): 0.59 → ★2 52.6% / ★3 15.6% · 0.60 → 56.9% / 22.6% ✔✔",
+            "            0.61 → 61.9% / 28.4% · 0.62 → 66.4% / 32.8%",
+            "",
+            "★ 추천 편성 규칙이나 각인 풀을 다시 만지면 이 값도 반드시 다시 재야 한다."
+        ],
+        "arkRatio": 1,
+        "timeRatio": 0.6
+    },
+    "modes": {
+        "$comment": "전투 모드 파라미터. assault 는 파라미터가 없다 — 기본 규칙 그 자체다.",
+        "nemesis": {
+            "$comment": [
+                "보스 — 거대화 엘리트를 처치하면 즉시 승리한다. 잔챙이를 다 정리할",
+                "필요가 없다. 보스가 죽었는데 청소 때문에 30초를 더 쓰면 보스전이 아니다.",
+                "",
+                "★ 페이즈 전환·슬램 예고 시간은 **전역 상수**다 (P6-05).",
+                "  예고는 연출이 아니라 정보 전달이므로, 월드마다 길이가 다르면",
+                "  플레이어가 '언제까지 피하면 되는지'를 영영 학습하지 못한다.",
+                "  0.8초는 19-art-audio-direction.md §4 의 값이다.",
+                "",
+                "★ slamCommanderReach — 이 거리 안에 지휘관이 있으면 슬램이",
+                "  지휘관 레인을 노린다. 너무 길면 지휘관을 아예 못 쓰고,",
+                "  너무 짧으면 전선에서 한 칸만 물러나도 무료다."
+            ],
+            "victoryOnBossDeath": true,
+            "addsDespawnOnBossDeath": true,
+            "phaseTelegraphMs": 800,
+            "slamTelegraphMs": 800,
+            "firstSlamDelayMs": 6000,
+            "slamCommanderReach": 220,
+            "$slamDefaults": "보스 데이터가 값을 생략하면 쓰는 기본치",
+            "slamEveryMs": 9000,
+            "slamRadius": 96,
+            "slamDamageMult": 2.2
+        }
+    }
+}

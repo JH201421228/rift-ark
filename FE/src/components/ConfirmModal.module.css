@@ -1,0 +1,111 @@
+/**
+ * 확인 모달 — 전투 결과 모달(BattleResult.module.css)과 같은 시각 언어를 쓴다.
+ * ★ 글자 최소 10px (check:a11y A4 · 절대규칙 9 — 한글은 라틴의 2배 폭이다).
+ */
+
+.overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(8, 8, 16, 0.82);
+    pointer-events: auto;
+    animation: fadeIn 0.16s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+}
+
+.card {
+    width: min(440px, 88%);
+    padding: 18px 20px;
+    background: #12121f;
+    border: 2px solid #3a3a5e;
+    border-radius: 4px;
+    animation: rise 0.16s ease-out;
+}
+
+@keyframes rise {
+    from {
+        transform: translateY(8px);
+        opacity: 0;
+    }
+}
+
+.title {
+    margin: 0 0 2px;
+    font-size: 18px;
+    color: var(--gold);
+}
+
+.subject {
+    margin: 0 0 12px;
+    font-size: 12px;
+    color: var(--text);
+}
+
+/* ★ 설명문은 block 이다 — 플렉스에 문장을 넣으면 <b> 가 문장을 토막낸다
+   (textLayout.test.js 가 검사한다) */
+.body {
+    display: block;
+    margin-bottom: 12px;
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--text-dim);
+}
+
+.costRow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding: 6px 10px;
+    background: rgba(242, 179, 61, 0.1);
+    border: 2px solid #3a3a5e;
+    border-radius: 3px;
+    font-size: 11px;
+}
+
+.costLabel {
+    color: var(--text-dim);
+}
+
+.costValue {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--gold);
+    font-size: 13px;
+}
+
+.after {
+    margin-left: auto;
+    color: var(--text-dim);
+}
+
+.actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* ★ 터치 타깃 44px — 폰 가로에서 실수로 옆 버튼을 누르지 않게 (18-ux-ui.md §1.2) */
+.btn {
+    flex: 1;
+    min-height: 44px;
+    font-size: 13px;
+    color: var(--text);
+    background: #1e1e34;
+    border: 2px solid #3a3a5e;
+    border-radius: 3px;
+}
+
+.btn.primary {
+    color: #0f0f1e;
+    background: var(--gold);
+    border-color: var(--gold);
+}

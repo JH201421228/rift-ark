@@ -1,0 +1,61 @@
+/* 난이도 토글 (P6-10)
+   ★ 한글 기준으로 폭을 잡는다 — "나이트메어" 5글자가 라틴 10자 폭이다. */
+
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 2px 0 8px;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    /* ★ 터치 타깃 40px 하한 — 폰 가로 실측에서 26px 였다 (18-ux-ui.md §1.2) */
+    min-height: 40px;
+    padding: 3px 10px;
+    font-family: var(--font-body);
+    font-size: 12px;
+    color: var(--text-dim);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn.active {
+    color: var(--bg);
+    background: var(--gold);
+    border-color: var(--gold);
+}
+
+.btn:disabled {
+    cursor: default;
+    opacity: 0.55;
+}
+
+/* 나이트메어 월드 규칙 이름 (P11-07) — 버튼 안에 이어 붙인다.
+   ★ 아이콘이 없다: 역병·결박·고갈에 대응하는 글리프가 아이콘 시트에 없고
+     이모지는 절대규칙 5 위반이다 (22-nightmare.md §0-A #6). 정보를 지는 것은 글자다.
+   ★ 그래서 색만으로 구분하지 않는다 — 규칙 **이름**이 곧 내용이다 (check:a11y A3).
+   ★ 최소 10px (A4). */
+.rule {
+    padding: 1px 5px;
+    font-size: 10px;
+    font-style: normal;
+    line-height: 1.4;
+    color: #ff9a9a;
+    background: rgba(126, 42, 58, 0.28);
+    border: 1px solid #7e2a3a;
+    border-radius: 2px;
+    white-space: nowrap;
+}
+
+/* 잠금 사유 — 버튼 안에 이어 붙인다. 별도 줄로 빼면
+   월드마다 한 줄씩 늘어나 스테이지 목록이 밀린다. */
+.reason {
+    font-size: 10px;
+    font-style: normal;
+    color: var(--text-dim);
+}

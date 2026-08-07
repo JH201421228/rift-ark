@@ -1,0 +1,45 @@
+/**
+ * 대공 표기.
+ * ★ 색만으로 구분하지 않는다 — 글자("대공"/"지상만")와 테두리 모양이 함께 다르다.
+ * ★ 최소 글자 10px (check:a11y A4).
+ */
+
+.mark {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 5px;
+    font-size: 10px;
+    line-height: 1.4;
+    border-radius: 2px;
+    border: 1px solid transparent;
+    white-space: nowrap;
+}
+
+.can {
+    color: #7ad0ff;
+    background: rgba(42, 90, 126, 0.28);
+    border-color: #2a5a7e;
+}
+
+/* 못 닿는 쪽은 **점선**이다 — 밝기 차이는 저조도·색약에서 사라진다 */
+.cant {
+    color: var(--text-dim);
+    background: transparent;
+    border-color: #3a3a5e;
+    border-style: dashed;
+}
+
+/**
+ * 전투 HUD 처럼 자리가 없는 곳 — **패딩만 줄인다.**
+ *
+ * ★★ 글자 크기(10px)는 건드리지 않는다. `check:a11y` 의 A4 하한이고, 무엇보다
+ *   이 배지는 색약 사용자에게 색 대신 남는 채널이다.
+ * ★ 왜 필요한가: 소환 슬롯의 배지 줄은 `역할 + 대공` 두 칸을 나눠 쓴다.
+ *   한국어(`방벽` + `지상`)는 40px 이면 되지만 영어(`Blocker` + `Ground`)는 65px 다.
+ *   패딩 좌우 5px + 테두리 1px 이 배지마다 12px 을 먹어, 그만큼이 그대로
+ *   역할 이름의 말줄임(`Blo…`)이 됐다 — 역할은 편성을 읽는 1차 단서라 첫 글자만
+ *   남으면 아무 말도 하지 않는다 (실기 확인 2026-08-07).
+ */
+.compact {
+    padding: 0 2px;
+}

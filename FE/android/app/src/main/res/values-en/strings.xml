@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+  영어 로케일의 앱 이름.
+
+  ★★ 런처 아이콘 아래에 뜨는 글자는 **웹뷰 안의 i18n 이 절대 바꿀 수 없다.**
+    앱 안을 영어로 전부 번역해도 홈 화면에는 "균열의 방주" 가 남는다 —
+    영어권 사용자에게는 읽을 수 없는 네 글자다. 안드로이드가 로케일별로 고르는
+    것은 이 파일이므로, 언어 지원은 여기서도 한 벌 필요하다.
+
+  ★ `package_name` · `custom_url_scheme` 은 **번역 대상이 아니다.** 로케일별로
+    달라지면 딥링크가 그 로케일에서만 깨진다. values/strings.xml 의 값을 그대로 쓴다.
+-->
+<resources>
+    <string name="app_name">Rift Ark</string>
+    <string name="title_activity_main">Rift Ark</string>
+</resources>

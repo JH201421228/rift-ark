@@ -1,0 +1,193 @@
+{
+    "$doc": "네임스페이스 'result' — 전투 결과 화면. 키는 'result.<키>' 다 (파일 이름이 곧 네임스페이스). 항목은 반드시 { \"ko\", \"en\" } 두 언어를 함께 갖는다 — 한쪽만 적으면 npm run check:i18n 이 막는다.",
+    "$rule": "★ 태그 이름(중장갑 · 결계 …)은 여기 적지 않는다 — `terms.tag.*` 가 단일 출처다. 진단 화면은 플레이어가 태그 이름을 처음으로 진지하게 읽는 자리이고, 여기서 다른 단어가 나오면 프리뷰에서 배운 것이 지워진다 (check:a11y A5).",
+    "victory": {
+        "ko": "승리",
+        "en": "Victory"
+    },
+    "defeat": {
+        "ko": "방주가 함락되었습니다",
+        "en": "The Ark has fallen"
+    },
+    "stage": {
+        "ko": "스테이지 {id}",
+        "en": "Stage {id}"
+    },
+    "starTitle": {
+        "ko": "{n}번째 별",
+        "en": "Star {n}"
+    },
+    "$reward": "보상 · 지급물. ★ 받은 자리에서 보여야 한다 — 조용히 들어온 동료는 다음 스테이지의 답인데도 편성에 넣을 이유를 모른다.",
+    "firstClear": {
+        "ko": "첫 클리어",
+        "en": "First clear"
+    },
+    "grantedUnits": {
+        "ko": "새 동료 합류",
+        "en": "New companion"
+    },
+    "grantedItems": {
+        "ko": "지휘관 장구 획득",
+        "en": "Commander gear"
+    },
+    "grantedSpells": {
+        "ko": "지휘관 주문 해금",
+        "en": "Spell unlocked"
+    },
+    "$stats": "★ 라벨 + 숫자다. 문장이 아니므로 숫자를 <b> 로 떼어내도 어순 문제가 없다.",
+    "statKills": {
+        "ko": "처치",
+        "en": "Kills"
+    },
+    "statTime": {
+        "ko": "시간",
+        "en": "Time"
+    },
+    "$diagnosis": "★★ 패배 진단이 이 화면의 존재 이유다. 진단이 없으면 상성은 전략이 아니라 그냥 벽이다 — '막히면 편성을 바꾼다'를 가르치는 유일한 지점이다.",
+    "diagTitle": {
+        "ko": "{tag} 적을 막지 못했습니다",
+        "en": "{tag} enemies broke through"
+    },
+    "diagPassed": {
+        "ko": "({n}체 통과)",
+        "en": "({n} got through)"
+    },
+    "diagTimeTitle": {
+        "ko": "시간이 부족했습니다",
+        "en": "You ran out of time"
+    },
+    "diagTimeWhy": {
+        "ko": "제한 시간 안에 웨이브를 정리하지 못했습니다.",
+        "en": "The waves were not cleared before time ran out."
+    },
+    "diagTimeFix": {
+        "ko": "화력이 높은 동료를 늘리거나, 동료를 강화해 보세요.",
+        "en": "Bring more damage, or level up the companions you have."
+    },
+    "diagAnyWhy": {
+        "ko": "일부 적을 처치하지 못했습니다.",
+        "en": "Some enemies were never brought down."
+    },
+    "diagAnyFix": {
+        "ko": "편성을 바꿔 보세요.",
+        "en": "Try a different loadout."
+    },
+    "whyArmored": {
+        "ko": "방어력이 높아 물리 공격이 거의 통하지 않았습니다.",
+        "en": "Their armor left physical attacks doing almost nothing."
+    },
+    "fixArmored": {
+        "ko": "술식(Arcane) 동료를 편성하세요. 술식은 방어력을 완전히 무시합니다.",
+        "en": "Bring Arcane companions — Arcane ignores armor entirely."
+    },
+    "whyWarded": {
+        "ko": "마법 저항이 높아 술식·신성 공격이 감쇠되었습니다.",
+        "en": "High resistance blunted your Arcane and Holy damage."
+    },
+    "fixWarded": {
+        "ko": "물리(Physical) 동료를 편성하세요.",
+        "en": "Bring Physical companions."
+    },
+    "whyFlying": {
+        "ko": "비행 적은 방벽을 무시하고 그대로 지나갑니다.",
+        "en": "Flying enemies ignore blockers and walk straight past."
+    },
+    "fixFlying": {
+        "ko": "대공이 가능한 원거리 동료를 편성하세요.",
+        "en": "Bring ranged companions that can hit air."
+    },
+    "whySwarm": {
+        "ko": "적의 수가 너무 많아 단일 대상 공격으로는 감당하지 못했습니다.",
+        "en": "Too many enemies for single-target damage to keep up with."
+    },
+    "fixSwarm": {
+        "ko": "광역 공격이 가능한 술사·공성 동료를 편성하세요.",
+        "en": "Bring Casters or Siege companions with area damage."
+    },
+    "whyCorrupt": {
+        "ko": "오염된 적은 일반 공격에 강합니다.",
+        "en": "Corrupt enemies shrug off ordinary attacks."
+    },
+    "fixCorrupt": {
+        "ko": "신성(Holy) 동료를 편성하세요. 오염 적에게 1.6배 피해를 줍니다.",
+        "en": "Bring Holy companions — they deal 1.6x damage to Corrupt enemies."
+    },
+    "whyShielded": {
+        "ko": "보호막이 첫 타격들을 무효화했습니다.",
+        "en": "Shields soaked up your opening hits."
+    },
+    "fixShielded": {
+        "ko": "공격 속도가 빠른 다단히트 동료를 편성하세요.",
+        "en": "Bring fast attackers that land many small hits."
+    },
+    "whyRegen": {
+        "ko": "적이 회복하는 속도를 화력이 따라가지 못했습니다.",
+        "en": "They healed faster than your damage could remove."
+    },
+    "fixRegen": {
+        "ko": "순간 화력이 높은 동료로 집중 처치하세요.",
+        "en": "Focus them down with high burst damage."
+    },
+    "whyLiving": {
+        "ko": "생명체 적은 신성 피해에 저항합니다.",
+        "en": "Living enemies resist Holy damage."
+    },
+    "fixLiving": {
+        "ko": "물리·술식 동료를 함께 편성하세요.",
+        "en": "Bring Physical and Arcane companions together."
+    },
+    "$actions": "★ 버튼은 짧게. 영어가 길어지면 4칸이 한 줄에 서지 못한다.",
+    "exit": {
+        "ko": "나가기",
+        "en": "Exit"
+    },
+    "next": {
+        "ko": "다음",
+        "en": "Next"
+    },
+    "changeLoadout": {
+        "ko": "편성 변경",
+        "en": "Change loadout"
+    },
+    "retry": {
+        "ko": "재도전",
+        "en": "Retry"
+    },
+    "back": {
+        "ko": "돌아가기",
+        "en": "Back"
+    },
+    "$ad": "★ 보상형 광고 (2026-08-07). 문구는 **정직해야 한다** — '광고를 본다'를 숨기지 않고, 받는 값을 숫자로 말한다. 남은 횟수를 함께 보이는 이유: 상한이 있다는 사실을 누른 뒤에 알게 되면 그것은 함정이다.",
+    "adWatch": {
+        "ko": "광고 보고 골드 {mult}배",
+        "en": "Watch an ad for {mult}x gold"
+    },
+    "adGain": {
+        "ko": "+{n} 골드",
+        "en": "+{n} gold"
+    },
+    "adLeft": {
+        "ko": "오늘 {n}회 남음",
+        "en": "{n} left today"
+    },
+    "adDone": {
+        "ko": "골드 {n} 을 더 받았습니다",
+        "en": "You received {n} more gold"
+    },
+    "adFailed": {
+        "ko": "광고를 끝까지 보지 않아 보상이 없습니다",
+        "en": "No reward — the ad was not finished"
+    },
+    "adUnavailable": {
+        "ko": "지금은 광고를 불러올 수 없습니다",
+        "en": "No ad available right now"
+    },
+    "adDaily": {
+        "ko": "오늘은 더 받을 수 없습니다",
+        "en": "Daily limit reached"
+    },
+    "adCooldown": {
+        "ko": "잠시 뒤에 다시 시도해 주세요",
+        "en": "Please try again in a moment"
+    }
+}

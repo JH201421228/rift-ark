@@ -1,0 +1,185 @@
+{
+    "$doc": "네임스페이스 'guide' — 키는 'i18n.guide.<키>' 가 아니라 'guide.<키>' 다 (파일 이름이 곧 네임스페이스). 항목은 반드시 { \"ko\", \"en\" } 두 언어를 함께 갖는다 — 한쪽만 적으면 npm run check:i18n 이 막는다.",
+
+    "$why": [
+        "★★★ **여기에는 수치가 없다.** 가이드가 말하는 숫자는 `game/data/*.json` 에서",
+        "  그때그때 읽어 자리표(`{n}`)에 꽂는다 (절대규칙 4). 문장에 숫자를 박으면",
+        "  밸런스를 고친 다음 날부터 가이드가 거짓말을 시작하고, 그 거짓말은 문법이",
+        "  완전하기 때문에 어떤 테스트도 잡지 못한다.",
+        "",
+        "★★ 표의 **라벨(왼쪽)과 값(오른쪽)이 각각 한 키**다. 값을 코드에서",
+        "  `'초당 ' + n` 처럼 만들면 영어에서 어순이 뒤집히는 순간 무너진다 —",
+        "  `stagePreview.js:TAG_WARNING_RULES` 와 같은 규약으로, 코드는 **값만** 채운다.",
+        "",
+        "★ 단위 조사(줄 · 체 · 방 · 초 · 종 · 칸 · 개)는 한국어에서 숫자에 붙는다.",
+        "  영어는 복수형이 필요하지만 이 표의 값은 대부분 2 이상이므로 복수만 적는다.",
+        "  1 이 실제로 나오는 자리(공중 레인 1줄)는 문장 자체가 '1' 을 품고 있다."
+    ],
+
+    "$aura": "오라 역할 효과 — 키는 `balance.json:commander.auraEffects` 의 효과 이름과 1:1 이다. 새 효과를 데이터에 적고 여기 키를 빠뜨리면 `guide.js` 가 `<키> <값>` 을 그대로 보여 준다 — 조용히 빠뜨리는 것보다 낫다.",
+    "aura.blockBonus": { "ko": "동시에 붙드는 적 +{n}", "en": "Blocks +{n} more at once" },
+    "aura.damageTakenMult": { "ko": "받는 피해 {n}% 감소", "en": "Damage taken −{n}%" },
+    "aura.execThreshold": {
+        "ko": "체력 {n}% 이하의 적을 즉시 처치",
+        "en": "Instantly executes enemies at or below {n}% HP"
+    },
+    "aura.rangeMult": { "ko": "사거리 +{n}%", "en": "Range +{n}%" },
+    "aura.pierceBonus": {
+        "ko": "발사체가 적 {n}체를 더 관통",
+        "en": "Projectiles pierce {n} more"
+    },
+    "aura.cooldownMult": { "ko": "재사용 대기 {n}% 단축", "en": "Cooldown −{n}%" },
+    "aura.pushPower": {
+        "ko": "맞은 적을 균열 쪽으로 {n} 밀어냄 (붙들린 적은 제외)",
+        "en": "Pushes struck enemies {n} toward the rift (blocked enemies excluded)"
+    },
+    "aura.canHitGround": {
+        "ko": "지상의 적을 공격할 수 있음",
+        "en": "Can attack ground enemies"
+    },
+    "aura.inverted": {
+        "ko": "오라 **밖**에서만 작동",
+        "en": "Works only **outside** the aura"
+    },
+
+    "$lanes": "레인 표.",
+    "lanes.ground": { "ko": "지상 레인", "en": "Ground lanes" },
+    "lanes.groundValue": { "ko": "{n}줄", "en": "{n} lanes" },
+    "lanes.air": { "ko": "공중", "en": "Air" },
+    "lanes.airValue": { "ko": "1줄 (레인 {n})", "en": "1 lane (lane {n})" },
+    "$arkHp": "★★ 방주 체력은 **스테이지마다 다르다** (`stages.json:arkHp`). 이 줄이 4개월 동안 `balance.commander.hp`(=지휘관 체력 600)를 '방주 체력'이라고 말하고 있었다 — 같은 표의 다른 줄이 그 값을 '지휘관 체력'으로 쓰는데도.",
+    "lanes.arkHp": { "ko": "방주 체력", "en": "Ark HP" },
+    "lanes.arkHpValue": {
+        "ko": "{min}–{max} (스테이지마다 다릅니다)",
+        "en": "{min}–{max} (varies by stage)"
+    },
+
+    "$mana": "마나 표.",
+    "mana.start": { "ko": "시작 마나", "en": "Starting mana" },
+    "mana.max": { "ko": "최대 마나", "en": "Maximum mana" },
+    "mana.regen": { "ko": "회복", "en": "Regen" },
+    "mana.regenValue": { "ko": "초당 {n}", "en": "{n} per second" },
+    "mana.costGrowth": { "ko": "반복 소환 비용", "en": "Repeat summon cost" },
+    "mana.costGrowthValue": { "ko": "한 번마다 ×{n}", "en": "×{n} each time" },
+    "mana.decay": { "ko": "비용 원복", "en": "Cost decay" },
+    "mana.decayValue": { "ko": "{n}초 뒤", "en": "after {n}s" },
+    "mana.refund": { "ko": "처치 환급", "en": "Kill refund" },
+    "mana.refundValue": { "ko": "소환가의 {n}%", "en": "{n}% of the summon cost" },
+
+    "$aura2": "오라 표.",
+    "aura.radius": { "ko": "오라 반경", "en": "Aura radius" },
+    "aura.radiusMax": { "ko": "최대 반경", "en": "Maximum radius" },
+    "aura.radiusMaxValue": { "ko": "{n} (성소 · 각인)", "en": "{n} (Sanctum · Sigils)" },
+    "aura.respawn": { "ko": "지휘관 부활", "en": "Commander respawn" },
+    "aura.moveSpeed": { "ko": "이동 속도", "en": "Move speed" },
+
+    "$risk": "지휘관 평타의 대가. **부등식이 설명이다** — 평타 사거리 < 오라 반경이라, 때리러 나가면 오라 앞쪽을 적에게 내주게 된다.",
+    "risk.hp": { "ko": "지휘관 체력", "en": "Commander HP" },
+    "risk.range": { "ko": "평타 사거리", "en": "Attack range" },
+    "risk.auraValue": { "ko": "{n} (평타보다 넓다)", "en": "{n} (wider than the attack range)" },
+    "risk.respawn": { "ko": "부활", "en": "Respawn" },
+    "risk.cap": { "ko": "한 방의 상한", "en": "Damage cap per hit" },
+    "$riskCapValue": "★ '최소 N방은 버틴다' 였고 한 대 어긋나 있었다. 상한이 최대 체력의 r 이면 쓰러지는 것은 ceil(1/r) 번째 타격이다 — r=0.08 이면 12대까지 버티고 13번째에 쓰러진다. 버티는 횟수가 아니라 **쓰러지는 횟수**로 말하면 r 이 1/정수 일 때도 참이다.",
+    "risk.capValue": {
+        "ko": "최대 체력의 {pct}% — 최악의 경우 {n}방에 쓰러집니다",
+        "en": "{pct}% of max HP — worst case, {n} such hits will down the Commander"
+    },
+
+    "$tag": "태그가 무엇을 요구하는가. 라벨(태그 이름)은 `terms.tag.*` 가 낸다 — 여기에는 **답**만 적는다.",
+    "tag.ARMORED": { "ko": "방어력이 높다 — 술식으로 푼다", "en": "High DEF — answer with Arcane" },
+    "tag.WARDED": { "ko": "결계가 높다 — 물리로 푼다", "en": "High RES — answer with Physical" },
+    "tag.FLYING": {
+        "ko": "블로킹 불가 — 대공이나 비물리로 푼다",
+        "en": "Cannot be blocked — answer with anti-air or non-physical damage"
+    },
+    "tag.SWARM": { "ko": "수가 많다 — 광역으로 푼다", "en": "Comes in numbers — answer with splash" },
+    "tag.CORRUPT": { "ko": "신성에 약하다", "en": "Weak to Holy" },
+    "tag.REGEN": {
+        "ko": "체력을 회복한다 — 화력으로 눌러야 한다",
+        "en": "Heals itself — you have to out-damage the healing"
+    },
+    "tag.SHIELDED": {
+        "ko": "보호막이 있다 — 다단히트로 벗긴다",
+        "en": "Has a shield — strip it with multi-hits"
+    },
+    "tag.ANTI_AIR": { "ko": "공중을 때릴 수 있다", "en": "Can strike air units" },
+
+    "$sigils": "각인 표.",
+    "sigils.kinds": { "ko": "각인 종류", "en": "Sigil types" },
+    "sigils.draft": { "ko": "드래프트", "en": "Draft" },
+    "sigils.draftValue": {
+        "ko": "3웨이브마다 3지선다",
+        "en": "One of three, every three waves"
+    },
+    "sigils.duration": { "ko": "지속", "en": "Duration" },
+    "sigils.durationValue": { "ko": "그 전투 동안만", "en": "That battle only" },
+    "sigils.choices": { "ko": "선택지·리롤", "en": "Choices and rerolls" },
+    "sigils.choicesValue": {
+        "ko": "방주 기록보관소가 늘린다",
+        "en": "The Ark Archive increases both"
+    },
+
+    "$spells": "주문 표. 주문 이름·설명은 `spells.json` 이 두 언어로 갖는다 — 카탈로그로 옮기지 않는다 (i18n/index.js 머리말).",
+    "spells.riftMax": { "ko": "균열력 최대", "en": "Maximum Rift" },
+    "spells.perKill": { "ko": "처치 시", "en": "Per kill" },
+    "spells.kinds": { "ko": "주문 종류", "en": "Spell types" },
+    "spells.loadout": { "ko": "들고 가는 수", "en": "Slots you take" },
+    "spells.loadoutValue": { "ko": "{n}칸", "en": "{n} slots" },
+    "spells.row": { "ko": "균열력 {cost} · {desc}", "en": "Rift {cost} · {desc}" },
+    "spells.rowUnlock": {
+        "ko": "균열력 {cost} · {desc} · 스테이지 {stage} 해금",
+        "en": "Rift {cost} · {desc} · unlocks at stage {stage}"
+    },
+
+    "$facilities": "방주 시설 표. '언제 오는가'를 함께 말한다 — 모르면 확정 지급은 확정이 아니라 그냥 안 오는 것이다.",
+    "facilities.row": {
+        "ko": "{desc} · 스테이지 {stage} 해금",
+        "en": "{desc} · unlocks at stage {stage}"
+    },
+
+    "$recruit": "영입 표.",
+    "recruit.available": { "ko": "영입 가능", "en": "Recruitable" },
+    "recruit.row": {
+        "ko": "골드 {gold} · 스테이지 {stage} 해금",
+        "en": "{gold} gold · unlocks at stage {stage}"
+    },
+
+    "$nm": "나이트메어 규칙 표. 규칙 이름·요약은 `balance.json` 이 갖는다 — 여기에는 **표의 라벨과 값**만 있다.",
+    "nm.worlds": { "ko": "걸리는 월드", "en": "Applies to" },
+    "nm.worldN": { "ko": "월드 {n}", "en": "World {n}" },
+    "nm.radius": { "ko": "장판 반경", "en": "Pool radius" },
+    "nm.duration": { "ko": "지속", "en": "Duration" },
+    "nm.tick": { "ko": "피해 주기", "en": "Damage interval" },
+    "nm.tickValue": { "ko": "{n}초마다", "en": "every {n}s" },
+    "nm.dps": { "ko": "피해량", "en": "Damage" },
+    "nm.dpsValue": {
+        "ko": "초당 최대 체력의 {n}% (방어·결계 무시)",
+        "en": "{n}% of max HP per second (ignores DEF and RES)"
+    },
+    "nm.maxPerLane": { "ko": "레인당 최대", "en": "Max per lane" },
+    "nm.merge": { "ko": "겹치면", "en": "When they overlap" },
+    "nm.mergeValue": {
+        "ko": "{n} 안쪽은 기존 장판이 연장됩니다",
+        "en": "Within {n}, the existing pool is extended instead"
+    },
+    "nm.holdLimit": { "ko": "결박 한계", "en": "Block limit" },
+    "nm.holdValue": { "ko": "누적 {n}초", "en": "{n}s cumulative" },
+    "nm.telegraph": { "ko": "예고", "en": "Telegraph" },
+    "nm.telegraphValue": { "ko": "{n}초 전", "en": "{n}s beforehand" },
+    "nm.afterBreak": { "ko": "끊은 뒤", "en": "After breaking free" },
+    "nm.afterBreakValue": {
+        "ko": "이동 속도 ×{n} · 다시 붙잡히지 않음",
+        "en": "Move speed ×{n} · can never be blocked again"
+    },
+    "nm.refundValue": {
+        "ko": "평소의 {mult}% (평소 소환가의 {base}%)",
+        "en": "{mult}% of normal ({base}% of the summon cost normally)"
+    },
+    "nm.decayNone": {
+        "ko": "없음 (평소에는 시간이 지나면 내려갑니다)",
+        "en": "None (normally the cost decays over time)"
+    },
+    "nm.decayValue": { "ko": "평소의 {n}%", "en": "{n}% of normal" },
+    "nm.manaRegen": { "ko": "마나 회복", "en": "Mana regen" },
+    "nm.unchanged": { "ko": "그대로", "en": "Unchanged" }
+}

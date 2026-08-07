@@ -1,0 +1,131 @@
+/*
+ * 진단 기록 목록.
+ * ★ 설정 화면의 `.group` 과 같은 모양이지만 **자기 스타일을 들고 다닌다** —
+ *   남의 CSS 모듈을 빌려 쓰면 그 파일의 클래스 이름에 묶인다.
+ * ★ 글자 최소 크기 10px (check-a11y A4).
+ */
+.group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 12px;
+    background: #14142a;
+    border: 2px solid #2a2a44;
+    border-radius: 3px;
+}
+
+.groupTitle {
+    margin: 0;
+    font-size: 12px;
+    color: var(--gold);
+}
+
+.note {
+    margin: 0;
+    font-size: 11px;
+    line-height: 1.45;
+    color: var(--text-dim);
+    word-break: keep-all;
+}
+
+.empty {
+    margin: 0;
+    padding: 6px 0;
+    font-size: 11px;
+    color: var(--text-dim);
+}
+
+.list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 6px 8px;
+    background: #1a1a30;
+    border-left: 3px solid #3a3a5e;
+    border-radius: 2px;
+}
+
+.line {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.time {
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-dim);
+}
+
+/* ★ 색만으로 심각도를 말하지 않는다 — 이름이 이미 무엇인지 말한다 */
+.kindBad {
+    font-size: 11px;
+    font-weight: bold;
+    color: #ff9a9a;
+}
+
+.kindWarn {
+    font-size: 11px;
+    font-weight: bold;
+    color: var(--gold);
+}
+
+.ms {
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-dim);
+}
+
+.msg {
+    font-size: 11px;
+    line-height: 1.4;
+    color: var(--text);
+    word-break: break-all;
+}
+
+.ctx {
+    font-size: 10px;
+    line-height: 1.4;
+    color: var(--text-dim);
+    word-break: keep-all;
+}
+
+.stack {
+    margin: 2px 0 0;
+    max-height: 96px;
+    overflow: auto;
+    font-family: inherit;
+    font-size: 10px;
+    line-height: 1.5;
+    color: var(--text-dim);
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+.btn {
+    align-self: flex-start;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 36px;
+    padding: 4px 14px;
+    font-family: inherit;
+    font-size: 12px;
+    color: var(--text);
+    background: #232342;
+    border: 2px solid #3a3a5e;
+    border-radius: 3px;
+}
+
+.btn:hover {
+    border-color: var(--gold);
+}

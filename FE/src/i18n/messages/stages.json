@@ -1,0 +1,166 @@
+{
+    "$doc": "네임스페이스 'stages' — 키는 'i18n.stages.<키>' 가 아니라 'stages.<키>' 다 (파일 이름이 곧 네임스페이스). 항목은 반드시 { \"ko\", \"en\" } 두 언어를 함께 갖는다 — 한쪽만 적으면 npm run check:i18n 이 막는다.",
+    "$screen": "출격(`/stages`) — 스테이지 목록 + 프리뷰 패널(`StagePreview.jsx`) 이 같은 네임스페이스를 쓴다. 두 파일이지만 사용자에게는 **한 화면**이다. ★ 태그·역할·난이도·모드 **이름**은 여기 없다 — `terms.*` 가 단일 출처다.",
+    "$vocab": [
+        "★★ **영어 낱말은 탭(`system.tab*`)과 글자까지 같다** (2026-08-07).",
+        "  탭에서 배운 낱말과 화면 안의 낱말이 다르면 같은 곳을 둘로 배운다.",
+        "  한국어에서는 두 곳이 모두 '출격'·'편성'·'동료' 라 이 사고가 보이지 않았다.",
+        "  확정: Ark · Deploy · Loadout · Companions · Settings.",
+        "★ `Sortie` 를 쓰지 않는다 — 항공·군사 전문어라 영어권 캐주얼 플레이어에게 낯설고,",
+        "  이 화면이 하는 일(어느 스테이지로 나갈지 고른다)은 장르 관례로 `Deploy` 다.",
+        "★ 화면 제목과 [출격] 버튼이 한국어로 같은 낱말이므로 영어에서도 같은 낱말이다."
+    ],
+    "title": {
+        "ko": "출격",
+        "en": "Deploy"
+    },
+    "$marks": "스테이지 카드의 상태 표기. 판정은 `logic/stageUnlock.js:stageMark` 하나이고 여기는 문구만 고른다.",
+    "markNext": {
+        "ko": "다음 도전",
+        "en": "Next up"
+    },
+    "markCleared": {
+        "ko": "클리어",
+        "en": "Cleared"
+    },
+    "nextBadge": {
+        "ko": "다음",
+        "en": "Next"
+    },
+    "ariaStage": {
+        "ko": "{id} · {mark}",
+        "en": "{id} · {mark}"
+    },
+    "note": {
+        "ko": "다음 도전 {id} · 총 {n} 스테이지 · 클리어한 곳은 다시 돌 수 있습니다",
+        "en": "Next up {id} · {n} stages in all · cleared stages can be replayed"
+    },
+    "worldTab": {
+        "ko": "월드 {n}",
+        "en": "World {n}"
+    },
+    "worldTitle": {
+        "ko": "월드 {n} · {name}",
+        "en": "World {n} · {name}"
+    },
+    "worldStageCount": {
+        "ko": "{n} 스테이지",
+        "en": "{n} stages"
+    },
+    "$preview": "── 프리뷰 패널 ──────────────────────────────────",
+    "placeholder": {
+        "ko": "왼쪽에서 스테이지를 고르면 적 구성이 표시됩니다.",
+        "en": "Pick a stage on the left to see what it sends at you."
+    },
+    "$modeNote": "모드는 둘뿐이다 (2026-08-04 경량화 이후 assault · nemesis). 모드 **이름**은 `terms.mode.*` 이고, 여기 있는 것은 승리 조건 한 줄이다.",
+    "modeNoteAssault": {
+        "ko": "전 웨이브를 막으면 승리",
+        "en": "Hold every wave to win"
+    },
+    "modeNoteNemesis": {
+        "ko": "보스를 처치하면 승리",
+        "en": "Kill the boss to win"
+    },
+    "$severity": "경고 아이콘의 `aria-label`. 색약·스크린리더 사용자에게는 이 글자가 심각도의 유일한 채널이다 (모양은 아이콘이 진다).",
+    "severityCritical": {
+        "ko": "치명",
+        "en": "Critical"
+    },
+    "severityWarn": {
+        "ko": "경고",
+        "en": "Warning"
+    },
+    "severityInfo": {
+        "ko": "안내",
+        "en": "Note"
+    },
+    "nightmareRule": {
+        "ko": "{difficulty} 규칙",
+        "en": "{difficulty} rule"
+    },
+    "statTarget": {
+        "ko": "목표",
+        "en": "Target"
+    },
+    "statEnemies": {
+        "ko": "적",
+        "en": "Enemies"
+    },
+    "enemyCount": {
+        "ko": "{n}마리",
+        "en": "{n}"
+    },
+    "headTags": {
+        "ko": "적 태그",
+        "en": "Enemy Tags"
+    },
+    "headWarnings": {
+        "ko": "주의",
+        "en": "Watch Out"
+    },
+    "headBossPhases": {
+        "ko": "보스 페이즈",
+        "en": "Boss Phases"
+    },
+    "headEnemies": {
+        "ko": "등장 적",
+        "en": "Enemies"
+    },
+    "headRecommended": {
+        "ko": "추천 편성",
+        "en": "Recommended Loadout"
+    },
+    "headPresets": {
+        "ko": "출전 프리셋",
+        "en": "Deploy Preset"
+    },
+    "phaseNoDefense": {
+        "ko": "방어 포기",
+        "en": "No defenses"
+    },
+    "rangedTip": {
+        "ko": "멀리서 발사체로 공격합니다",
+        "en": "Attacks from a distance with projectiles"
+    },
+    "moreEnemies": {
+        "ko": "외 {n}종",
+        "en": "+{n} more"
+    },
+    "recVerified": {
+        "ko": "밸런스 검증이 이 편성으로 클리어 가능을 확인한 구성입니다",
+        "en": "Balance testing confirmed this loadout can clear the stage"
+    },
+    "recBest": {
+        "ko": "지금 보유한 동료로 만들 수 있는 최선입니다 — 검증된 답안에는 {roles} 이(가) 더 필요합니다",
+        "en": "The best your roster allows — the verified loadout also needs {roles}"
+    },
+    "grantFrom": {
+        "ko": "{stage} 클리어 시 확정 지급",
+        "en": "Granted on clearing {stage}"
+    },
+    "grantSummon": {
+        "ko": "골드로 영입",
+        "en": "Recruit with gold"
+    },
+    "toastApplied": {
+        "ko": "추천 편성을 '{preset}' 프리셋에 적용했습니다",
+        "en": "Applied the recommended loadout to '{preset}'"
+    },
+    "applyRecommended": {
+        "ko": "추천 편성 적용",
+        "en": "Apply Loadout"
+    },
+    "editLoadout": {
+        "ko": "편성 수정",
+        "en": "Edit Loadout"
+    },
+    "sortie": {
+        "ko": "출격",
+        "en": "Deploy"
+    },
+    "lockedSortie": {
+        "ko": "이전 스테이지를 먼저 클리어하세요",
+        "en": "Clear the previous stage first"
+    },
+    "$grantSummon": "★★ 예전 문구는 '소환으로 획득' 이었다 — **가챠가 삭제된(2026-08-04) 뒤로 사실이 아니다.** 이 게임에는 뽑기가 한 개도 없고(절대 규칙 6), 확정 지급이 아닌 동료는 전부 **골드 영입**으로 얻는다 (`logic/recruit.js` · 40종). 화면이 없는 시스템의 이름을 말하면 플레이어는 그것을 찾아 헤맨다. 2026-08-07 에 두 언어를 함께 고쳤다."
+}

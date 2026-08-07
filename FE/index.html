@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ko">
+    <head>
+        <meta charset="UTF-8" />
+        <link rel="icon" type="image/svg+xml" href="./vite.svg" />
+
+        <!--
+          viewport-fit=cover : Android 15+ edge-to-edge / 노치 대응.
+                               세이프에어리어 인셋은 #ui-overlay 에만 적용한다.
+          user-scalable=no   : 게임 조작 중 핀치 확대 방지
+          maximum-scale=1.0  : iOS 더블탭 확대 방지
+          docs/03-tech/25-capacitor-mobile.md §4.1
+        -->
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+        />
+        <meta name="theme-color" content="#0f0f1e" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="format-detection" content="telephone=no" />
+
+        <!--
+          첫 페인트의 이름·언어. **런타임의 값이 아니다.**
+
+          ★★ `App.jsx` 가 하이드레이션 직후 `document.title` 과 `<html lang>` 을
+            **둘 다 덮어쓴다** (`setLang` 구독, fireImmediately). 그러니까 여기 적힌
+            값이 보이는 시간은 "첫 픽셀 ~ 세이브를 읽어 언어를 정하기까지"뿐이고,
+            네이티브에서는 그 구간을 스플래시가 덮는다. 웹에서는 탭 제목이
+            1초 미만 한국어였다가 바뀐다.
+
+          ★★★ **여기서 언어를 감지하지 않는다.** `navigator.language` 를 보는
+            인라인 스크립트를 넣으면 `i18n/index.js:detectLang()` 과 **같은 규칙이
+            두 곳**에 살게 되고, 그것이 이 저장소가 반복해서 당한 단일 실패
+            유형이다 (한쪽만 고쳐지고 아무도 실패하지 않는다). 1초 미만의
+            첫인상을 위해 규칙을 복제하지 않는다.
+
+          ★ 그래서 기본값은 **한국어**다 — 한국 선행 출시이고, `detectLang()` 도
+            로케일을 물어볼 곳이 없으면 한국어로 떨어진다. 두 곳의 기본값이
+            같다는 것이 여기서 지키는 유일한 규약이다.
+            (앱 전환기·런처의 이름은 여기서 오지 않는다 — 안드로이드는
+             `res/values*/strings.xml`, iOS 는 `InfoPlist.strings` 다.)
+        -->
+        <title>균열의 방주</title>
+
+        <!--
+          콜드 스타트 계측 시작점.
+          ★ 첫 인터랙티브 프레임까지 3초가 목표이며, 이 지표가
+            튜토리얼 이전 이탈의 최대 원인이다.
+          docs/03-tech/26-performance-budget.md §8
+        -->
+        <script>
+            window.__t0 = performance.now();
+        </script>
+    </head>
+    <body>
+        <div id="root"></div>
+        <script type="module" src="/src/main.jsx"></script>
+    </body>
+</html>

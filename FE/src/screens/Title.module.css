@@ -1,0 +1,271 @@
+/**
+ * 타이틀 화면 (2026-08-04)
+ *
+ * ★ 배경은 codex 가 만든 스토어 아트다 (`assets/title/title-bg.png`).
+ *   1024×500 을 `cover` 로 늘리므로 어느 화면비에서도 균열이 오른쪽에 남는다.
+ *
+ * ★ `image-rendering: pixelated` 를 **쓰지 않는다.** 이 그림은 픽셀아트 스프라이트가
+ *   아니라 회화적 키아트라, 확대할 때 부드러운 보간이 맞다.
+ */
+
+.screen {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    background-color: #07070f;
+    background-image: url("/assets/title/title-bg.png");
+    background-size: cover;
+    background-position: center;
+    pointer-events: auto;
+    overflow: hidden;
+}
+
+/* 그림 위에 글자를 얹으므로 어둡게 깐다 — 가독성이 먼저다 */
+.veil {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        90deg,
+        rgba(6, 6, 14, 0.94) 0%,
+        rgba(6, 6, 14, 0.82) 42%,
+        rgba(6, 6, 14, 0.28) 100%
+    );
+}
+
+/**
+ * ★★ **폰 가로에서 아래가 잘렸다** (2026-08-04). 1280×720 기준 여백(22/26/18)과
+ *   268px 로고를 412px 높이에 그대로 얹으니 마지막 줄이 화면 밖으로 나갔다.
+ *   화면(`.screen`)은 `overflow: hidden` 이라 **볼 방법도 없었다.**
+ *
+ * ★ 여백·로고를 뷰포트 높이에 비례시키고, 그래도 넘치면 여기서 스크롤한다.
+ */
+.inner {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(4px, 1.6vh, 10px);
+    padding: clamp(10px, 3vh, 22px) 26px clamp(8px, 2.5vh, 18px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
+}
+
+/**
+ * 로고 + 언어 전환 (2026-08-07).
+ *
+ * ★ 언어 버튼을 오른쪽 끝으로 밀어 두는 이유: 이 화면은 배경 키아트가 왼쪽에서
+ *   오른쪽으로 밝아지는 그라디언트(`.veil`)라 오른쪽 위가 가장 비어 있다.
+ *   슬롯 카드(`.slots`)는 아래에 그대로 남는다.
+ * ★ `align-items: flex-start` — 로고는 세로 높이가 뷰포트에 따라 변하는데
+ *   (`max-height: 16vh`), 버튼이 그 중앙을 따라다니면 화면 높이마다 자리가 바뀐다.
+ */
+.topRow {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.logo {
+    /* ★ 세로가 좁으면 로고가 슬롯 카드를 밀어낸다 — 높이에도 상한을 건다 */
+    width: 268px;
+    max-width: 46vw;
+    max-height: 16vh;
+    height: auto;
+    object-fit: contain;
+    object-position: left center;
+    image-rendering: auto;
+}
+
+/**
+ * 영어 워드마크 — **그림이 아니라 글자다** (2026-08-07).
+ *
+ * ★★ `logo-ko.png` 는 한국어 전용이고, 영어 그림을 하나 더 만들면 이름을 바꿀 때
+ *   둘이 갈라진다 (이 저장소의 단일 실패 유형). 이 게임의 픽셀 폰트는 ASCII 95자를
+ *   전부 갖고 있으므로 같은 글자체로 직접 그린다 — 출처가 `common.appName` 하나다.
+ * ★ 색과 외곽선은 한국어 로고와 같다 (금색 #f2b33d · 검은 테두리). 두 언어의
+ *   첫 화면이 다른 게임처럼 보이면 안 된다.
+ * ★ 높이를 로고와 맞춘다 (`max-height: 16vh` 대신 line-height 로) — 세로가 좁은
+ *   기기에서 슬롯 카드를 밀어내지 않아야 한다.
+ */
+.logoText {
+    margin: 0;
+    font-family: inherit;
+    font-size: clamp(28px, 6vh, 44px);
+    line-height: 1.1;
+    letter-spacing: 0.04em;
+    color: var(--gold, #f2b33d);
+    /* 픽셀 로고와 같은 두꺼운 검은 테두리 — 배경 키아트 위에서 읽히게 한다 */
+    -webkit-text-stroke: 3px #14142a;
+    paint-order: stroke fill;
+    white-space: nowrap;
+}
+
+.tagline {
+    margin: 0;
+    font-size: 12px;
+    color: var(--text-dim);
+}
+
+/* ── 슬롯 ── */
+
+.slots {
+    display: flex;
+    gap: 10px;
+    margin-top: 4px;
+}
+
+.slot {
+    flex: 1;
+    max-width: 250px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    /* ★ 44px 터치 타깃을 크게 넘긴다 — 이 화면에서 가장 중요한 버튼이다.
+       세로가 좁으면 줄인다 (폰 가로에서 132px 는 화면의 32% 다). */
+    min-height: clamp(96px, 26vh, 132px);
+    padding: 12px 14px;
+    text-align: left;
+    color: var(--text);
+    background: rgba(18, 18, 34, 0.92);
+    border: 2px solid #3a3a5e;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.slot:hover {
+    border-color: var(--gold);
+}
+
+.slot.empty {
+    border-style: dashed;
+    color: var(--text-dim);
+}
+
+.slotHead {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-dim);
+}
+
+.slotNo {
+    color: var(--gold);
+}
+
+.slotStage {
+    font-size: 20px;
+    color: var(--text);
+}
+
+.slotMeta {
+    display: flex;
+    gap: 10px;
+    font-size: 11px;
+    color: var(--text-dim);
+}
+
+.slotWhen {
+    margin-top: auto;
+    font-size: 10px;
+    color: var(--text-dim);
+}
+
+.slotBroken {
+    font-size: 11px;
+    color: #e06868;
+}
+
+/* ── 액션 ── */
+
+.actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+.btn {
+    min-height: 40px;
+    padding: 0 18px;
+    font-size: 13px;
+    color: var(--text);
+    background: #16162a;
+    border: 2px solid #3a3a5e;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.btn:hover:not(:disabled) {
+    border-color: var(--gold);
+}
+
+.btn:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+.btnPrimary {
+    color: #0f0f1e;
+    background: var(--gold);
+    border-color: var(--gold);
+}
+
+/* ★ 터치 타깃 40px 하한 — 폰 가로 실측에서 30px 였다 (18-ux-ui.md §1.2).
+   슬롯 카드 안의 [이어하기]·[삭제] 이고, 삭제는 되돌릴 수 없으므로 더더욱
+   작게 두면 안 된다. */
+.small {
+    min-height: 40px;
+    padding: 0 12px;
+    font-size: 11px;
+}
+
+.danger {
+    color: #e06868;
+    border-color: #5a2a2a;
+}
+
+.foot {
+    margin-top: auto;
+    font-size: 10px;
+    color: var(--text-dim);
+}
+
+/* ── 삭제 확인 ── */
+
+.confirm {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(6, 6, 14, 0.9);
+    z-index: 5;
+}
+
+.confirmBox {
+    max-width: 420px;
+    padding: 18px 20px;
+    text-align: center;
+    background: #12121f;
+    border: 2px solid var(--gold);
+    border-radius: 4px;
+}
+
+.confirmBox p {
+    margin: 0 0 14px;
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--text);
+}
+
+.confirmRow {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+}

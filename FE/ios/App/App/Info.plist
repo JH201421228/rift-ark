@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>en</string>
+	<!--
+	  홈 화면에 뜨는 앱 이름.
+
+	  ★★ 2026-08-07 이전 값은 `SuperDimension` 이었다 — `package.json` 의 내부
+	    프로젝트명이 그대로 남은 자리 표시자이고, **게임 어디에도 없는 이름**이다.
+	    그대로 제출하면 스토어 등록명과 홈 화면 이름이 달라 심사에서 지적된다.
+
+	  ★ `CFBundleDevelopmentRegion` 이 `en` 이므로 여기 값이 영어 기본이다.
+	    한국어 기기에 `균열의 방주` 를 띄우려면 `ko.lproj/InfoPlist.strings` 를
+	    만들고 Xcode 프로젝트에 등록해야 한다 (`CFBundleDisplayName = "균열의 방주";`).
+	    **웹뷰 안의 i18n 은 이 글자를 절대 바꿀 수 없다** — OS 로케일이 정한다.
+	    안드로이드 쪽 대응은 `android/app/src/main/res/values-en/strings.xml` 이다.
+	    절차: `docs/06-release/53-english-market-paid-release.md`
+	-->
+	<!--
+	  ★★★ **Google Mobile Ads 앱 ID (iOS)** — 안드로이드의 APPLICATION_ID meta-data 와
+	    같은 역할이다. 없으면 SDK 초기화 시점에 예외가 난다.
+	  ★ 지금 값은 **구글 공식 테스트 앱 ID** 다. AdMob 에 iOS 앱을 등록하면 바꾼다.
+	    앱 ID 는 물결(~), 광고 단위 ID 는 슬래시(/)로 구분된다 — 바꿔 넣으면 실패한다.
+	  ★ ATT(App Tracking Transparency) 문구 `NSUserTrackingUsageDescription` 은
+	    **추적 동의를 실제로 요청할 때** 넣는다. 지금은 요청하지 않으므로 넣지 않는다 —
+	    쓰지 않는 권한 문구는 심사에서 되묻는 항목이 된다.
+	  절차: docs/06-release/56-admob-rewarded-integration.md §2 · §3
+	-->
+	<key>GADApplicationIdentifier</key>
+	<string>ca-app-pub-3940256099942544~1458002511</string>
+	<key>CFBundleDisplayName</key>
+	<string>Rift Ark</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>$(MARKETING_VERSION)</string>
+	<key>CFBundleVersion</key>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
+	<key>UIMainStoryboardFile</key>
+	<string>Main</string>
+	<key>UIRequiredDeviceCapabilities</key>
+	<array>
+		<string>armv7</string>
+	</array>
+	<!-- 가로 고정: Portrait 제거. docs/03-tech/25-capacitor-mobile.md §3.1 -->
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<!-- iPad 는 이 값이 없으면 멀티태스킹 때문에 방향 고정이 무시된다 -->
+	<key>UIRequiresFullScreen</key>
+	<true/>
+	<!-- 상태바 숨김 (StatusBar 플러그인과 함께 동작) -->
+	<key>UIStatusBarHidden</key>
+	<true/>
+	<key>UIViewControllerBasedStatusBarAppearance</key>
+	<false/>
+</dict>
+</plist>

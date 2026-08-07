@@ -1,0 +1,1674 @@
+{
+    "$comment": [
+        "동료 정의. P2 단계에서는 월드 1 튜토리얼에 필요한 최소 세트만 정의한다.",
+        "전체 44종은 P5-04 에서 채운다 (docs/02-design/12-unit-roster.md).",
+        "★ 등급별 코스트 범위: C 8–18 / R 20–35 / E 38–60 / L 65–95",
+        "★ 거리·속도는 디자인 해상도 1280×720 기준 (레인 간격 96px, 전장 폭 1088px)"
+    ],
+    "units": [
+        {
+            "id": "slow_turtle",
+            "name": {
+                "ko": "느림보 거북",
+                "en": "Slow Turtle"
+            },
+            "flavor": {
+                "ko": "질문: 왜 이렇게 느린가. 답: 어차피 도착할 것이다.",
+                "en": "Question: why so slow? Answer: it will arrive regardless."
+            },
+            "rarity": "C",
+            "role": "BLOCKER",
+            "dmgType": "physical",
+            "tags": [],
+            "cost": 8,
+            "base": {
+                "hp": 520,
+                "atk": 0,
+                "def": 18,
+                "res": 0,
+                "range": 40,
+                "speed": 14,
+                "atkInterval": 1200,
+                "blockCount": 2
+            },
+            "art": {
+                "atlas": "units",
+                "frame": "SlowTurtle",
+                "scale": 4
+            }
+        },
+        {
+            "id": "bold_man_at_arms",
+            "name": {
+                "ko": "결의의 창병",
+                "en": "Bold Man-at-Arms"
+            },
+            "rarity": "C",
+            "role": "BLOCKER",
+            "dmgType": "physical",
+            "tags": [],
+            "cost": 14,
+            "base": {
+                "hp": 380,
+                "atk": 22,
+                "def": 12,
+                "res": 0,
+                "range": 44,
+                "speed": 20,
+                "atkInterval": 1100,
+                "blockCount": 2
+            },
+            "art": {
+                "atlas": "units",
+                "frame": "BoldManAtArms",
+                "scale": 4
+            }
+        },
+        {
+            "id": "honking_goose",
+            "name": {
+                "ko": "꽥꽥 거위",
+                "en": "Honking Goose"
+            },
+            "flavor": {
+                "ko": "이 새는 균열을 두려워하지 않는다. 이 새는 아무것도 두려워하지 않는다.",
+                "en": "This bird does not fear the Rift. This bird fears nothing."
+            },
+            "rarity": "R",
+            "role": "BLOCKER",
+            "dmgType": "physical",
+            "tags": [],
+            "cost": 22,
+            "base": {
+                "hp": 480,
+                "atk": 26,
+                "def": 14,
+                "res": 0,
+                "range": 44,
+                "speed": 26,
+                "atkInterval": 1000,
+                "blockCount": 1
+            },
+            "art": {
+                "atlas": "units",
+                "frame": "HonkingGoose",
+                "scale": 4
+            }
+        },
+        {
+            "id": "clucking_chicken",
+            "name": {
+                "ko": "꼬꼬댁 닭",
+                "en": "Clucking Chicken"
+            },
+            "rarity": "C",
+            "role": "MELEE",
+            "dmgType": "physical",
+            "tags": [
+                "SWARM"
+            ],
+            "cost": 9,
+            "squad": 3,
+            "base": {
+                "hp": 70,
+                "atk": 16,
+                "def": 2,
+                "res": 0,
+                "range": 36,
+                "speed": 46,
+                "atkInterval": 600
+            },
+            "art": {
+                "atlas": "units",
+                "frame": "CluckingChicken",
+                "scale": 4
+            }
+        },
+        {
+            "id": "determined_soldier",
+            "name": {
+                "ko": "정규 보병",
+                "en": "Determined Soldier"
+            },
+            "rarity": "C",
+            "role": "MELEE",
+            "dmgType": "physical",
+            "tags": [],
+            "cost": 12,
+            "base": {
+                "hp": 240,
+                "atk": 34,
+                "def": 6,
+                "res": 0,
+                "range": 40,
+                "speed": 40,
+                "atkInterval": 900
+            },
+            "art": {
+                "atlas": "units",
+                "frame": "DeterminedSoldier",
+                "scale": 4
+            }
+        },
+        {
+            "id": "elf_sharpshooter",
+            "name": {
+                "ko": "엘프 사수",
+                "en": "Elf Sharpshooter"
+            },
+            "rarity": "C",
+            "role": "RANGED",
+            "dmgType": "physical",
+            "tags": [
+                "ANTI_AIR"
+            ],
+            "cost": 15,
+            "base": {
+                "hp": 140,
+                "atk": 30,
+                "def": 2,
+                "res": 0,
+                "range": 220,
+                "speed": 32,
+                "atkInterval": 1000
+            },
+            "art": {
+                "projectile": { "shape": "4_0", "$note": "화살촉" },
+                "atlas": "units",
+                "frame": "ElfSharpshooter",
+                "scale": 4
+            }
+        },
+        {
+            "id": "novice_pyromancer",
+            "name": {
+                "ko": "견습 화염술사",
+                "en": "Novice Pyromancer"
+            },
+            "rarity": "C",
+            "role": "CASTER",
+            "dmgType": "arcane",
+            "tags": [],
+            "cost": 16,
+            "base": {
+                "hp": 120,
+                "atk": 42,
+                "def": 2,
+                "res": 0,
+                "range": 190,
+                "speed": 30,
+                "atkInterval": 1500
+            },
+            "art": {
+                "projectile": { "shape": "2_26", "$note": "꼬리 끄는 화염탄" },
+                "atlas": "units",
+                "frame": "NovicePyromancer",
+                "scale": 4
+            }
+        },
+        {
+            "id": "devout_acolyte",
+            "name": {
+                "ko": "경건한 시자",
+                "en": "Devout Acolyte"
+            },
+            "rarity": "C",
+            "role": "CASTER",
+            "dmgType": "holy",
+            "tags": [],
+            "cost": 18,
+            "base": {
+                "hp": 130,
+                "atk": 38,
+                "def": 2,
+                "res": 0,
+                "range": 180,
+                "speed": 30,
+                "atkInterval": 1400
+            },
+            "art": {
+                "projectile": { "shape": "6_0", "$note": "신성 섬광" },
+                "atlas": "units",
+                "frame": "DevoutAcolyte",
+                "scale": 4
+            }
+        },
+        {
+            "id": "jovial_friar",
+            "name": {
+                "ko": "유쾌한 수도사",
+                "en": "Jovial Friar"
+            },
+            "rarity": "C",
+            "role": "SUPPORT",
+            "dmgType": "holy",
+            "tags": [],
+            "cost": 17,
+            "base": {
+                "hp": 160,
+                "atk": 44,
+                "def": 4,
+                "res": 0,
+                "range": 200,
+                "speed": 28,
+                "atkInterval": 1800
+            },
+            "art": {
+                "atlas": "units",
+                "frame": "JovialFriar",
+                "scale": 4
+            }
+        },
+        {
+            "id": "spikey_porcupine",
+            "name": {
+                "ko": "가시 호저",
+                "en": "Spikey Porcupine"
+            },
+            "rarity": "C",
+            "role": "SIEGE",
+            "dmgType": "physical",
+            "tags": [],
+            "cost": 14,
+            "base": {
+                "hp": 200,
+                "atk": 26,
+                "def": 8,
+                "res": 0,
+                "range": 260,
+                "speed": 0,
+                "atkInterval": 1300
+            },
+            "art": {
+                "projectile": { "shape": "1_26", "$note": "가시" },
+                "atlas": "units",
+                "frame": "SpikeyPorcupine",
+                "scale": 4
+            }
+        },
+        {
+            "$comment": [
+                "── P6-04 1차 확장 (2026-08-02) ──────────────────────────",
+                "여기부터는 **현재 시뮬이 이미 지원하는 능력만으로 성립하는 동료**다.",
+                "도발·반격·처법·돌진·부활·광역처럼 새 메커니즘이 필요한 동료는",
+                "메커니즘이 생긴 뒤에 넣는다. 데이터만 넣으면 로스터 숫자는 늘지만",
+                "'적혀 있는 능력이 실제로는 없는' 유닛이 생긴다.",
+                "",
+                "★ 등급은 파워가 아니라 역할 복잡도다 (GDD §5).",
+                "  그래서 코스트당 DPS 는 오히려 커먼이 가장 높다.",
+                "  상위 등급은 '싸게 많이'가 아니라 '이 상황에서만 답'이어야 한다."
+            ],
+            "id": "goblin_fighter",
+            "name": {
+                "ko": "고블린 전사",
+                "en": "Goblin Fighter"
+            },
+            "flavor": {
+                "ko": "수가 많다는 것은 그 자체로 전략이다.",
+                "en": "Numbers are a strategy all by themselves."
+            },
+            "rarity": "C",
+            "role": "MELEE",
+            "dmgType": "physical",
+            "tags": [],
+            "cost": 10,
+            "base": {
+                "hp": 170,
+                "atk": 22,
+                "def": 3,
+                "res": 0,
+                "range": 38,
+                "speed": 46,
+                "atkInterval": 620
+            },
+            "art": {
+                "atlas": "units",
+                "frame": "GoblinFighter",
+                "scale": 4
+            }
+        },
+        {
+            "id": "halfling_slinger",
+            "name": {
+                "ko": "하플링 투석수",
+                "en": "Halfling Slinger"
+            },
+            "flavor": {
+                "ko": "돌은 어디에나 있다. 그게 장점이다.",
+                "en": "Stones are everywhere. That is the whole appeal."
+            },
+            "rarity": "C",
+            "role": "RANGED",
+            "dmgType": "physical",
+            "tags": [],
+            "cost": 13,
+            "base": {
+                "hp": 130,
+                "atk": 22,
+                "def": 2,
+                "res": 0,
+                "range": 150,
+                "speed": 34,
+                "atkInterval": 700
+            },
+            "art": {
+                "projectile": { "shape": "3_0", "$note": "돌팔매" },
+                "atlas": "units",
+                "frame": "HalflingSlinger",
+                "scale": 4
+            }
+        },
+        {
+            "$comment": "오라 안 RANGED 는 engage.js 가 이미 관통 1 을 준다 — '오라 안 관통'이 데이터 없이 성립한다",
+            "id": "goblin_archer",
+            "name": {
+                "ko": "고블린 궁수",
+                "en": "Goblin Archer"
+            },
+            "flavor": {
+                "ko": "겨냥은 대충. 대신 많이 쏜다.",
+                "en": "Aim, roughly. Shoot, generously."
+            },
+            "rarity": "R",
+            "role": "RANGED",
+            "dmgType": "physical",
+            "tags": [],
+            "cost": 20,
+            "base": {
+                "hp": 150,
+                "atk": 24,
+                "def": 2,
+                "res": 0,
+                "range": 200,
+                "speed": 34,
+                "atkInterval": 620
+            },
+            "art": {
+                "projectile": { "shape": "2_26", "$note": "꼬리 달린 화살" },
+                "atlas": "units",
+                "frame": "GoblinArcher",
+                "scale": 4
+            }
+        },
+        {
+            "$comment": "관통을 기본 보유한다. 대신 공속이 느려 SHIELDED(피격 횟수 흡수) 에 약하다",
+            "id": "merfolk_javelineer",
+            "name": {
+                "ko": "인어 투창병",
+                "en": "Merfolk Javelineer"
+            },
+            "flavor": {
+                "ko": "한 줄로 서 있는 것들을 특히 좋아한다.",
+                "en": "Especially fond of things that stand in a line."
+            },
+            "rarity": "R",
+            "role": "RANGED",
+            "dmgType": "physical",
+            "tags": [],
+            "cost": 30,
+            "pierce": 1,
+            "base": {
+                "hp": 190,
+                "atk": 62,
+                "def": 4,
+                "res": 4,
+                "range": 240,
+                "speed": 26,
+                "atkInterval": 1700
+            },
+            "art": {
+                "projectile": { "shape": "3_26", "$note": "투창" },
+                "atlas": "units",
+                "frame": "MerfolkJavelineer",
+                "scale": 4
+            }
+        },
+        {
+            "$comment": "사거리 최장. 방벽 뒤에서 안전하게 때리는 것이 존재 이유다",
+            "id": "elf_wayfarer",
+            "name": {
+                "ko": "엘프 방랑자",
+                "en": "Elf Wayfarer"
+            },
+            "flavor": {
+                "ko": "멀리 보는 자가 오래 산다.",
+                "en": "Those who see far, live long."
+            },
+            "rarity": "E",
+            "role": "RANGED",
+            "dmgType": "physical",
+            "tags": [],
+            "cost": 40,
+            "base": {
+                "hp": 200,
+                "atk": 58,
+                "def": 3,
+                "res": 6,
+                "range": 330,
+                "speed": 30,
+                "atkInterval": 1250
+            },
+            "art": {
+                "projectile": { "shape": "4_0", "$note": "가는 화살촉" },
+                "atlas": "units",
+                "frame": "ElfWayfarer",
+                "scale": 4
+            }
+        },
+        {
+            "$comment": "전담 대공. 물리인데 ANTI_AIR 라 비행을 때릴 수 있는 몇 안 되는 수단이다",
+            "id": "leaf_ranger",
+            "name": {
+                "ko": "잎사귀 순찰자",
+                "en": "Leaf Ranger"
+            },
+            "flavor": {
+                "ko": "하늘도 숲의 일부다.",
+                "en": "The sky is part of the forest too."
+            },
+            "rarity": "E",
+            "role": "RANGED",
+            "dmgType": "physical",
+            "tags": [
+                "ANTI_AIR"
+            ],
+            "cost": 44,
+            "base": {
+                "hp": 260,
+                "atk": 54,
+                "def": 6,
+                "res": 6,
+                "range": 250,
+                "speed": 28,
+                "atkInterval": 1100
+            },
+            "art": {
+                "projectile": { "shape": "1_26", "$note": "잎 화살" },
+                "atlas": "npcs",
+                "frame": "leaf_ranger",
+                "scale": 4
+            }
+        },
+        {
+            "$comment": [
+                "초고속 다단히트. SHIELDED 는 '피격 횟수'를 흡수하므로(combat.js)",
+                "한 방이 약해도 많이 때리는 쪽이 유일한 답이다. 이 유닛의 존재 이유다."
+            ],
+            "id": "wind_hashashin",
+            "name": {
+                "ko": "바람의 하시신",
+                "en": "Wind Hashashin"
+            },
+            "flavor": {
+                "ko": "보호막은 횟수를 센다. 그래서 셀 수 없게 만든다.",
+                "en": "A ward counts the hits. So give it too many to count."
+            },
+            "rarity": "L",
+            "role": "RANGED",
+            "dmgType": "physical",
+            "tags": [],
+            "cost": 76,
+            "base": {
+                "hp": 300,
+                "atk": 26,
+                "def": 6,
+                "res": 10,
+                "range": 210,
+                "speed": 40,
+                "atkInterval": 260
+            },
+            "art": {
+                "projectile": { "shape": "5_6", "$note": "표창" },
+                "atlas": "npcs",
+                "frame": "wind_hashashin",
+                "scale": 4
+            }
+        },
+        {
+            "$comment": [
+                "초고 DEF 이동 포대. 물리 감산이 절대값이라 잡몹 물량을 통째로 무시한다.",
+                "",
+                "★ 사거리 300 은 '느린 것'에 대한 보상이 아니라 **작동 조건**이다.",
+                "  아군은 사거리 안에 적이 들어와야 멈추고(engage), 그 전까지 전진한다.",
+                "  사거리 200 · 속도 10 으로 잡았더니 전선이 앞서 나가 골렘이 영원히",
+                "  따라가기만 하고 한 발도 쏘지 못했다 (기여도 0). 포대는 방벽 뒤에서",
+                "  **넘겨 쏠 수 있어야** 포대다."
+            ],
+            "id": "iron_golem",
+            "name": {
+                "ko": "강철 골렘",
+                "en": "Iron Golem"
+            },
+            "flavor": {
+                "ko": "명령을 잊었지만 자리는 지킨다.",
+                "en": "The order is forgotten. The post is not."
+            },
+            "rarity": "E",
+            "role": "SIEGE",
+            "dmgType": "physical",
+            "tags": [
+                "WARDED"
+            ],
+            "cost": 55,
+            "base": {
+                "hp": 900,
+                "atk": 60,
+                "def": 46,
+                "res": 0,
+                "range": 300,
+                "speed": 18,
+                "atkInterval": 1600
+            },
+            "art": {
+                "projectile": { "shape": "4_26", "$note": "포탄" },
+                "atlas": "units",
+                "frame": "IronGolem",
+                "scale": 4
+            }
+        },
+        {
+            "$comment": [
+                "첫 공중 아군. FLYER 는 trySummon 이 공중 레인으로 보내고,",
+                "술식이라 비행 적을 때릴 수 있다 (combat.canTarget).",
+                "★ 사거리 170 은 발사체 사거리다 — FLYER 는 2026-08-05 부터",
+                "  roles.js:PROJECTILE_ROLES 에 들어간다 (그 전에는 즉발이었다)."
+            ],
+            "id": "magical_fairy",
+            "name": {
+                "ko": "마법 요정",
+                "en": "Magical Fairy"
+            },
+            "flavor": {
+                "ko": "높이 나는 쪽이 먼저 본다.",
+                "en": "Whoever flies higher sees it first."
+            },
+            "rarity": "R",
+            "role": "FLYER",
+            "dmgType": "arcane",
+            "tags": [
+                "ANTI_AIR"
+            ],
+            "cost": 27,
+            "base": {
+                "hp": 150,
+                "atk": 34,
+                "def": 3,
+                "res": 8,
+                "range": 170,
+                "speed": 44,
+                "atkInterval": 900
+            },
+            "art": {
+                "atlas": "units",
+                "frame": "MagicalFairy",
+                "scale": 4,
+                "projectile": {
+                    "shape": "6_0",
+                    "$note": "요정 광채"
+                }
+            }
+        },
+        {
+            "$comment": [
+                "★ 술식 로스터 확장. 술식 유닛이 2종뿐이라 밸런스 게이트 B5",
+                "(ARMORED 에는 술식이 물리보다 나아야 한다) 가 **인원수 때문에** 실패하고 있었다.",
+                "상성 삼각형은 선택지가 있어야 성립한다."
+            ],
+            "id": "deft_sorceress",
+            "name": {
+                "ko": "능란한 마술사",
+                "en": "Deft Sorceress"
+            },
+            "flavor": {
+                "ko": "갑옷은 술식을 막지 못한다. 그것이 갑옷의 유일한 결점이다.",
+                "en": "Armor cannot stop the arcane. That is armor's one flaw."
+            },
+            "rarity": "R",
+            "role": "CASTER",
+            "dmgType": "arcane",
+            "tags": [],
+            "cost": 34,
+            "base": {
+                "hp": 170,
+                "atk": 80,
+                "def": 3,
+                "res": 6,
+                "range": 230,
+                "speed": 28,
+                "atkInterval": 1900
+            },
+            "art": {
+                "projectile": { "shape": "1_6", "$note": "비전 광선" },
+                "atlas": "units",
+                "frame": "DeftSorceress",
+                "scale": 4
+            }
+        },
+        {
+            "$comment": [
+                "유일한 **근접 술식**. 방벽 뒤에서 DEF 를 무시하고 때린다 —",
+                "물리 근접이 ARMORED 앞에서 무력해지는 구간의 답이다."
+            ],
+            "id": "fire_elemental",
+            "name": {
+                "ko": "화염 정령",
+                "en": "Fire Elemental"
+            },
+            "flavor": {
+                "ko": "베어도 다시 붙는다. 끄는 수밖에 없다.",
+                "en": "Cut it and it catches again. It has to be put out."
+            },
+            "rarity": "R",
+            "role": "MELEE",
+            "dmgType": "arcane",
+            "tags": [],
+            "cost": 24,
+            "base": {
+                "hp": 400,
+                "atk": 56,
+                "def": 6,
+                "res": 10,
+                "range": 62,
+                "speed": 40,
+                "atkInterval": 1100
+            },
+            "art": {
+                "atlas": "units",
+                "frame": "FireElemental",
+                "scale": 4
+            }
+        },
+        {
+            "id": "adept_necromancer",
+            "name": {
+                "ko": "숙련 강령술사",
+                "en": "Adept Necromancer"
+            },
+            "flavor": {
+                "ko": "균열이 죽은 자를 뱉는다면, 죽은 자를 부리는 쪽이 유리하다.",
+                "en": "If the Rift spits out the dead, better to be the side that commands them."
+            },
+            "rarity": "E",
+            "role": "CASTER",
+            "dmgType": "arcane",
+            "tags": [],
+            "cost": 48,
+            "base": {
+                "hp": 220,
+                "atk": 118,
+                "def": 4,
+                "res": 10,
+                "range": 250,
+                "speed": 26,
+                "atkInterval": 2100
+            },
+            "art": {
+                "projectile": { "shape": "6_6", "$note": "강령 파열" },
+                "atlas": "units",
+                "frame": "AdeptNecromancer",
+                "scale": 4
+            }
+        },
+        {
+            "$comment": [
+                "★ 유일한 **신성 방벽**. 방벽 3종이 전부 물리라 CORRUPT 웨이브에서",
+                "앞줄이 아무것도 못 하고 버티기만 했다. 막으면서 특효를 넣는다."
+            ],
+            "id": "holy_crusader",
+            "name": {
+                "ko": "성전 기사",
+                "en": "Holy Crusader"
+            },
+            "flavor": {
+                "ko": "물러서는 법을 배우지 않았다. 가르칠 사람도 없었다.",
+                "en": "Never learned to fall back. There was no one left to teach it."
+            },
+            "rarity": "R",
+            "role": "BLOCKER",
+            "dmgType": "holy",
+            "tags": [],
+            "cost": 30,
+            "base": {
+                "hp": 620,
+                "atk": 34,
+                "def": 20,
+                "res": 12,
+                "range": 46,
+                "speed": 20,
+                "atkInterval": 1300,
+                "blockCount": 2
+            },
+            "art": {
+                "atlas": "units",
+                "frame": "HolyCrusader",
+                "scale": 4
+            }
+        },
+        {
+            "$comment": [
+                "지원이 1종뿐이라 SUPPORT 의 시그니처(오라 **밖**에서만 작동)를",
+                "선택으로 만들 수 없었다. 두 번째 지원이 있어야 배치가 판단이 된다."
+            ],
+            "id": "favored_cleric",
+            "name": {
+                "ko": "총애받는 성직자",
+                "en": "Favored Cleric"
+            },
+            "flavor": {
+                "ko": "지휘관에게서 멀어질수록 목소리가 커진다.",
+                "en": "The farther from the Commander, the louder the voice."
+            },
+            "rarity": "R",
+            "role": "SUPPORT",
+            "dmgType": "holy",
+            "tags": [],
+            "cost": 26,
+            "base": {
+                "hp": 210,
+                "atk": 58,
+                "def": 4,
+                "res": 8,
+                "range": 210,
+                "speed": 26,
+                "atkInterval": 1600
+            },
+            "art": {
+                "atlas": "units",
+                "frame": "FavoredCleric",
+                "scale": 4
+            }
+        },
+        {
+            "$comment": [
+                "두 번째 공중 아군이자 첫 **신성 공중**. 비행 CORRUPT 를 잡는다."
+            ],
+            "id": "resolute_angel",
+            "name": {
+                "ko": "결연한 천사",
+                "en": "Resolute Angel"
+            },
+            "flavor": {
+                "ko": "내려다보는 것은 심판이 아니라 사거리다.",
+                "en": "Looking down is not judgment. It is range."
+            },
+            "rarity": "E",
+            "role": "FLYER",
+            "dmgType": "holy",
+            "tags": [
+                "ANTI_AIR"
+            ],
+            "cost": 46,
+            "base": {
+                "hp": 260,
+                "atk": 92,
+                "def": 5,
+                "res": 14,
+                "range": 200,
+                "speed": 40,
+                "atkInterval": 1800
+            },
+            "art": {
+                "atlas": "units",
+                "frame": "ResoluteAngel",
+                "scale": 4,
+                "projectile": {
+                    "shape": "1_6",
+                    "$note": "심판의 빛줄기"
+                }
+            }
+        },
+        {
+            "$comment": [
+                "── P6-04 2차 확장 (2026-08-03) · 25종 → 30종 (소프트런칭 목표) ──────",
+                "",
+                "★ 1차와 같은 원칙이다: **현재 시뮬이 이미 지원하는 능력만으로 성립하는 동료**만 넣는다.",
+                "  다섯 종 모두 새 필드를 하나도 쓰지 않는다 (stageConfig.normalizeDef 가 읽는 것뿐).",
+                "",
+                "★ 고른 기준은 '역할 × 데미지타입' 표의 **빈 칸 중 월드 4–5 가 실제로 요구하는 것**이다.",
+                "  | 채운 칸 | 근거 (스폰 마릿수 비율) |",
+                "  |---|---|",
+                "  | RANGED × 술식  | 원거리 7종이 전원 물리였다. W4 는 ARMORED 26% |",
+                "  | SIEGE  × 술식  | 방벽 뒤에서 **넘겨 쏘는** 술식이 없었다 (CASTER 최장 250 < SIEGE 290–300) |",
+                "  | MELEE  × 신성  | W5 는 CORRUPT 73% 인데 전열 신성이 방벽 1종뿐이었다 |",
+                "  | BLOCKER× 술식  | 방벽 4종의 최고 등급이 R. 막으면서 DEF 를 무시할 수단이 없었다 |",
+                "  | FLYER  × 물리  | WARDED+FLYING 의 유일한 답인 '물리 대공'이 2종뿐이었다 (5-15 · 5-19 벽) |",
+                "",
+                "★ **SUPPORT × 물리/술식은 일부러 비워 둔다.** engage.js 의 SUPPORT 는 힐만 하고",
+                "  dmgType 을 피해 계산에 쓰지 않는다. 표의 빈 칸을 채워도 게임에는 아무 일도 없다.",
+                "",
+                "★ 새 동료는 전부 **배열 끝에 붙인다.** stagePreview.recommendedLoadout 의 후보 순회가",
+                "  파일 순서이므로, 중간에 끼워 넣으면 100 스테이지의 추천 편성이 조용히 바뀌고",
+                "  게이트 B3·B4 수치가 통째로 달라진다. (실측: 끝에 붙이면 100/100 스테이지 추천 동일)",
+                "",
+                "── 인어 신비가 ──",
+                "★ 술식 최속(440ms). 이 숫자가 이 동료의 전부다.",
+                "  SHIELDED 는 **피격 횟수**를 흡수한다 (combat.computeDamage 는 shield>0 이면",
+                "  피해량과 무관하게 1스택을 깎는다). 그래서 ARMORED+SHIELDED 조합은",
+                "  'DEF 를 무시하면서 자주 때리는' 것 하나만 답인데, 기존 술식 최속이",
+                "  magical_fairy 900ms 였다. W4 스폰의 10.7% 가 ARMORED+LIVING+SHIELDED 다.",
+                "★ 대신 WARDED 앞에서 가장 약하다 — 다만 **최소피해 바닥에 붙지는 않는다.**",
+                "  (2026-08-03 정정) 술식은 `power × (1 − res/100)` 이라 바닥(minDamageRatio 0.1)에",
+                "  닿으려면 res ≥ 90 이 필요한데 적 최대 RES 는 54(pit_balor)다. 즉 **술식은 전 62종",
+                "  어디에서도 바닥에 닿지 않는다** — 최악이 46% 다. 반면 물리는 `power − def` 라",
+                "  elf_sharpshooter 가 15/62, halfling_slinger 가 21/62 에서 바닥에 붙는다.",
+                "  이 비대칭 자체는 combat.js 의 구조이지 이 동료의 문제가 아니지만, 여기에",
+                "  '바닥에 붙는다'고 적어 두면 다음 사람이 없는 약점을 근거로 코스트를 정한다.",
+                "★ 실제 상쇄는 셋이다 — 사거리 180(RANGED 중 두 번째로 짧다) · HP 140 · **대공 불가**",
+                "  (ANTI_AIR 가 없어 FLYING 적에게는 한 대도 못 때린다). 적 1종씩 실효 DPS/코스트를",
+                "  재면 62종 중 19종에서만 RANGED 1위이고, 나머지는 halfling_slinger(20) ·",
+                "  elf_sharpshooter(10) 이 이긴다 — 단일 지배는 아니다 (설계 결정 #2)."
+            ],
+            "id": "merfolk_mystic",
+            "name": {
+                "ko": "인어 신비가",
+                "en": "Merfolk Mystic"
+            },
+            "flavor": {
+                "ko": "한 방울씩. 바위를 뚫는 방식이 원래 그렇다.",
+                "en": "One drop at a time. That is how stone has always been pierced."
+            },
+            "rarity": "R",
+            "role": "RANGED",
+            "dmgType": "arcane",
+            "tags": [],
+            "cost": 21,
+            "base": {
+                "hp": 140,
+                "atk": 16,
+                "def": 2,
+                "res": 8,
+                "range": 180,
+                "speed": 32,
+                "atkInterval": 440
+            },
+            "art": {
+                "projectile": { "shape": "5_26", "$note": "물방울 탄" },
+                "atlas": "units",
+                "frame": "MerfolkMystic",
+                "scale": 4
+            }
+        },
+        {
+            "$comment": [
+                "★ 첫 **물리 비행**이자 WARDED+FLYING 의 답이다.",
+                "  공중 레인의 적은 전부 FLYING 이므로 물리 아군은 ANTI_AIR 가 없으면",
+                "  combat.canTarget 이 항상 false 다 — 물리 FLYER 에게 ANTI_AIR 는 선택이 아니라 조건이다.",
+                "★ 투사체를 적는다 (2026-08-05). 그 전에는 '적어도 발사되지 않는다'가 맞는",
+                "  말이었다 — PROJECTILE_ROLES 에 FLYER 가 없었기 때문이다. 지금은 들어갔고,",
+                "  사거리 160 을 즉발로 때리던 것이 그때 함께 끝났다.",
+                "★ 오라 안에서는 고도를 낮춰 지상도 때린다 (engage.strikeGround, 2026-08-05).",
+                "  오라 밖에서는 여전히 공중만 본다 — 비행이 없는 판에서 이 동료를 쓰려면",
+                "  지휘관을 붙여야 한다는 뜻이고, 그것이 이 동료가 R 인 이유다."
+            ],
+            "id": "pygmy_wyvern",
+            "name": {
+                "ko": "꼬마 와이번",
+                "en": "Pygmy Wyvern"
+            },
+            "flavor": {
+                "ko": "작다. 그리고 위에 있다. 두 가지면 충분하다.",
+                "en": "Small. And above you. Two things are enough."
+            },
+            "rarity": "R",
+            "role": "FLYER",
+            "dmgType": "physical",
+            "tags": [
+                "ANTI_AIR"
+            ],
+            "cost": 23,
+            "base": {
+                "hp": 170,
+                "atk": 30,
+                "def": 4,
+                "res": 2,
+                "range": 160,
+                "speed": 46,
+                "atkInterval": 800
+            },
+            "art": {
+                "atlas": "units",
+                "frame": "PygmyWyvern",
+                "scale": 4,
+                "projectile": {
+                    "shape": "6_26",
+                    "$note": "갈퀴 바람"
+                }
+            }
+        },
+        {
+            "$comment": [
+                "★ 사거리 290 은 iron_golem 주석과 같은 이유의 **작동 조건**이다.",
+                "  아군은 사거리 안에 적이 들어와야 멈춘다. 사거리가 짧으면 전선이 앞서 나가",
+                "  포대가 영원히 따라가기만 한다. 속도 12 로 뒤처지되 넘겨 쏠 수 있어야 포대다.",
+                "★ CASTER 는 오라 안에서 쿨다운 -35% 를 받고 SIEGE 는 오라 보정이 없다.",
+                "  그래서 deft_sorceress(R34) 가 오라 안에서는 여전히 더 세다 —",
+                "  이쪽은 '지휘관을 앞에 두지 않아도 되는' 술식이다. 선택이 갈린다."
+            ],
+            "id": "water_elemental",
+            "name": {
+                "ko": "물의 정령",
+                "en": "Water Elemental"
+            },
+            "flavor": {
+                "ko": "형체가 없으니 부술 수도 없다. 다만 아주 느리다.",
+                "en": "Shapeless, so there is nothing to break. Also very slow."
+            },
+            "rarity": "R",
+            "role": "SIEGE",
+            "dmgType": "arcane",
+            "tags": [],
+            "cost": 25,
+            "base": {
+                "hp": 380,
+                "atk": 42,
+                "def": 12,
+                "res": 18,
+                "range": 290,
+                "speed": 12,
+                "atkInterval": 1500
+            },
+            "art": {
+                "projectile": { "shape": "1_0", "$note": "수압탄" },
+                "atlas": "units",
+                "frame": "WaterElemental",
+                "scale": 4
+            }
+        },
+        {
+            "$comment": [
+                "★ 첫 **신성 근접**. determined_soldier(C12) 와 코스트가 같고 초당 피해도 비슷하지만,",
+                "  신성은 LIVING 에 ×0.7 이다. W1·W2·W4 는 LIVING 이 91–100% 이므로",
+                "  이 동료는 그 구간에서 **명백히 손해**이고 W3·W5(CORRUPT) 에서만 앞선다.",
+                "  같은 값에 상황을 파는 것 — 커먼이 등급 때문이 아니라 상황 때문에 선택되게 한다."
+            ],
+            "id": "blessed_gladiator",
+            "name": {
+                "ko": "축복받은 검투사",
+                "en": "Blessed Gladiator"
+            },
+            "flavor": {
+                "ko": "관중이 없어도 싸운다. 이제 이유가 달라졌을 뿐이다.",
+                "en": "Still fights without a crowd. Only the reason has changed."
+            },
+            "rarity": "C",
+            "role": "MELEE",
+            "dmgType": "holy",
+            "tags": [],
+            "cost": 12,
+            "base": {
+                "hp": 250,
+                "atk": 30,
+                "def": 7,
+                "res": 6,
+                "range": 42,
+                "speed": 38,
+                "atkInterval": 1000
+            },
+            "art": {
+                "atlas": "units",
+                "frame": "BlessedGladiator",
+                "scale": 4
+            }
+        },
+        {
+            "$comment": [
+                "★ 첫 **술식 방벽**이자 첫 E 등급 방벽이다 (기존 방벽 4종의 최고 등급은 R30).",
+                "  DEF 를 무시하며 막는다 — W4 의 ARMORED+LIVING 계열 17.4% 가 전열에 붙었을 때",
+                "  기존 방벽은 붙잡기만 하고 깎지 못했다.",
+                "★ blockCount 는 2 로 둔다. 3 은 오라 보너스(+1)와 겹쳐 4가 되고,",
+                "  그건 데이터가 아니라 새 밸런스 축이다 — 하네스를 돌리기 전에는 건드리지 않는다."
+            ],
+            "id": "grizzled_treant",
+            "name": {
+                "ko": "고목의 파수꾼",
+                "en": "Grizzled Treant"
+            },
+            "flavor": {
+                "ko": "뿌리를 내린 자리에서 물러난 적이 없다.",
+                "en": "Has never given ground where it has taken root."
+            },
+            "rarity": "E",
+            "role": "BLOCKER",
+            "dmgType": "arcane",
+            "tags": [],
+            "cost": 38,
+            "base": {
+                "hp": 820,
+                "atk": 40,
+                "def": 22,
+                "res": 20,
+                "range": 50,
+                "speed": 12,
+                "atkInterval": 1500,
+                "blockCount": 2
+            },
+            "art": {
+                "atlas": "units",
+                "frame": "GrizzledTreant",
+                "scale": 4
+            }
+        },
+        {
+            "id": "lizardfolk_gladiator",
+            "name": {
+                "ko": "리자드 검투사",
+                "en": "Lizardfolk Gladiator"
+            },
+            "flavor": {
+                "ko": "반격은 예의다. 먼저 때린 쪽에 대한.",
+                "en": "A counter is a courtesy. Owed to whoever swung first."
+            },
+            "rarity": "R",
+            "role": "BLOCKER",
+            "dmgType": "physical",
+            "tags": [],
+            "cost": 28,
+            "base": {
+                "hp": 560,
+                "atk": 32,
+                "def": 18,
+                "res": 4,
+                "range": 46,
+                "speed": 22,
+                "atkInterval": 1150,
+                "blockCount": 2
+            },
+            "art": {
+                "atlas": "units",
+                "frame": "LizardfolkGladiator",
+                "scale": 4
+            }
+        },
+        {
+            "id": "stone_troll",
+            "name": {
+                "ko": "돌 트롤",
+                "en": "Stone Troll"
+            },
+            "flavor": {
+                "ko": "부서진 자리에서 다시 자란다. 천천히, 확실하게.",
+                "en": "Grows back out of whatever broke it. Slowly, certainly."
+            },
+            "rarity": "E",
+            "role": "BLOCKER",
+            "dmgType": "physical",
+            "tags": [
+                "REGEN"
+            ],
+            "cost": 44,
+            "base": {
+                "hp": 980,
+                "atk": 38,
+                "def": 26,
+                "res": 8,
+                "range": 48,
+                "speed": 12,
+                "atkInterval": 1500,
+                "blockCount": 2
+            },
+            "art": {
+                "atlas": "units",
+                "frame": "StoneTroll",
+                "scale": 4
+            }
+        },
+        {
+            "id": "humongous_ettin",
+            "name": {
+                "ko": "거대한 에틴",
+                "en": "Humongous Ettin"
+            },
+            "flavor": {
+                "ko": "머리가 둘이라 물러설 방향을 정하지 못한다.",
+                "en": "Two heads, and no agreement on which way to retreat."
+            },
+            "rarity": "L",
+            "role": "BLOCKER",
+            "dmgType": "physical",
+            "tags": [],
+            "cost": 80,
+            "base": {
+                "hp": 1450,
+                "atk": 74,
+                "def": 30,
+                "res": 14,
+                "range": 52,
+                "speed": 14,
+                "atkInterval": 1600,
+                "blockCount": 3
+            },
+            "art": {
+                "atlas": "units",
+                "frame": "HumongousEttin",
+                "scale": 4
+            }
+        },
+        {
+            "id": "elf_bladedancer",
+            "name": {
+                "ko": "엘프 검무사",
+                "en": "Elf Bladedancer"
+            },
+            "flavor": {
+                "ko": "춤이 끝나면 상대가 없다.",
+                "en": "When the dance ends, there is no partner left."
+            },
+            "rarity": "R",
+            "role": "MELEE",
+            "dmgType": "physical",
+            "tags": [],
+            "cost": 26,
+            "base": {
+                "hp": 300,
+                "atk": 38,
+                "def": 5,
+                "res": 4,
+                "range": 44,
+                "speed": 52,
+                "atkInterval": 520
+            },
+            "art": {
+                "atlas": "units",
+                "frame": "ElfBladedancer",
+                "scale": 4
+            }
+        },
+        {
+            "id": "halfling_rogue",
+            "name": {
+                "ko": "하플링 도적",
+                "en": "Halfling Rogue"
+            },
+            "flavor": {
+                "ko": "작아서 안 보이는 게 아니라, 보이지 않으려고 작다.",
+                "en": "Not unseen because small. Small in order to go unseen."
+            },
+            "rarity": "R",
+            "role": "MELEE",
+            "dmgType": "physical",
+            "tags": [],
+            "cost": 24,
+            "base": {
+                "hp": 230,
+                "atk": 64,
+                "def": 3,
+                "res": 0,
+                "range": 40,
+                "speed": 56,
+                "atkInterval": 950
+            },
+            "art": {
+                "atlas": "units",
+                "frame": "HalflingRogue",
+                "scale": 4
+            }
+        },
+        {
+            "id": "mad_boar",
+            "name": {
+                "ko": "성난 멧돼지",
+                "en": "Mad Boar"
+            },
+            "flavor": {
+                "ko": "화가 난 이유는 아무도 모른다. 물어볼 시간도 없다.",
+                "en": "Nobody knows what it is angry about. Nobody has time to ask."
+            },
+            "rarity": "E",
+            "role": "MELEE",
+            "dmgType": "physical",
+            "tags": [],
+            "cost": 42,
+            "base": {
+                "hp": 520,
+                "atk": 78,
+                "def": 10,
+                "res": 0,
+                "range": 42,
+                "speed": 64,
+                "atkInterval": 1000
+            },
+            "art": {
+                "atlas": "units",
+                "frame": "MadBoar",
+                "scale": 4
+            }
+        },
+        {
+            "id": "crushing_cyclops",
+            "name": {
+                "ko": "짓뭉개는 키클롭스",
+                "en": "Crushing Cyclops"
+            },
+            "flavor": {
+                "ko": "눈이 하나뿐이라 한 번에 한 명씩만 본다. 그걸로 충분하다.",
+                "en": "One eye, so one victim at a time. That is sufficient."
+            },
+            "rarity": "L",
+            "role": "MELEE",
+            "dmgType": "physical",
+            "tags": [],
+            "cost": 84,
+            "base": {
+                "hp": 760,
+                "atk": 150,
+                "def": 14,
+                "res": 6,
+                "range": 50,
+                "speed": 30,
+                "atkInterval": 1700
+            },
+            "art": {
+                "atlas": "units",
+                "frame": "CrushingCyclops",
+                "scale": 4
+            }
+        },
+        {
+            "id": "lizardfolk_archer",
+            "name": {
+                "ko": "리자드 궁수",
+                "en": "Lizardfolk Archer"
+            },
+            "flavor": {
+                "ko": "비늘은 활시위에 쓸리지 않는다.",
+                "en": "Scales do not chafe against a bowstring."
+            },
+            "rarity": "C",
+            "role": "RANGED",
+            "dmgType": "physical",
+            "tags": [],
+            "cost": 14,
+            "base": {
+                "hp": 135,
+                "atk": 26,
+                "def": 3,
+                "res": 0,
+                "range": 190,
+                "speed": 32,
+                "atkInterval": 820
+            },
+            "art": {
+                "projectile": { "shape": "2_26", "$note": "화살" },
+                "atlas": "units",
+                "frame": "LizardfolkArcher",
+                "scale": 4
+            }
+        },
+        {
+            "id": "halfling_ranger",
+            "name": {
+                "ko": "하플링 순찰자",
+                "en": "Halfling Ranger"
+            },
+            "flavor": {
+                "ko": "하늘을 보고 걷는 습관이 직업이 됐다.",
+                "en": "A habit of walking with the eyes up became a profession."
+            },
+            "rarity": "R",
+            "role": "RANGED",
+            "dmgType": "physical",
+            "tags": [
+                "ANTI_AIR"
+            ],
+            "cost": 29,
+            "base": {
+                "hp": 165,
+                "atk": 40,
+                "def": 3,
+                "res": 2,
+                "range": 230,
+                "speed": 34,
+                "atkInterval": 900
+            },
+            "art": {
+                "projectile": { "shape": "0_6", "$note": "유탄" },
+                "atlas": "units",
+                "frame": "HalflingRanger",
+                "scale": 4
+            }
+        },
+        {
+            "id": "merfolk_impaler",
+            "name": {
+                "ko": "인어 작살병",
+                "en": "Merfolk Impaler"
+            },
+            "flavor": {
+                "ko": "물속에서 배운 손목은 뭍에서도 같다.",
+                "en": "A wrist trained underwater works the same on dry land."
+            },
+            "rarity": "R",
+            "role": "RANGED",
+            "dmgType": "physical",
+            "tags": [],
+            "cost": 32,
+            "base": {
+                "hp": 200,
+                "atk": 70,
+                "def": 4,
+                "res": 6,
+                "range": 250,
+                "speed": 24,
+                "atkInterval": 1800
+            },
+            "art": {
+                "projectile": { "shape": "0_26", "$note": "작살" },
+                "atlas": "units",
+                "frame": "MerfolkImpaler",
+                "scale": 4
+            }
+        },
+        {
+            "id": "goblin_occultist",
+            "name": {
+                "ko": "고블린 주술사",
+                "en": "Goblin Occultist"
+            },
+            "flavor": {
+                "ko": "주문을 반쯤 외우고 나머지는 소리로 채운다. 짧고 빠르게.",
+                "en": "Half the incantation is memorized, the rest is noise. Short and quick."
+            },
+            "rarity": "C",
+            "role": "CASTER",
+            "dmgType": "arcane",
+            "tags": [],
+            "cost": 15,
+            "base": {
+                "hp": 110,
+                "atk": 30,
+                "def": 2,
+                "res": 2,
+                "range": 165,
+                "speed": 30,
+                "atkInterval": 1050
+            },
+            "art": {
+                "projectile": { "shape": "7_6", "$note": "주술탄" },
+                "atlas": "units",
+                "frame": "GoblinOccultist",
+                "scale": 4
+            }
+        },
+        {
+            "id": "elf_enchanter",
+            "name": {
+                "ko": "엘프 부여술사",
+                "en": "Elf Enchanter"
+            },
+            "flavor": {
+                "ko": "칼에 이름을 붙여 주면 칼이 더 잘 든다.",
+                "en": "Give a blade a name and the blade cuts better."
+            },
+            "rarity": "R",
+            "role": "CASTER",
+            "dmgType": "arcane",
+            "tags": [],
+            "cost": 32,
+            "base": {
+                "hp": 165,
+                "atk": 74,
+                "def": 3,
+                "res": 8,
+                "range": 225,
+                "speed": 28,
+                "atkInterval": 1800
+            },
+            "art": {
+                "projectile": { "shape": "4_6", "$note": "부여의 빛" },
+                "atlas": "units",
+                "frame": "ElfEnchanter",
+                "scale": 4
+            }
+        },
+        {
+            "id": "merfolk_aquamancer",
+            "name": {
+                "ko": "인어 수술사",
+                "en": "Merfolk Aquamancer"
+            },
+            "flavor": {
+                "ko": "물은 서두르지 않는다. 대신 멈추지도 않는다.",
+                "en": "Water never hurries. Water never stops either."
+            },
+            "rarity": "R",
+            "role": "CASTER",
+            "dmgType": "arcane",
+            "tags": [],
+            "cost": 28,
+            "base": {
+                "hp": 155,
+                "atk": 62,
+                "def": 3,
+                "res": 10,
+                "range": 210,
+                "speed": 28,
+                "atkInterval": 1650
+            },
+            "art": {
+                "projectile": { "shape": "5_0", "$note": "물살" },
+                "atlas": "units",
+                "frame": "MerfolkAquamancer",
+                "scale": 4
+            }
+        },
+        {
+            "id": "vile_witch",
+            "name": {
+                "ko": "사악한 마녀",
+                "en": "Vile Witch"
+            },
+            "flavor": {
+                "ko": "저주는 오래 간다. 그게 저주의 정의다.",
+                "en": "A curse lasts. That is what makes it a curse."
+            },
+            "rarity": "L",
+            "role": "CASTER",
+            "dmgType": "arcane",
+            "tags": [],
+            "cost": 88,
+            "base": {
+                "hp": 250,
+                "atk": 190,
+                "def": 4,
+                "res": 16,
+                "range": 265,
+                "speed": 24,
+                "atkInterval": 2200
+            },
+            "art": {
+                "projectile": { "shape": "2_0", "$note": "저주탄" },
+                "atlas": "units",
+                "frame": "VileWitch",
+                "scale": 4
+            }
+        },
+        {
+            "id": "gentle_shepard",
+            "name": {
+                "ko": "온화한 목자",
+                "en": "Gentle Shepard"
+            },
+            "flavor": {
+                "ko": "양을 세는 법으로 부상자를 센다.",
+                "en": "Counts the wounded the way one counts sheep."
+            },
+            "rarity": "C",
+            "role": "SUPPORT",
+            "dmgType": "holy",
+            "tags": [],
+            "cost": 15,
+            "base": {
+                "hp": 150,
+                "atk": 38,
+                "def": 4,
+                "res": 0,
+                "range": 190,
+                "speed": 28,
+                "atkInterval": 1700
+            },
+            "art": {
+                "atlas": "units",
+                "frame": "GentleShepard",
+                "scale": 4
+            }
+        },
+        {
+            "id": "zealous_priest",
+            "name": {
+                "ko": "열성 사제",
+                "en": "Zealous Priest"
+            },
+            "flavor": {
+                "ko": "기도가 길어질수록 목소리가 커진다.",
+                "en": "The longer the prayer runs, the louder it gets."
+            },
+            "rarity": "R",
+            "role": "SUPPORT",
+            "dmgType": "holy",
+            "tags": [],
+            "cost": 30,
+            "base": {
+                "hp": 225,
+                "atk": 66,
+                "def": 5,
+                "res": 10,
+                "range": 215,
+                "speed": 26,
+                "atkInterval": 1550
+            },
+            "art": {
+                "atlas": "units",
+                "frame": "ZealousPriest",
+                "scale": 4
+            }
+        },
+        {
+            "id": "floating_cherub",
+            "name": {
+                "ko": "부유하는 케루빔",
+                "en": "Floating Cherub"
+            },
+            "flavor": {
+                "ko": "작별 인사를 한 번 미뤄 준다.",
+                "en": "Puts off one farewell. Exactly one."
+            },
+            "rarity": "L",
+            "role": "SUPPORT",
+            "dmgType": "holy",
+            "tags": [],
+            "cost": 72,
+            "base": {
+                "hp": 330,
+                "atk": 118,
+                "def": 6,
+                "res": 20,
+                "range": 235,
+                "speed": 24,
+                "atkInterval": 1900
+            },
+            "art": {
+                "atlas": "units",
+                "frame": "FloatingCherub",
+                "scale": 4
+            }
+        },
+        {
+            "id": "earth_elemental",
+            "name": {
+                "ko": "대지 정령",
+                "en": "Earth Elemental"
+            },
+            "flavor": {
+                "ko": "움직이는 데 이유가 필요한 쪽은 땅이 아니다.",
+                "en": "It is not the earth that needs a reason to move."
+            },
+            "rarity": "R",
+            "role": "SIEGE",
+            "dmgType": "physical",
+            "tags": [],
+            "cost": 29,
+            "base": {
+                "hp": 520,
+                "atk": 46,
+                "def": 20,
+                "res": 6,
+                "range": 280,
+                "speed": 10,
+                "atkInterval": 1550
+            },
+            "art": {
+                "projectile": { "shape": "7_26", "$note": "바위" },
+                "atlas": "units",
+                "frame": "EarthElemental",
+                "scale": 4
+            }
+        },
+        {
+            "id": "ice_golem",
+            "name": {
+                "ko": "얼음 골렘",
+                "en": "Ice Golem"
+            },
+            "flavor": {
+                "ko": "녹지 않는 계절을 몸에 지니고 다닌다.",
+                "en": "Carries a season that refuses to thaw."
+            },
+            "rarity": "E",
+            "role": "SIEGE",
+            "dmgType": "arcane",
+            "tags": [
+                "WARDED"
+            ],
+            "cost": 52,
+            "base": {
+                "hp": 820,
+                "atk": 72,
+                "def": 30,
+                "res": 24,
+                "range": 295,
+                "speed": 14,
+                "atkInterval": 1700
+            },
+            "art": {
+                "projectile": { "shape": "6_26", "$note": "얼음 파편" },
+                "atlas": "units",
+                "frame": "IceGolem",
+                "scale": 4
+            }
+        },
+        {
+            "id": "baby_brass_dragon",
+            "name": {
+                "ko": "황동 새끼용",
+                "en": "Baby Brass Dragon"
+            },
+            "flavor": {
+                "ko": "아직 작다. 불은 이미 다 자랐다.",
+                "en": "Still small. The fire is already full-grown."
+            },
+            "rarity": "E",
+            "role": "FLYER",
+            "dmgType": "arcane",
+            "tags": [],
+            "cost": 50,
+            "base": {
+                "hp": 280,
+                "atk": 96,
+                "def": 6,
+                "res": 16,
+                "range": 195,
+                "speed": 42,
+                "atkInterval": 1750
+            },
+            "art": {
+                "atlas": "units",
+                "frame": "BabyBrassDragon",
+                "scale": 4,
+                "projectile": {
+                    "shape": "3_0",
+                    "$note": "브레스 화구"
+                }
+            }
+        }
+    ]
+}

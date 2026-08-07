@@ -1,0 +1,63 @@
+/* 화면 오류 경계 — 셸(캔버스·탭바)은 살아 있고 이 카드만 그 자리를 채운다 */
+.box {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 20px;
+    text-align: center;
+    pointer-events: auto;
+}
+
+.title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    font-size: 15px;
+    color: var(--gold);
+}
+
+.note {
+    margin: 0;
+    max-width: 380px;
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--text-dim);
+    /* 한글은 어절 단위로 줄바꿈된다 */
+    word-break: keep-all;
+}
+
+.actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 4px 14px;
+    font-family: inherit;
+    font-size: 12px;
+    color: var(--text);
+    background: #232342;
+    border: 2px solid #3a3a5e;
+    border-radius: 3px;
+}
+
+.btn:hover {
+    border-color: var(--gold);
+}
+
+.btnPrimary {
+    color: #14142a;
+    background: var(--gold);
+    border-color: var(--gold);
+    font-weight: bold;
+}

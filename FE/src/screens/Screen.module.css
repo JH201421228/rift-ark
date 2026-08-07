@@ -1,0 +1,313 @@
+/* 화면 공용 스타일 — P1-12 골격. 실제 UI 는 P5 이후에 채운다. */
+
+.screen {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    /* 오버레이 기본은 pointer-events:none 이므로 화면 단위로 열어준다 */
+    pointer-events: auto;
+}
+
+/* 전투 화면은 Phaser 가 보여야 하므로 배경을 깔지 않는다 */
+.screen.transparent {
+    background: none;
+    pointer-events: none;
+}
+
+/* Phaser 씬이 계속 보이도록 패널은 화면을 다 덮지 않는다 */
+/* 자체 UI 키트 9-slice 패널 (아트 브리프 §5.1, 코너 12×12) */
+.panel {
+    align-self: flex-start;
+    margin: 12px;
+    padding: 4px 8px;
+    image-rendering: pixelated;
+    border: 12px solid transparent;
+    border-image: url("/assets/ui/panel-base.png") 12 fill repeat;
+}
+
+.title {
+    margin: 0 0 4px;
+    font-size: 20px;
+    color: var(--gold);
+}
+
+.note {
+    margin: 0;
+    font-size: 12px;
+    color: var(--text-dim);
+}
+
+.stats {
+    display: flex;
+    gap: 16px;
+    margin-top: 12px;
+    font-size: 12px;
+    color: var(--text-dim);
+}
+
+.stats b {
+    color: var(--text);
+}
+
+/* 임시 스테이지 목록 (P6 에서 정식 화면으로 교체) */
+/* 스테이지 화면 — 60개가 넘으므로 폭을 다 쓰고 스크롤한다.
+   ★ `.panel` 은 `align-self: flex-start` 라 내용만큼만 좁아진다.
+     그대로 두면 60개가 1열로 쌓여 화면 밖으로 흘러넘친다. */
+.stagePanel {
+    align-self: stretch;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    margin: 8px 12px;
+}
+
+.worldTitle {
+    margin: 14px 0 0;
+    font-size: 13px;
+    color: var(--gold);
+}
+
+.stageScroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    touch-action: pan-y;
+    overscroll-behavior: contain;
+    padding-right: 4px;
+}
+
+/* ★ flex-wrap + min-width 였을 때는 카드가 **내용 길이만큼 늘어나** 크기가
+   제각각이었다 (`teaches` 문구 길이가 스테이지마다 다르다).
+   grid 로 바꾸면 열 폭이 고정되고, 같은 행의 높이도 자동으로 맞는다. */
+.stageGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+    gap: 8px;
+    margin-top: 12px;
+}
+
+/* P6-09 에서 <a> → <button> 으로 바뀌었다 (누르면 전투가 아니라 프리뷰가 열린다).
+   버튼은 폰트·정렬을 상속하지 않으므로 명시한다 — 안 하면 목록만 시스템 폰트로 뜬다. */
+.stageBtn {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    /*
+     * ★ 높이를 px 로 못박지 않는다. 58px 로 고정했더니 **부제 2번째 줄이 잘렸다**
+     *   (실제 제보). 부제는 최장 22자라 168px 칸에서 반드시 2줄이 된다.
+     *
+     *   대신 **부제 칸 자체를 정확히 2줄로 고정**한다 (아래 `.stageBtn span`).
+     *   id 는 항상 1줄이므로 합이 상수가 되어 카드 크기는 여전히 전부 같다 —
+     *   "카드 크기를 맞춰 달라"는 요구와 "글자가 잘린다"는 요구를 동시에 만족한다.
+     */
+    padding: 8px 12px;
+    text-align: left;
+    font-family: inherit;
+    font-size: inherit;
+    color: var(--text);
+    text-decoration: none;
+    background: #1e1e34;
+    border: 2px solid #3a3a5e;
+    border-radius: 3px;
+}
+
+.stageBtn:hover {
+    border-color: var(--gold);
+}
+
+/* 선택된 스테이지 — 오른쪽 프리뷰가 어느 칸을 설명하는지 항상 보여야 한다 */
+.stageBtn.stageBtnOn {
+    border-color: var(--gold);
+    background: #2a2a48;
+}
+
+/*
+ * 잠긴 스테이지.
+ * ★ 흐리게만 하지 않는다 — 자물쇠 **아이콘**이 같이 붙는다. 색·명도만으로 상태를
+ *   구분하면 색각 이상에서 읽히지 않는다 (StagePreview 의 경고 아이콘과 같은 규칙).
+ * ★ 누를 수는 있다. 프리뷰(적 구성·추천 편성)는 잠긴 스테이지도 열어 준다 —
+ *   막는 것은 출격이지 정보가 아니다.
+ */
+.stageBtn.stageBtnLocked {
+    opacity: 0.55;
+    border-style: dashed;
+}
+
+/* 다음에 도전할 칸 — 100개 중 "여기부터"를 한눈에 찾게 한다 */
+.stageBtn.stageBtnNext {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 1px rgba(242, 179, 61, 0.35);
+}
+
+.stageHead {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* ★ 10px 미만으로 내리지 않는다 — 한글은 획이 촘촘해 9px 에서 뭉갠다
+   (`npm run check:a11y` 의 A4 가 이것을 막는다). */
+.nextBadge {
+    height: auto;
+    padding: 0 4px;
+    font-size: 10px;
+    line-height: 1.3;
+    color: #0a0a14;
+    background: var(--gold);
+    border-radius: 2px;
+}
+
+/* 별 3칸은 **항상** 그린다 (0개여도 빈 별). 칸 높이가 스테이지마다 달라지지 않는다. */
+.stageStars {
+    height: auto;
+    display: flex;
+    gap: 1px;
+}
+
+/*
+ * 부제 칸. **내용과 무관하게 정확히 2줄 높이**를 차지한다 —
+ * 부제가 짧거나 없는 스테이지도 같은 칸을 갖게 해서 카드 크기를 맞춘다.
+ * (`2.5em` = line-height 1.25 × 2줄. 부모 px 이 아니라 자기 font-size 기준이라
+ *  나중에 글자 크기 설정을 바꿔도 따라온다.)
+ */
+.stageBtn span {
+    height: 2.5em;
+    font-size: 11px;
+    line-height: 1.25;
+    color: var(--text-dim);
+    /* 한글은 어절 단위로 줄바꿈된다 — 긴 부제가 칸을 삐져나가지 않게 한다 */
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* 하단 탭 바 */
+/* 세이프에어리어는 #ui-overlay 가 이미 처리하므로 여기서 또 주지 않는다 */
+.tabs {
+    display: flex;
+    flex-shrink: 0;
+    /**
+     * ★★ **화면이 비어도 탭 바는 아래에 있는다** (2026-08-04).
+     *
+     *   `#ui-overlay` 는 세로 flex 이고 화면(`.screen`)이 `flex:1` 로 남은 공간을
+     *   먹는다. 그런데 화면이 아직 없을 때 — 에셋 프리로드 중이거나 라우트 청크가
+     *   오는 중 — 밀어 줄 것이 없어서 **탭 바가 화면 맨 위로 올라갔다.**
+     *   로딩 화면 위에 탭 바가 떠 있는 그 모양이 "이상한 것"의 하나였다.
+     *
+     * ★ 화면이 있을 때는 남는 공간이 없으므로 이 값은 아무 일도 하지 않는다.
+     */
+    margin-top: auto;
+    gap: 4px;
+    padding: 6px 12px;
+    background: rgba(10, 10, 20, 0.95);
+    border-top: 2px solid #3a3a5e;
+    pointer-events: auto;
+}
+
+/* NavLink 는 <a> 로 렌더된다 — 버튼처럼 보이게 명시적으로 잡는다 */
+/**
+ * ★★ **영어 라벨 실측 (2026-08-07).** 폰트가 한글:라틴 = 1:0.5 듀오스페이스라
+ *   한글 2자(방주 · 출격 · 편성 · 동료 · 설정)는 13px 기준 26px 인데,
+ *   같은 뜻의 영어(Ark · Deploy · Squad · Allies · Settings)는 26~52px 로
+ *   **최대 2배**다. 그래도 칸은 남는다 — `flex: 1` 이라 한 칸이 화면 폭의 1/5 이고,
+ *   가장 좁은 가로 화면(568px)에서도 한 칸이 105px 다. 폭은 문제가 아니다.
+ *
+ * ★ 문제는 **줄바꿈**이다. 두 낱말짜리 라벨이 들어오는 순간 공백에서 접혀
+ *   탭 한 칸만 2줄이 되고, `min-height: 44px` 위로 자라 탭 바 전체가 두꺼워진다
+ *   (가로 모드에서 세로는 가장 비싼 자원이다). 그래서 접지 않고, 혹시 넘치면
+ *   자른다 — 잘린 라벨은 눈에 보이지만 뒤틀린 탭 바는 원인을 알 수 없다.
+ * ★ 한국어에는 아무 영향이 없다 (2자 라벨은 애초에 접힐 곳이 없다).
+ */
+.tab {
+    flex: 1;
+    min-width: 0;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    color: var(--text-dim);
+    text-decoration: none;
+    border-radius: 3px;
+    background: transparent;
+    transition: color 0.12s;
+}
+
+.tab:hover {
+    color: var(--text);
+}
+
+.tab.active {
+    color: var(--gold);
+    background: rgba(242, 179, 61, 0.12);
+    box-shadow: inset 0 -2px 0 var(--gold);
+}
+/**
+ * ★ 폰 가로에서는 탭 바가 세로의 14% 를 먹는다 (58 / 412).
+ *   터치 타깃 하한(44)은 지키되 **패딩만** 줄여 게임에 자리를 돌려준다.
+ */
+@media (max-height: 480px) {
+    .tabs {
+        padding: 2px 8px;
+    }
+
+    .tab {
+        min-height: 40px;
+        font-size: 12px;
+    }
+}
+
+
+/* 화면 제목 + [도움말] 한 줄 (2026-08-04) */
+.titleRow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.titleRow .title {
+    flex: 1;
+    margin: 0;
+}
+
+/* ── 월드 탭 (2026-08-04) ────────────────────────────────────
+   ★ 100 스테이지를 한 줄기로 쌓으면 월드 5 까지 5,800px 을 스크롤해야 한다.
+     한 번에 한 월드만 그리고, 이동은 탭 한 번으로. */
+.worldTabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 8px;
+}
+
+.worldTab {
+    min-height: 40px;
+    padding: 4px 14px;
+    font-family: inherit;
+    font-size: 12px;
+    color: var(--text-dim);
+    background: #16162a;
+    border: 2px solid #2e2e4c;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.worldTab:hover {
+    color: var(--text);
+    border-color: #4a4a72;
+}
+
+.worldTab.worldTabOn {
+    color: var(--gold);
+    border-color: var(--gold);
+    background: rgba(242, 179, 61, 0.12);
+}
