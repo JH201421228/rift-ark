@@ -1278,96 +1278,75 @@ Codemagic → 앱 설정 → **Environment variables**
 | Group | `google_play` |
 | **Secure** | ✅ **반드시 체크** |
 
-### 9.4 `codemagic.yaml` — 저장소 루트에 둔다
+### 9.4 `codemagic.yaml` ✅ **작성됨** (2026-08-08)
 
-```yaml
-workflows:
-  android-release:
-    name: RIFT ARK — Android Release
-    instance_type: linux_x2
-    max_build_duration: 60
-
-    environment:
-      android_signing:
-        - riftark_keystore          # §9.2 의 reference name
-      groups:
-        - google_play               # §9.3 의 변수 그룹
-      node: 22
-      java: 21                      # ★ 21 미만이면 "invalid source release: 21"
-      vars:
-        PACKAGE_NAME: "com.superdimension.app"
-
-    triggering:
-      events:
-        - tag                       # v1.0.0 같은 태그를 밀 때만 릴리스한다
-      tag_patterns:
-        - pattern: 'v*'
-          include: true
-
-    scripts:
-      - name: 의존성 설치
-        script: |
-          cd FE
-          npm ci
-
-      - name: 에셋 파이프라인
-        script: |
-          cd FE
-          npm run assets:all
-
-      - name: 검증 게이트 (lint · test · data · check)
-        script: |
-          cd FE
-          npm run lint
-          npm run test
-          npm run data:validate
-          npm run check
-
-      - name: 웹 빌드 + Capacitor 동기화
-        script: |
-          cd FE
-          npm run build
-          npx cap sync android
-
-      - name: 프로덕션 잔재 점검
-        script: |
-          cd FE
-          node tools/check-production.mjs
-
-      - name: AAB 빌드
-        script: |
-          cd FE/android
-          chmod +x gradlew
-          ./gradlew bundleRelease
-
-    artifacts:
-      - FE/android/app/build/outputs/bundle/**/*.aab
-      - FE/android/app/build/outputs/**/mapping.txt
-
-    publishing:
-      email:
-        recipients:
-          - 741u741@gmail.com
-        notify:
-          success: true
-          failure: true
-
-      google_play:
-        credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
-        track: internal             # internal → alpha(클로즈드) → production
-        submit_as_draft: false
-```
-
-> ★ **광고를 켜면 `check-production.mjs` 가 지켜야 할 것이 두 가지 늘어난다**
-> (`56 §5.5`) — ① 배포 번들에 **테스트 광고 단위 ID 가 남아 있지 않은가**
-> ② `ads.json:enabled === true` 인데 `units.android` / `units.ios` 가 **비어
-> 있지 않은가**. 지금은 빈 값이면 안전한 방향(테스트 ID)으로 떨어지지만,
-> 그 안전장치는 **"광고가 안 뜬다"로 조용히 나타난다** — 조용한 것이 이 저장소가
-> 가장 자주 당한 것이다. **CI 가 빌드를 실패시키게 만든다.**
+> ### ★★ 정본은 **저장소 루트의 `codemagic.yaml`** 이다
 >
-> ⚠ **CI 에는 실제 광고 단위 ID 가 필요 없다.** 그것은 `ads.json` 에 커밋되는
-> 값이지 Codemagic 환경변수가 아니다. **AdMob 앱 ID 는 `strings.xml` 에 있고,
-> 그 파일은 저장소에 있다** (`56 §2.3`) — 그래서 저장소를 private 로 둔다 (§1.1).
+> §1.3 과 같은 이유로 여기에 전문을 복사해 두지 않는다. 예전에 이 자리에 있던
+> 초안은 **클론 검증(§1.1) 전에 쓰인 것이라 지금 그대로 쓰면 조용히 실패한다.**
+> 아래는 그 파일이 초안과 **무엇이 다른가**만 적는다.
+
+#### 워크플로가 둘이다
+
+| | 트리거 | 하는 일 | Play 업로드 |
+|---|---|---|---|
+| `android-verify` | `dev` · `main` push · PR | 게이트 + 웹빌드 + **키 없이** AAB 빌드 | ✗ |
+| `android-release` | 태그 `v*` | 위 전부 + 서명 + 검증 | ○ 내부 테스트 |
+
+`dev` 는 통합 브랜치라 자주 깨질 수 있으므로 Play 에 올리지 않는다 (§1.1).
+`android-verify` 가 **키 없이** AAB 를 만드는 것은 §1.3 의 `canSignRelease`
+가드가 살아 있는지를 매 push 마다 확인하기 위해서다 — 그 가드가 죽으면
+**키 없는 환경의 빌드가 설정 단계에서 전부 죽는다.**
+
+#### 초안과 달라진 것 넷
+
+| 무엇 | 왜 |
+|---|---|
+| ① `npm run assets:all` 스텝 **삭제** | `prebuild` 가 이미 부른다. 그대로 두면 아틀라스·오디오 인코딩이 **두 번** 돈다 |
+| ② `npm run check:prod` 대신 `node tools/check-production.mjs` | `check:prod` 는 `vite build` 를 한 번 더 돌린다. 방금 만든 `dist` 를 그대로 검사한다 |
+| ③ **서명 환경변수 사전 검사 스텝 추가** | 아래 ★★★ |
+| ④ **빌드 후 서명·`versionCode` 검증 스텝 추가** | 아래 ★★ |
+
+> ### ★★★ ③ — `CM_*` 이름이 틀리면 조용히 서명 없는 AAB 가 나간다
+>
+> `build.gradle` 은 CI 자격증명을 `CM_KEYSTORE_PATH` · `CM_KEYSTORE_PASSWORD` ·
+> `CM_KEY_ALIAS` · `CM_KEY_PASSWORD` 에서 읽는다 (§1.3). **이 이름들이 Codemagic 이
+> 실제로 내보내는 이름과 다르면** `canSignRelease` 가 false 로 떨어지고 —
+> **서명 없는 AAB 가 만들어지고 빌드는 `BUILD SUCCESSFUL` 로 끝난다.**
+> 실패는 한참 뒤 Play 업로드에서 난다.
+>
+> ⚠ **이 이름들은 Codemagic 문서 기준이고 첫 실행 전까지 실측된 적이 없다.**
+> 그래서 첫 스텝이 넷을 검사하고, 없으면 **이 빌드에 실제로 존재하는 `CM_*`
+> 이름 목록을 출력하고 즉시 멈춘다** (값은 출력하지 않는다). 틀렸더라도
+> **첫 실행 1분 안에, 정답과 함께** 알게 된다.
+
+> ### ★★ ④ — `BUILD SUCCESSFUL` 은 "올바른 키로 서명됐다"가 아니다
+>
+> `:app:signReleaseBundle` 은 **키가 없어도 태스크 목록에 나타난다** (§1.4 실측).
+> 그래서 빌드 뒤에 네 가지를 따로 검사한다:
+>
+> | 검사 | 실패 시 |
+> |---|---|
+> | AAB 파일이 존재하는가 | ★ "파일이 없다"와 "서명이 없다"를 **같은 메시지로 말하지 않는다** — 처음엔 그렇게 짰다가 깨뜨려 보고 고쳤다 |
+> | `jar verified` 인가 | `canSignRelease` 가 false 로 떨어졌다 |
+> | `CN=Unknown` 이 아닌가 | `-dname` 이 빠진 키다 (§1.2) |
+> | `versionCode == $BUILD_NUMBER` 인가 | Play 는 증가하지 않는 `versionCode` 를 거부한다 |
+>
+> 추가로 `AD_ID` 권한 유무를 **보고**한다 (실패시키지는 않는다) — Play 광고 ID
+> 선언(§4.6)과 어긋나면 여기서 먼저 보인다.
+>
+> ★ **다섯 분기를 전부 깨뜨려 확인했다** (2026-08-08): 변수 없음 · 변수 있음 ·
+> 키 파일 없음 · AAB 없음 · 서명 없는 AAB · 정상 AAB.
+
+> ### ⚠ 검증 게이트에 `balance:check` 를 넣지 않았다
+>
+> `npm run verify` 는 `economy` · `balance:check` · `playthrough` 까지 돈다.
+> CI 게이트에는 `lint · test · data:validate · check · icons:check` 만 넣었다.
+>
+> **`balance:check` 는 지금 실패하는 것이 정상이기 때문이다** — 16/21 이고
+> 하드 실패 2건(B3 · BN3)은 **사용자 결정 대기**이지 회귀가 아니다
+> (`CLAUDE.md` · `docs/02-design/22-nightmare.md` §0-A.1). 넣으면 **모든 릴리스가
+> 막힌다.** 결정이 나면 그때 넣는다.
 
 > **`versionCode` 는 `$BUILD_NUMBER` 에서 온다** (§1.3). Codemagic 이 빌드마다
 > 자동 증가시키므로 손댈 것이 없다.
@@ -1378,6 +1357,17 @@ workflows:
 > ```bash
 > git tag v1.0.0 && git push origin v1.0.0
 > ```
+
+> ★ **광고를 켜면 `check-production.mjs` 가 지켜야 할 것이 두 가지 늘어난다**
+> (`56 §5.5`) — ① 배포 번들에 **테스트 광고 단위 ID 가 남아 있지 않은가**
+> ② `ads.json:enabled === true` 인데 `units.android` / `units.ios` 가 **비어
+> 있지 않은가**. 지금은 빈 값이면 안전한 방향(테스트 ID)으로 떨어지지만,
+> 그 안전장치는 **"광고가 안 뜬다"로 조용히 나타난다.** **CI 가 빌드를 실패시키게 만든다.**
+>
+> ⚠ **CI 에는 실제 광고 단위 ID 가 필요 없다.** 그것은 `ads.json` 에 커밋되는
+> 값이지 Codemagic 환경변수가 아니다. **AdMob 앱 ID 는 `strings.xml` 에 있고,
+> 그 파일은 저장소에 있다** (`56 §2.3`) — 그래서 저장소를 private 로 둔다 (§1.1).
+
 
 ### 9.5 트랙을 올리는 법
 

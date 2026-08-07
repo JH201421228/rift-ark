@@ -1,0 +1,249 @@
+# RIFT ARK / 균열의 방주 — Codemagic CI
+#
+# 절차 문서: docs/06-release/50-google-play-paid-codemagic.md §9
+#   §9.2 키스토어 등록 (reference name: riftark_keystore)
+#   §9.3 서비스 계정 JSON 등록 (변수 그룹: google_play)
+#
+# ★ 워크플로는 둘이다. 하나는 검증만, 하나는 릴리스다.
+#   dev 는 통합 브랜치라 자주 깨질 수 있으므로 Play 에 올리지 않는다 (§1.1).
+
+definitions:
+  # ─────────────────────────────────────────────────────────────────
+  # ★★★ 이 저장소에서 순서가 틀리면 조용히 실패하는 자리 (실측 2026-08-08 · §1.1)
+  #
+  #   Gradle 은 `npx cap sync android` **뒤에만** 돈다. 클론 직후 ./gradlew 를
+  #   바로 부르면 설정 단계에서 죽는데, 메시지는 cordova.variables.gradle 이
+  #   없다고만 말하고 "cap sync" 라는 말이 한 번도 나오지 않는다. 그 파일은
+  #   cap sync 가 생성하고 .gitignore 대상이다.
+  #
+  #   → 그래서 웹 빌드 · 동기화가 **반드시** Gradle 앞에 온다.
+  # ─────────────────────────────────────────────────────────────────
+  scripts:
+    - &install
+      name: 의존성 설치
+      script: |
+        cd FE
+        npm ci
+
+    - &gates
+      name: 검증 게이트 (lint · test · data · check · icons)
+      script: |
+        cd FE
+        npm run lint
+        npm run test
+        npm run data:validate
+        npm run check
+        npm run icons:check
+
+    - &webbuild
+      name: 웹 빌드 + Capacitor 동기화
+      # ★ `prebuild` 가 assets:all(아틀라스 · 오디오)을 자동으로 돌린다.
+      #   여기서 assets:all 을 따로 부르면 **두 번** 돌아간다 — 부르지 않는다.
+      script: |
+        cd FE
+        npm run build
+        npx cap sync android
+
+    - &prodcheck
+      name: 프로덕션 잔재 점검
+      # ★ `npm run check:prod` 를 쓰지 않는다 — 그 스크립트는 `vite build` 를
+      #   한 번 더 돌린다. 방금 만든 dist 를 그대로 검사한다.
+      script: |
+        cd FE
+        node tools/check-production.mjs
+
+environment: &base_env
+  node: 22
+  java: 21          # ★ 21 미만이면 "invalid source release: 21"
+
+workflows:
+  # ═══════════════════════════════════════════════════════════════════
+  # ① 검증 — dev · PR. Play 에 아무것도 올리지 않는다.
+  # ═══════════════════════════════════════════════════════════════════
+  android-verify:
+    name: RIFT ARK — 검증 (배포 없음)
+    instance_type: linux_x2
+    max_build_duration: 45
+
+    environment:
+      <<: *base_env
+
+    triggering:
+      events:
+        - push
+        - pull_request
+      branch_patterns:
+        - pattern: 'dev'
+          include: true
+        - pattern: 'main'
+          include: true
+
+    scripts:
+      - *install
+      - *gates
+      - *webbuild
+      - *prodcheck
+
+      # ★ 서명 없이 AAB 가 만들어지는가 — §1.3 의 canSignRelease 가드 검증.
+      #   키가 없는 환경에서 설정 단계가 죽지 않아야 한다.
+      - name: AAB 빌드 (서명 없음 — 가드 검증)
+        script: |
+          cd FE/android
+          chmod +x gradlew
+          ./gradlew bundleRelease
+
+    artifacts:
+      - FE/android/app/build/outputs/bundle/**/*.aab
+
+    publishing:
+      email:
+        recipients:
+          - 741u741@gmail.com
+        notify:
+          success: false
+          failure: true
+
+  # ═══════════════════════════════════════════════════════════════════
+  # ② 릴리스 — 태그(v*)를 밀 때만. Play 내부 테스트 트랙으로 올라간다.
+  # ═══════════════════════════════════════════════════════════════════
+  android-release:
+    name: RIFT ARK — Android Release
+    instance_type: linux_x2
+    max_build_duration: 60
+
+    environment:
+      <<: *base_env
+      android_signing:
+        - riftark_keystore        # §9.2 의 reference name
+      groups:
+        - google_play             # §9.3 의 변수 그룹
+      vars:
+        PACKAGE_NAME: "com.superdimension.app"
+
+    triggering:
+      events:
+        - tag
+      tag_patterns:
+        - pattern: 'v*'
+          include: true
+
+    scripts:
+      # ───────────────────────────────────────────────────────────────
+      # ★★★ 첫 실행에서 가장 먼저 알아야 하는 것을 가장 먼저 검사한다.
+      #
+      #   FE/android/app/build.gradle 은 CI 자격증명을 CM_KEYSTORE_PATH ·
+      #   CM_KEYSTORE_PASSWORD · CM_KEY_ALIAS · CM_KEY_PASSWORD 에서 읽는다 (§1.3).
+      #
+      #   이 이름들이 Codemagic 이 실제로 내보내는 이름과 다르면 —
+      #   `canSignRelease` 가 false 로 떨어져 **서명 없는 AAB 가 만들어지고
+      #   빌드는 BUILD SUCCESSFUL 로 끝난다.** 그리고 Play 업로드 단계에서야
+      #   거부된다. 정확히 §1.4 가 경고하는 조용한 실패다.
+      #
+      #   ⚠ 이름은 Codemagic 문서 기준이고 **첫 실행 전까지 실측된 적이 없다.**
+      #     그래서 틀렸을 때 무엇이 실제로 있는지 출력하고 즉시 멈춘다.
+      # ───────────────────────────────────────────────────────────────
+      - name: ★ 서명 환경변수 확인 — 없으면 여기서 멈춘다
+        script: |
+          missing=""
+          for v in CM_KEYSTORE_PATH CM_KEYSTORE_PASSWORD CM_KEY_ALIAS CM_KEY_PASSWORD; do
+            eval "val=\${$v:-}"
+            if [ -z "$val" ]; then missing="$missing $v"; fi
+          done
+          if [ -n "$missing" ]; then
+            echo "════════════════════════════════════════════════════════"
+            echo "서명 환경변수가 없다:$missing"
+            echo ""
+            echo "이 빌드에서 실제로 설정된 CM_* 변수 이름 (값은 출력하지 않는다):"
+            env | sed -n 's/^\(CM_[A-Z0-9_]*\)=.*/  \1/p' | sort
+            echo ""
+            echo "→ docs/06-release/50-google-play-paid-codemagic.md §1.3 · §9.2"
+            echo "  build.gradle 이 읽는 이름과 위 목록을 맞춘다."
+            echo "════════════════════════════════════════════════════════"
+            exit 1
+          fi
+          echo "서명 환경변수 4개 확인됨 (값은 출력하지 않는다)."
+          if [ ! -f "$CM_KEYSTORE_PATH" ]; then
+            echo "CM_KEYSTORE_PATH 가 가리키는 파일이 없다: $CM_KEYSTORE_PATH"
+            exit 1
+          fi
+
+      - *install
+      - *gates
+      - *webbuild
+      - *prodcheck
+
+      - name: AAB 빌드
+        script: |
+          cd FE/android
+          chmod +x gradlew
+          ./gradlew bundleRelease
+
+      # ───────────────────────────────────────────────────────────────
+      # ★★★ BUILD SUCCESSFUL 은 "올바른 키로 서명됐다"를 뜻하지 않는다 (§1.4).
+      #   `:app:signReleaseBundle` 은 키가 없어도 태스크 목록에 나타난다.
+      #   Play 가 거부해서 알게 되는 것보다 여기서 실패하는 편이 낫다.
+      # ───────────────────────────────────────────────────────────────
+      - name: ★ AAB 가 정말 서명됐는가 · versionCode 가 맞는가
+        script: |
+          set -e
+          OUTDIR=FE/android/app/build/outputs/bundle/release
+          AAB=$(ls "$OUTDIR"/*.aab 2>/dev/null | head -1)
+
+          # ★ "파일이 없다" 와 "서명이 없다" 를 같은 메시지로 말하지 않는다.
+          #   `ls | head` 는 ls 가 실패해도 파이프라인 종료 코드가 0 이라
+          #   set -e 가 잡지 못한다 — 여기서 명시적으로 막는다.
+          if [ -z "$AAB" ] || [ ! -f "$AAB" ]; then
+            echo "✗ AAB 가 만들어지지 않았다. 앞의 'AAB 빌드' 스텝을 본다."
+            echo "  찾은 곳: $OUTDIR"
+            ls -la "$OUTDIR" 2>&1 || echo "  (디렉터리 자체가 없다)"
+            exit 1
+          fi
+          echo "AAB: $AAB  ($(stat -c%s "$AAB") 바이트)"
+
+          jarsigner -verify -verbose:summary -certs "$AAB" > sigcheck.txt 2>&1 || true
+          grep -E 'X\.509|jar verified|jar is unsigned' sigcheck.txt || true
+
+          if ! grep -q "jar verified" sigcheck.txt; then
+            echo "✗ 서명되지 않았다. build.gradle 의 canSignRelease 가 false 로 떨어졌다 (§1.3)."
+            exit 1
+          fi
+          if grep -q "CN=Unknown" sigcheck.txt; then
+            echo "✗ 인증서 주체가 CN=Unknown 이다 — keytool 에 -dname 이 빠진 키다 (§1.2)."
+            exit 1
+          fi
+
+          MANIFEST=FE/android/app/build/intermediates/merged_manifest/release/processReleaseMainManifest/AndroidManifest.xml
+          VC=$(grep -o 'android:versionCode="[^"]*"' "$MANIFEST" | head -1 | grep -o '[0-9]\+')
+          echo "versionCode=$VC  BUILD_NUMBER=$BUILD_NUMBER"
+          if [ "$VC" != "$BUILD_NUMBER" ]; then
+            echo "✗ versionCode 가 BUILD_NUMBER 와 다르다. Play 는 증가하지 않는 versionCode 를 거부한다 (§1.3)."
+            exit 1
+          fi
+
+          # ★ 광고 ID 권한은 play-services-ads 가 자동 주입한다 (§4.6 · 실측 §1.4).
+          #   사라졌다면 광고 SDK 배선이 빠진 것이고, Play 광고 ID 선언과 어긋난다.
+          if grep -q 'com.google.android.gms.permission.AD_ID' "$MANIFEST"; then
+            echo "AD_ID 권한 있음 — Play 광고 ID 선언 '예' 와 일치한다 (§4.6)."
+          else
+            echo "⚠ AD_ID 권한이 없다. 광고를 켠 릴리스라면 Play 선언과 어긋난다 (§4.6)."
+          fi
+
+    artifacts:
+      - FE/android/app/build/outputs/bundle/**/*.aab
+      - sigcheck.txt
+
+    publishing:
+      email:
+        recipients:
+          - 741u741@gmail.com
+        notify:
+          success: true
+          failure: true
+
+      # ⚠ 첫 업로드는 이것이 하지 못한다 — §6.3.
+      #   Play Publishing API 는 "릴리스가 하나도 없는 앱"에 올릴 수 없다.
+      #   AAB 를 손으로 한 번 올린 뒤부터 이 절이 동작한다.
+      google_play:
+        credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+        track: internal           # internal → alpha(클로즈드) → production (§9.5)
+        submit_as_draft: false
