@@ -128,11 +128,16 @@
 | **[`53-english-market-paid-release.md`](06-release/53-english-market-paid-release.md)** | **★ 영어권 유료앱 출시 — 미국·영국·캐나다·호주·EU.** 가격·통화 · 세금(W-8BEN·조세조약·수수료) · 판매 국가 · 연령 등급(**Apple 2025 신규 체계**·IARC) · 법무(영문 방침 · Data safety · App Privacy · **Privacy Manifest** · **EU DSA 거래자 지위** · COPPA 회피) · 리스팅 현지화와 ASO · 환불 · 출시 순서 (2026-08-07) |
 | **[`54-english-store-art-codex-prompts.md`](06-release/54-english-store-art-codex-prompts.md)** | **★ 영어권 스토어 이미지·카피의 Codex 프롬프트.** 자산 사양표(Play·App Store) · 아이콘 3안 · 피처 그래픽 · 스크린샷 오버레이 카피(**No ads. No IAP. No gacha.**) · 이름/짧은설명/긴설명 · 하지 말 것 · 체크리스트 (2026-08-07) |
 | **[`55-monetization-decision.md`](06-release/55-monetization-decision.md)** | **★ 수익화 모델 판정 — 유료 vs 무료+보상형 광고.** 설치당 기대수익 계산 · 손익분기 설치 배수 · "클리어 골드 2배" 가 경제 곡선에 하는 일 · 가격 전략 · **이 결론을 뒤집는 조건** (2026-08-07) |
+| **[`56-admob-rewarded-integration.md`](06-release/56-admob-rewarded-integration.md)** | **★★ AdMob 보상형 광고 — 기술 상세.** 계정·앱ID vs 광고단위ID · 플러그인/네이티브 설정 · UMP 동의·ATT · 스토어 제출물 대조 · 개인정보 방침 전문(한/영) · **경제 재보정과 실측 스윕** (2026-08-07) |
+| [`57-store-image-recapture-register.md`](06-release/57-store-image-recapture-register.md) | 스토어 이미지 재촬영 대장 |
+| **[`58-free-ads-release-playbook.md`](06-release/58-free-ads-release-playbook.md)** | **★★★ 실행 순서서 — AdMob 계정부터 출시까지.** 다른 문서가 각 단계의 상세를 갖고, **이 문서가 순서를 갖는다.** 되돌릴 수 없는 것 둘 · 경제 결정 · 실기 확인 6항목 · 체크리스트 · 자주 막히는 곳 (2026-08-07) |
 | **[`56-admob-rewarded-integration.md`](06-release/56-admob-rewarded-integration.md)** | **★★ 보상형 광고(AdMob) 붙이는 법 — 현재 개발 방향.** 계정·앱ID vs 광고단위ID · 플러그인/네이티브 설정 · **UMP 동의·ATT** · 스토어 제출물 대조(Data safety · App Privacy · 방침 전문) · **경제 재보정과 실측 스윕** · 테스트 · 출시 순서 (2026-08-07) |
 
-> ★★ **수익화는 2026-08-07 에 무료 + 보상형 광고로 결정됐다.** 50 · 51 · 53 의 유료
-> 절차는 참고로 유효하지만 실제 출시는 무료 앱이다 — 판정 경위는 **55**, 구현과
-> 절차는 **56** 이다. **무료 → 유료 전환은 불가능**하므로 순서를 주의할 것.
+> ★★ **수익화는 2026-08-07 에 무료 + 보상형 광고로 결정됐다.**
+> 50 · 51 · 53 은 **본문이 무료+광고 기준으로 재작성됐다** (파일 이름의 `paid` 는 역사적 잔재다 —
+> 저장소 전체가 그 경로로 참조하므로 이름만 남겼다).
+> **무엇을 어떤 순서로 하는가는 [`58`](06-release/58-free-ads-release-playbook.md) 하나가 갖는다.**
+> 판정 경위는 55, 기술 상세는 56. **무료 → 유료 전환은 불가능**하므로 순서를 주의할 것.
 >
 > ★ 50 · 51 은 **한국 기준**이다. 영어권으로 확대할 때 답이 달라지는 지점은 전부
 > 53 에 있고, 50 · 51 의 해당 절에 상호 참조가 걸려 있다.

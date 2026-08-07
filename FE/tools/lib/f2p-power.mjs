@@ -176,13 +176,13 @@ export function goldPerStage(s) {
  *   `repeatFactor` 는 "각 스테이지를 평균 몇 번 도는가" 이고, 이 게임에서
  *   막혔을 때의 유일한 대응이 그것이므로 이제 **가장 중요한 손잡이**다.
  */
-export function availableGold(s, { ads = false } = {}) {
+export function availableGold(s, { ads = false, force = false } = {}) {
     let battle = 0;
     for (let i = 1; i <= s; i++) battle += goldPerStage(i) * E.repeatFactor;
     // ★ 시작 골드는 **모델에도 들어가야 한다.** 게임이 주는데 모델이 모르면
     //   초반 구간이 영원히 "골드 부족"으로 보이고, 그 유령을 고치려고
     //   수입 상수를 필요 이상으로 올리게 된다 (실제로 한 번 그랬다).
-    return battle + (E.startingGold ?? 0) + (ads ? adGold(s) : 0);
+    return battle + (E.startingGold ?? 0) + (ads ? adGold(s, force) : 0);
 }
 
 /**
@@ -202,8 +202,12 @@ export function availableGold(s, { ads = false } = {}) {
  *   스테이지를 반복한다. 초반 스테이지에 붙는다고 모델링하면 위험을 과소평가한다.
  * ★ `ads.json:minStage` 미만은 제외한다.
  */
-export function adGold(s) {
-    if (ADS.enabled !== true) return 0;
+/**
+ * @param {number} s
+ * @param {boolean} [force] `enabled` 가 false 여도 계산한다 — 켜기 전에 미리 보기 위해서다
+ */
+export function adGold(s, force = false) {
+    if (ADS.enabled !== true && !force) return 0;
     const mult = Number(ADS.rewardMult) || 1;
     if (mult <= 1) return 0;
 
@@ -221,6 +225,43 @@ export function adGold(s) {
         left -= plays;
     }
     return extra;
+}
+
+/**
+ * **골드 → 도달 가능한 파워** (`requiredGold` 의 역함수).
+ *
+ * ★★★ **광고가 위험한 이유는 골드가 아니라 파워다** (2026-08-07 정정).
+ *
+ *   처음에는 골드 여유(`가용/필요`)로 게이트를 만들었다. 그것은 **틀린 축**이다 —
+ *   골드 여유는 지금도 1.06~2.12 로 언제나 1 을 넘고, 넘는 것이 정상이다.
+ *   실제로 게임을 쉽게 만드는 것은 **그 골드로 산 파워가 적 HP 대비 얼마인가**이고,
+ *   그 비는 0.79~1.26 사이에서 40–60 구간에 의도적으로 낮게 잡혀 있다.
+ *
+ *   그리고 둘은 **선형이 아니다.** 레벨·시설 비용이 지수라, 골드 +63% 가
+ *   파워 +63% 를 뜻하지 않는다. 골드로 게이트를 걸면 실제보다 훨씬 가혹하게
+ *   판정한다 — 그래서 축을 바꾼다.
+ *
+ * ★ `requiredGold(s)` 가 s 에 대해 단조증가이므로 이분 탐색으로 뒤집는다.
+ *   같은 함수를 뒤집으므로 모델이 둘로 갈라질 수 없다.
+ *
+ * @param {number} gold
+ * @returns {number} 그 골드로 도달할 수 있는 '목표 파워 기준' 스테이지 (실수)
+ */
+export function stageAffordableWith(gold) {
+    let lo = 0;
+    let hi = 200;
+    for (let i = 0; i < 40; i++) {
+        const mid = (lo + hi) / 2;
+        if (requiredGold(Math.max(1, Math.round(mid))) <= gold) lo = mid;
+        else hi = mid;
+    }
+    return lo;
+}
+
+/** 그 골드로 실제로 도달하는 파워 */
+export function powerFromGold(gold) {
+    const s = Math.max(1, Math.round(stageAffordableWith(gold)));
+    return targetPower(s).power;
 }
 
 /* ────────────────────────── 하네스 인터페이스 ────────────────────────── */
