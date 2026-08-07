@@ -139,8 +139,10 @@
 
 > | | 상태 |
 > |---|---|
-> | `C:\keys\riftark-release.jks` | **생성됨** (저장소 **밖** · 4,410 바이트 · 2026-08-08 02:10) |
+> | `C:\keys\riftark-release.jks` | **생성됨** (저장소 **밖** · 4,410 바이트 · 2026-08-08 02:44 — ★ 02:10 판을 `-dname` 때문에 폐기하고 다시 만든 것) |
 > | 형식 | **PKCS12 확인됨** — 파일 첫 4바이트가 `30 82 11 36` (DER SEQUENCE). JKS 였다면 `fe ed fe ed` 로 시작한다 |
+> | 인증서 주체 | ✅ `CN=Rift Ark, OU=Development, O=Rift Ark, L=Seoul, ST=Seoul, C=KR` (AAB 서명으로 확인) |
+> | 키 | 4096-bit RSA · 만료 **2053-12-24** |
 > | `.gitignore` — `*.jks` · `*.keystore` · `*.p12` · **`key.properties`** | 등록됨 (아래 ★★ 참조) |
 > | `FE/android/key.properties.example` | 템플릿 커밋됨 |
 > | `FE/android/key.properties` | ★ **아직 없다.** 비밀번호가 들어가므로 **사용자가 직접 만든다** (§1.3) |
@@ -218,6 +220,11 @@ keytool -genkeypair -v -keystore C:/keys/riftark-release.jks -alias riftark -key
 > **즉 치명적이지 않다. 다만 첫 업로드 전에는 다시 만드는 값이 0 이다** —
 > `C:\keys\` 를 비우고 `-dname` 을 붙여 §1.2 명령을 다시 돌리면 끝난다.
 > **첫 AAB 를 Play 에 올린 뒤에는 그 값이 0 이 아니다.**
+>
+> ✅ **그래서 같은 날 다시 만들었고 확인됐다** (02:44):
+> `CN=Rift Ark, OU=Development, O=Rift Ark, L=Seoul, ST=Seoul, C=KR`.
+> 재서명은 Gradle 이 6초에 끝냈다 — 키스토어 파일이 서명 태스크의 입력이라
+> `signReleaseBundle` 만 다시 돌고 나머지 374개 태스크는 `UP-TO-DATE` 였다.
 >
 > ★ **확인 방법은 `keytool -list` 가 아니라 `jarsigner -verify -certs` 가 빠르다** —
 > 키스토어 비밀번호를 묻지 않고 이미 만든 AAB 에서 바로 읽는다:
@@ -319,12 +326,24 @@ cd android && JAVA_HOME="C:/Program Files/Java/jdk-21.0.10" ./gradlew bundleRele
 
 | 항목 | 값 |
 |---|---|
-| `app-release.aab` | **32,051,819 바이트** |
+| `app-release.aab` | **32,051,860 바이트** |
 | 서명 | `jar verified` · **4096-bit RSA** · SHA384withRSA · 만료 **2053-12-24** |
+| 인증서 주체 | ✅ `CN=Rift Ark, OU=Development, O=Rift Ark, L=Seoul, ST=Seoul, C=KR` |
 | `versionCode` / `versionName` | **1** / **1.0.0** — `BUILD_NUMBER` 가 없을 때의 설계값 (§1.3) |
 | `targetSdkVersion` / `minSdkVersion` | **35** / 23 |
 | ★ `com.google.android.gms.permission.AD_ID` | **머지된 매니페스트에 있다** — §4.6 이 말하는 자동 주입이 실측으로 확인됐다. 즉 **광고 ID 선언은 이미 신고할 사실이 있는 상태다** |
-| ⚠ 인증서 주체 | `CN=Unknown, ...` — §1.2 의 `-dname` 경고 참조 |
+
+> ★ **`jarsigner` 의 타임스탬프 경고는 무시한다** — 이것을 쫓지 않기 위해 적어 둔다.
+>
+> ```
+> This jar contains signatures that do not include a timestamp.
+> The signer certificate will expire on 2053-12-24.
+> ```
+>
+> `-tsa` 를 주지 않아서 나오는 표준 경고다. **Play 에 올리는 AAB 에는 의미가 없다** —
+> Play App Signing 이 배포용으로 **다시 서명**하고(§4.4), 이 키는 업로드 키일 뿐이다.
+> 만료도 27년 뒤다. `-tsa` 를 붙이면 빌드가 외부 타임스탬프 서버에 의존하게 되어
+> **CI 가 그 서버 때문에 실패할 수 있다** — 얻는 것 없이 실패 지점만 는다.
 
 #### 빌드 뒤에 **반드시** 돌리는 확인 세 줄
 
