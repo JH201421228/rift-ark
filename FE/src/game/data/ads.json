@@ -108,7 +108,7 @@
         "testIos": "ca-app-pub-3940256099942544/1712485313",
         "_prodDoc": "실제 단위 id. 비어 있으면 어댑터가 테스트 id 로 떨어진다 — 실수로 빈 값이 배포되어도 '광고가 안 뜨는' 것으로 끝나고, 잘못된 id 로 매출이 남의 계정에 가는 일은 없다. **그 안전한 실패는 조용하다** — enabled 가 true 인데 여기가 비면 tools/check-production.mjs 의 A1 이 빌드를 실패시킨다.",
         "android": "ca-app-pub-6178685918745796/2344321218",
-        "ios": ""
+        "ios": "ca-app-pub-6178685918745796/5362055153"
     },
     "_consentDoc": "UMP(User Messaging Platform) 동의. EU/영국에서는 동의 전에 광고를 요청하면 안 된다. 어댑터가 초기화 시 한 번 확인한다.",
     "requireConsent": true,
