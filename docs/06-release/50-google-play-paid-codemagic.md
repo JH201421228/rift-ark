@@ -354,9 +354,43 @@ CI 는 Codemagic 의 `CM_*` 환경변수, 로컬은 `key.properties`.
 | 결정 | 왜 |
 |---|---|
 | 자격증명이 **하나도 없으면 서명을 배선하지 않는다** (`canSignRelease`) | 무조건 `signingConfig` 를 걸면 **키 없는 환경의 `assembleDebug` 까지 설정 단계에서 죽는다.** 클론 직후 첫 빌드가 `storeFile is null` 로 실패하면 안 된다 — 서명이 필요한 것은 `bundleRelease` 뿐이다 |
-| `BUILD_NUMBER` 가 정수가 아니면 **빌드를 멈춘다** | 조용히 `1` 로 떨어지는 쪽이 훨씬 위험하다. `versionCode` 는 **한 번 올린 값보다 커야만** 업로드되므로, 1 을 이미 쓴 뒤에 다시 1 이 나오면 업로드가 거부되고 원인이 CI 환경변수라는 것을 알기까지 한참 걸린다 |
+| `versionCode` = **`VERSION_CODE_BASE` + `BUILD_NUMBER`** | ★★★ 아래 절 |
+| `BUILD_NUMBER`·`VERSION_CODE_BASE` 가 정수가 아니면 **빌드를 멈춘다** | 조용히 떨어지면 이미 쓴 번호가 다시 나오고, 원인이 환경변수라는 것을 알기까지 한참 걸린다 |
+| 합이 1 미만이면 **빌드를 멈춘다** | Play 가 거부하는 값을 만들어 놓고 성공으로 끝내지 않는다 |
 | `keyPassword` 가 비면 `storePassword` 로 폴백 | PKCS12 는 저장소 비밀번호 하나가 키까지 보호한다. 둘을 다르게 적는 실수가 "키를 못 연다"로 나타나는 것을 막는다 |
 | `minifyEnabled false` 유지 | Phaser 는 씬·플러그인을 **문자열 이름**으로 찾고 Capacitor 플러그인은 리플렉션으로 불린다. R8 이 지우면 **빌드는 성공하고 실행이 죽는다** (§1.4 크기 표의 원인이기도 하다) |
+
+#### ★★★ `versionCode` — CI 와 로컬은 **번호 공간을 나눠 쓴다** (2026-08-08)
+
+**한 번 올린 `versionCode` 는 영원히 재사용할 수 없다.** 앱에서 지워도, 초안이어도 같다.
+
+그리고 **Codemagic 의 `BUILD_NUMBER` 는 그 앱의 첫 빌드에서 1부터 시작한다.**
+그래서 손으로 1·2 를 올린 뒤 CI 를 붙이면 **첫 자동 빌드가 그대로 거부된다.**
+
+> 실제로 겪었다 (2026-08-08): *"1 버전 코드는 이미 사용되었습니다."*
+
+| 어디 | 값 | 범위 |
+|---|---|---|
+| **CI** | `VERSION_CODE_BASE`(1000) + `BUILD_NUMBER` | **1001 부터** |
+| **로컬 수동** | `BUILD_NUMBER` (오프셋 없음) | **1000 미만** |
+| 로컬 기본 (환경변수 없음) | `1` | 디버그·개발용 |
+
+두 공간이 겹치지 않으므로 어느 쪽을 몇 번 돌려도 충돌하지 않는다.
+
+```bash
+# 손으로 올릴 AAB 를 만들 때 — 다음 번호를 직접 준다
+cd FE/android && BUILD_NUMBER=3 ./gradlew bundleRelease
+```
+
+> ★ **CI 인지 코드가 추측하지 않는다.** `CM_BUILD_ID` 나 `CI` 같은 변수를 보고
+> 분기하면 그 이름이 바뀌는 날 오프셋이 **조용히 0** 이 되고 충돌이 돌아온다.
+> 오프셋은 `codemagic.yaml` 의 `vars` 에 적힌 값이라 **코드 리뷰에 보인다.**
+>
+> ★ **Codemagic 콘솔의 "빌드 번호 시작값"으로 대신하지 않는다.** 콘솔 설정은
+> 저장소를 아무리 봐도 알 수 없고, Codemagic 앱을 다시 만들면 조용히 1 로 돌아간다.
+>
+> ★ CI 검증 스텝이 **`versionCode > 1000`** 을 따로 본다 — 오프셋이 전달되지
+> 않으면 빌드 단계에서 멈춘다. 그러지 않으면 실패가 **업로드에서** 나고, 그건 한참 뒤다.
 
 #### 사용자가 직접 만들 것 — `FE/android/key.properties`
 
@@ -383,7 +417,7 @@ cd android && JAVA_HOME="C:/Program Files/Java/jdk-21.0.10" ./gradlew bundleRele
 | `app-release.aab` | **32,051,860 바이트** |
 | 서명 | `jar verified` · **4096-bit RSA** · SHA384withRSA · 만료 **2053-12-24** |
 | 인증서 주체 | ✅ `CN=Rift Ark, OU=Development, O=Rift Ark, L=Seoul, ST=Seoul, C=KR` |
-| `versionCode` / `versionName` | **1** / **1.0.0** — `BUILD_NUMBER` 가 없을 때의 설계값 (§1.3) |
+| `versionCode` / `versionName` | **1** / **1.0.0** — 환경변수가 없을 때의 설계값 (§1.3). 실제 업로드는 `BUILD_NUMBER` 를 지정해 만든다 |
 | `targetSdkVersion` / `minSdkVersion` | **35** / 23 |
 | ★ `com.google.android.gms.permission.AD_ID` | **머지된 매니페스트에 있다** — §4.6 이 말하는 자동 주입이 실측으로 확인됐다. 즉 **광고 ID 선언은 이미 신고할 사실이 있는 상태다** |
 
@@ -1371,7 +1405,7 @@ Codemagic → 앱 설정 → **Environment variables**
 > | AAB 파일이 존재하는가 | ★ "파일이 없다"와 "서명이 없다"를 **같은 메시지로 말하지 않는다** — 처음엔 그렇게 짰다가 깨뜨려 보고 고쳤다 |
 > | `jar verified` 인가 | `canSignRelease` 가 false 로 떨어졌다 |
 > | `CN=Unknown` 이 아닌가 | `-dname` 이 빠진 키다 (§1.2) |
-> | `versionCode == $BUILD_NUMBER` 인가 | Play 는 증가하지 않는 `versionCode` 를 거부한다 |
+> | `versionCode == VERSION_CODE_BASE + BUILD_NUMBER` 인가 · **1000 을 넘는가** | Play 는 이미 쓴 `versionCode` 를 거부한다. 오프셋이 조용히 0 이 되면 CI 가 손으로 태운 번호와 충돌하는데, 그 실패는 빌드가 아니라 **업로드에서** 나므로 한참 뒤다 |
 >
 > 추가로 `AD_ID` 권한 유무를 **보고**한다 (실패시키지는 않는다) — Play 광고 ID
 > 선언(§4.6)과 어긋나면 여기서 먼저 보인다.
@@ -1389,8 +1423,8 @@ Codemagic → 앱 설정 → **Environment variables**
 > (`CLAUDE.md` · `docs/02-design/22-nightmare.md` §0-A.1). 넣으면 **모든 릴리스가
 > 막힌다.** 결정이 나면 그때 넣는다.
 
-> **`versionCode` 는 `$BUILD_NUMBER` 에서 온다** (§1.3). Codemagic 이 빌드마다
-> 자동 증가시키므로 손댈 것이 없다.
+> **`versionCode` 는 `$VERSION_CODE_BASE + $BUILD_NUMBER` 다** (§1.3).
+> Codemagic 이 `BUILD_NUMBER` 를 자동 증가시키므로 손댈 것이 없다.
 >
 > **`triggering` 을 태그로 제한한 이유:** 커밋마다 Play 에 올리면 `versionCode` 를
 > 낭비하고 트랙이 지저분해진다. 릴리스는 의도적인 행위여야 한다.
@@ -1511,7 +1545,7 @@ Codemagic → 앱 설정 → **Environment variables**
 | `invalid source release: 21` | CI 의 Java 가 21 미만. yaml 의 `java: 21` 확인. 로컬은 `JAVA_HOME` 을 명령마다 지정 |
 | Codemagic 이 첫 업로드에서 실패 | **§6.3** — 첫 AAB 는 손으로 올려야 한다 |
 | `Package not found: com.superdimension.app` | 서비스 계정이 아직 그 앱 권한을 못 받았거나, 앱이 생성만 되고 릴리스가 0개 |
-| `versionCode` 중복 거부 | `$BUILD_NUMBER` 배선 확인 (§1.3) |
+| `versionCode` 중복 거부 ("이미 사용되었습니다") | 그 번호는 **영원히** 못 쓴다. 로컬은 `BUILD_NUMBER=<다음 숫자>` 로 다시 빌드, CI 는 `VERSION_CODE_BASE` 확인 (§1.3) |
 | `gradlew: Permission denied` | yaml 에 `chmod +x gradlew` (§9.4 에 포함됨) |
 | 서명 불일치 | 업로드 키가 바뀌었다. Play App Signing 의 업로드 키 재설정 요청 |
 | `assets:pack` 이 CI 에서 실패 | `ffmpeg-static` 다운로드 실패 가능. 아틀라스를 커밋해 두고 `assets:audio` 만 건너뛰는 것도 방법 |
