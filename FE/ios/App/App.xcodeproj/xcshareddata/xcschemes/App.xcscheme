@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ★★★ 공유(shared) scheme — 2026-08-08, Codemagic iOS 워크플로 연결을 위해 신규 작성.
+
+    이 프로젝트가 한 번도 Xcode 로 열린 적이 없어서 xcshareddata/xcschemes/ 가
+    비어 있었다. Xcode 는 로컬에서 프로젝트를 처음 열면 scheme 을 자동
+    생성하지만 **기본은 xcuserdata(개인용, .gitignore 대상)에 만들고
+    공유로 표시하지 않으면 커밋되지 않는다.** Codemagic 은 git 클론만으로
+    빌드하므로 xcuserdata 는 아예 안 보이고, 공유 scheme 이 없으면
+    `xcodebuild -scheme App` 자체가 "scheme 을 찾을 수 없다"로 실패한다.
+
+    target 식별자는 project.pbxproj 의 실제 값을 그대로 썼다
+    (BlueprintIdentifier = 504EC3031FED79650016851F, BlueprintName = App,
+    productName = App.app, container = App.xcodeproj) — 다른 값을 넣으면
+    scheme 이 있어도 target 을 못 찾는다.
+
+    ArchiveAction 이 buildConfiguration="Release" 인 것이 핵심이다 —
+    Codemagic 의 `xcode-project build-ipa` 는 이 scheme 의 Archive 동작을
+    그대로 실행해 .xcarchive 를 만들고, 거기서 .ipa 를 뽑는다.
+-->
+<Scheme
+   LastUpgradeVersion = "1500"
+   version = "1.7">
+   <BuildAction
+      parallelizeBuildables = "YES"
+      buildImplicitDependencies = "YES">
+      <BuildActionEntries>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "504EC3031FED79650016851F"
+               BuildableName = "App.app"
+               BlueprintName = "App"
+               ReferencedContainer = "container:App.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+      </BuildActionEntries>
+   </BuildAction>
+   <TestAction
+      buildConfiguration = "Debug"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      shouldUseLaunchSchemeArgsEnv = "YES">
+      <Testables>
+      </Testables>
+   </TestAction>
+   <LaunchAction
+      buildConfiguration = "Debug"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      launchStyle = "0"
+      useCustomWorkingDirectory = "NO"
+      ignoresPersistentStateOnLaunch = "NO"
+      debugDocumentVersioning = "YES"
+      debugServiceExtension = "internal"
+      allowLocationSimulation = "YES">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "504EC3031FED79650016851F"
+            BuildableName = "App.app"
+            BlueprintName = "App"
+            ReferencedContainer = "container:App.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
+   </LaunchAction>
+   <ProfileAction
+      buildConfiguration = "Release"
+      shouldUseLaunchSchemeArgsEnv = "YES"
+      savedToolIdentifier = ""
+      useCustomWorkingDirectory = "NO"
+      debugDocumentVersioning = "YES">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "504EC3031FED79650016851F"
+            BuildableName = "App.app"
+            BlueprintName = "App"
+            ReferencedContainer = "container:App.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
+   </ProfileAction>
+   <AnalyzeAction
+      buildConfiguration = "Debug">
+   </AnalyzeAction>
+   <ArchiveAction
+      buildConfiguration = "Release"
+      revealArchiveInOrganizer = "YES">
+   </ArchiveAction>
+</Scheme>
