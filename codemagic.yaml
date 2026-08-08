@@ -371,7 +371,12 @@ workflows:
         # ★ get-latest-app-store-build-number 가 어느 앱을 볼지 알려주는 값.
         #   App Store Connect → App Information → Apple ID (2026-08-08 확인).
         APP_STORE_APPLE_ID: "6799441695"
-        XCODE_WORKSPACE: "ios/App/App.xcworkspace"
+        # ★ 2026-08-09: "ios/App/App.xcworkspace"였는데 IPA 빌드 스텝이 이미
+        #   `cd $CM_BUILD_DIR/FE/ios/App` 를 하고 나서 이 값을 --workspace 로
+        #   넘긴다 — 그래서 실제로 찾던 경로는
+        #   FE/ios/App/ios/App/App.xcworkspace(중복)였고 당연히 없었다.
+        #   ("Path does not exist" 로 즉시 실패 · exit code 2)
+        XCODE_WORKSPACE: "App.xcworkspace"
         XCODE_SCHEME: "App"
 
     triggering:
