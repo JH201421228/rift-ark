@@ -571,7 +571,7 @@ UMP 는 일부 지역에서 **사용자가 언제든 동의를 바꿀 수 있는
 > 한 줄만 고치지 않는다 — 부정문 위에 세워진 문서라 한 줄만 고치면 나머지가
 > 서로 모순된다.
 
-#### 한국어판 — ★ 정본은 **`docs/legal/privacy-policy-ko.md`** 다
+#### ★ 정본은 **`docs/legal/privacy-policy.md`** 하나다 — 한국어 + 영어 한 파일
 
 > ### ★★ 전문을 여기에 두지 않는다 (2026-08-08)
 >
@@ -579,18 +579,28 @@ UMP 는 일부 지역에서 **사용자가 언제든 동의를 바꿀 수 있는
 > 절차서 안에 본문으로 두면 코드가 바뀔 때 갈라진다 — 이 저장소의 단일 실패
 > 유형이다. 게시할 파일 하나를 정본으로 두고 여기서는 **가리키기만** 한다.
 >
-> 게시 절차: 그 파일을 GitHub `riftark-privacy` 저장소의 `index.md` 로 복사 →
-> Pages 활성화 → **브라우저로 직접 열어 404 가 아닌지 확인** (`50 §7.2`).
-> **`<법적 성명>` 한 곳만 채우면 된다.**
+> 게시: 그 파일을 GitHub `riftark-privacy`(**public**) 저장소의 `index.md` 로
+> 복사 → Pages 활성화 → **시크릿 창으로 열어 404 가 아닌지 확인** (`50 §7.2`).
 
-##### ★★★ 초안을 그대로 쓰지 않았다 — 코드와 대조해서 셋을 고쳤다
+##### ★★★ URL 은 하나다 — 로케일별로 나누지 않는다
 
-이 문서에 있던 초안은 **앱이 실제로 하지 않는 것을 세 군데에서 약속하고 있었다.**
+예전 계획은 한국어를 `/`, 영문을 `/en/` 에 두는 것이었다. **버렸다.**
+
+| 왜 | |
+|---|---|
+| ★ **UMP 는 스토어 국가가 아니라 기기 위치로 판정한다** | 한국에만 출시해도 EEA 에 있는 기기에서 실행되면 동의 폼이 뜬다. 그때 한국어 페이지를 보여 주면 **GDPR 12조의 "이해할 수 있는 형태"를 못 채운다** |
+| 동의 메시지는 URL 을 **하나만** 받는다 | GDPR 메시지 · 미국 주 규정 메시지 · Play 앱 콘텐츠가 전부 같은 URL 을 쓴다. 갈라 두면 어느 쪽을 넣어도 한 지역이 틀린다 |
+| 파일이 둘이면 **한쪽만 고친다** | 한 파일이면 갈라질 자리가 없다 |
+
+##### ★★★ 이 문서의 옛 초안을 그대로 쓰지 않았다 — 코드와 대조해 셋을 고쳤다
+
+여기 있던 한국어·영문 초안은 **앱이 실제로 하지 않는 것을 세 군데에서 약속**하고
+있었다. 정본은 그것을 고친 판이다.
 
 | 초안의 문장 | 실제 | 어떻게 했나 |
 |---|---|---|
-| "동의 내용은 앱의 **설정 > 개인정보 옵션**에서 언제든지 변경할 수 있습니다" | ★ **그런 화면이 없다.** `native/ads.js` 는 초기화 때 `showConsentForm()` 을 한 번 부를 뿐이고, `SettingsScreen` 에는 동의 관련 항목이 하나도 없다 (2026-08-08 실측) | **문장을 뺐다.** 아래 §4.5-A 참조 |
-| "동의하지 않으면 **개인화되지 않은 광고만** 게재됩니다" | ★ **광고가 아예 안 나간다.** 어댑터는 `allowed = info.canRequestAds` 로 두고, false 면 `preloadRewarded` 가 즉시 실패한다 — 비개인화 광고로 떨어지는 경로가 **없다** | "광고가 게재되지 않습니다" 로 정정 |
+| "동의 내용은 앱의 **설정 > 개인정보 옵션**에서 언제든지 변경할 수 있습니다" | 2026-08-08 오전까지 **그런 화면이 없었다** — `native/ads.js` 는 초기화 때 `showConsentForm()` 을 한 번 부를 뿐이었다 | 일단 문장을 뺐다가, **§4.5-A 로 기능을 실제로 만든 뒤** 정확한 경로(`설정 > 데이터 > 광고 개인정보 설정`)로 되살렸다 |
+| "동의하지 않으면 **개인화되지 않은 광고만** 게재됩니다" | ★ **광고가 아예 안 나간다.** 어댑터는 `allowed = info.canRequestAds` 로 두고 false 면 `preloadRewarded` 가 즉시 실패한다 — 비개인화로 떨어지는 경로가 **없다** | 한국어·영어 양쪽을 "광고가 게재되지 않습니다 / no ads are served" 로 정정 |
 | iOS IDFA · ATT 프롬프트 · iOS 설정 경로 | 1.0 은 **Android 전용**이다. `ads.json:units.ios` 는 빈 값이고 ATT 구현이 없다 | iOS 절을 **뺐다.** iOS 를 낼 때 `4.3`·`4.4` 와 함께 되살린다 |
 
 > ⚠ **방침이 앱보다 관대하게 적히는 쪽이 위험하다.** "설정에서 바꿀 수 있다"는
@@ -629,112 +639,6 @@ GDPR 은 동의를 **준 것만큼 쉽게 철회**할 수 있어야 한다고 �
 > `allowed` 가 한다. 철회하면 받아 둔 광고(`loaded`)까지 버린다 — 다음 한 번이
 > 나가면 그것이 위반이다.
 
-#### 영문판 (`https://<계정>.github.io/riftark-privacy/en/`)
-
-> ### ⚠ 이 영문 초안은 **아직 정정되지 않았다** (2026-08-08)
->
-> 위 한국어판에서 고친 **세 가지가 여기에도 그대로 있다** — 존재하지 않는
-> "Privacy options" 설정 화면, 동의 거부 시 "비개인화 광고" 라는 잘못된 서술,
-> 그리고 구현되지 않은 iOS ATT.
->
-> **영어권을 낼 때 한국어 정본(`docs/legal/privacy-policy-ko.md`)에서 번역해
-> `docs/legal/privacy-policy-en.md` 를 만든다.** 아래 블록을 그대로 게시하지 않는다.
-> 그리고 그때는 **§4.5-A(동의 철회 수단)가 차단 요소**다.
-
-```markdown
-# RIFT ARK — Privacy Policy
-
-Last updated: 2026-00-00
-Application: RIFT ARK (package `com.superdimension.app`)
-Developer: <legal name>
-Contact: 741u741@gmail.com
-
-## 1. Summary
-
-RIFT ARK has no accounts, no login, and no server that stores your game data.
-Your progress never leaves your device.
-
-The game does offer **optional rewarded video ads**. To serve them we use Google
-AdMob (the Google Mobile Ads SDK). Google collects and processes data in
-connection with those ads. Section 2 describes exactly what.
-
-## 2. Data collected for advertising
-
-When the advertising component is active, the Google Mobile Ads SDK collects the
-following and transmits it to Google:
-
-| Item | Detail | Purpose |
-|---|---|---|
-| IP address | May be used to estimate the approximate location of the device | Ad serving, analytics, fraud prevention |
-| Advertising identifiers | Android advertising ID, App set ID, iOS IDFA | Ad serving, frequency capping, fraud prevention |
-| App interactions | App launches, taps, video views | Ad serving, analytics |
-| Diagnostics | Launch time, hang rate, energy usage | Analytics |
-
-- All of this data is encrypted in transit using TLS.
-- The developer never sees or stores this data. The only thing the developer can
-  see is the aggregated reporting AdMob provides (impressions, revenue).
-- This data may be collected when the advertising component initialises, even if
-  you never choose to watch an ad.
-
-## 3. Data stored only on your device
-
-Your game progress (three save slots), your settings, and your ad-view counters
-are stored in your device's local application storage. This data never leaves
-your device and is removed when you uninstall the application.
-
-## 4. Third parties and international transfers
-
-| Recipient | Purpose | Data | Retention | Transferred to |
-|---|---|---|---|---|
-| Google LLC and Google advertising partners | Ad serving, measurement, fraud prevention | Items in section 2 | Per Google's policies | United States and other countries where Google operates data centres |
-
-- Google Privacy Policy: https://policies.google.com/privacy
-- How Google uses data from partner sites and apps:
-  https://policies.google.com/technologies/partner-sites
-
-## 5. Your choices
-
-- **EEA, UK, Switzerland** — On first launch we request consent through Google's
-  User Messaging Platform. If you decline, you will only be shown
-  non-personalised ads. You can change your choice at any time from
-  **Settings > Privacy options** inside the game.
-- **iOS** — The system App Tracking Transparency prompt lets you allow or refuse
-  tracking. You can change it later in Settings > Privacy & Security > Tracking.
-- **United States** — In states with applicable privacy laws you are offered an
-  opt-out. When you opt out, restricted data processing applies and only
-  non-personalised ads are served. This is our "Do Not Sell or Share My Personal
-  Information" mechanism.
-- **Resetting your advertising ID** — Android: Settings > Google > Ads.
-  iOS: Settings > Privacy & Security > Tracking.
-- **Not watching ads at all** — Rewarded ads are entirely optional. The full
-  campaign can be completed without ever watching one.
-
-## 6. Children
-
-RIFT ARK is not directed to children under 13, is not marketed to children, and
-is not part of any children's programme on the App Store or Google Play. We do
-not knowingly collect personal information from children under 13.
-
-## 7. Your rights
-
-Under the GDPR, the UK GDPR, the CCPA/CPRA, the Korean Personal Information
-Protection Act and comparable laws, you have rights of access, correction,
-deletion, portability and objection. The developer holds no data that identifies
-you. For advertising data, exercise your rights with Google or use the controls
-in section 5. Game data on your device is deleted when you uninstall the app.
-
-## 8. Changes
-
-If a future version changes what is collected, this policy will be updated before
-that version is released, and the change will be described in the release notes.
-
-## 9. Contact
-
-741u741@gmail.com
-```
-
-> ⚠ **문서에 앱 이름이 반드시 있어야 한다** (`53 §5.1`). 그리고 **한/영 두 문서가
-> 같은 말을 해야 한다** — 심사자는 스토어 로케일에 맞는 URL 을 연다.
 
 ---
 
