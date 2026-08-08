@@ -85,14 +85,21 @@ workflows:
     environment:
       <<: *base_env
 
+    # ★★★ main 은 트리거하지 않는다 (2026-08-08).
+    #   작업 흐름이 항상 dev → stage → main 순으로 승격하므로, main 에 push 되는
+    #   커밋은 몇 분 전 dev 에서 이미 검증 빌드를 한 번 태운 **같은 내용**이다.
+    #   dev 와 main 둘 다 걸어 두면 매 릴리스 준비마다 검증 빌드가 정확히
+    #   두 배로 돈다 — 무료 요금제 월 500분을 반으로 깎아 먹는 실낭비였다
+    #   (실측: 이 저장소의 dev→stage→main 승격 5회에서 검증 빌드 10개,
+    #    같은 코드를 다섯 번 두 번씩 검사한 셈).
+    #   ⚠ main 에 dev 를 거치지 않는 직접 핫픽스가 생기면 이 가드가 없다 —
+    #     그런 워크플로로 바뀌면 main 을 다시 넣는다.
     triggering:
       events:
         - push
         - pull_request
       branch_patterns:
         - pattern: 'dev'
-          include: true
-        - pattern: 'main'
           include: true
 
     scripts:
