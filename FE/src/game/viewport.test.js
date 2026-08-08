@@ -53,7 +53,24 @@ function fakeScene(w, h, { staleCam = true } = {}) {
             return this;
         },
     };
-    return { cameras: { main: cam }, scale: { gameSize: { width: w, height: h } } };
+    /**
+     * ★ `canvas` 는 **브라우저가 실제로 화면에 그리고 있는 크기**다.
+     *   RESIZE 모드에서 Phaser 는 `gameSize` 를 그 값과 같게 유지해야 한다 —
+     *   둘이 어긋난 상태가 곧 2026-08-08 의 "좌측 하단 쏠림" 사고다.
+     */
+    return {
+        cameras: { main: cam },
+        scale: {
+            gameSize: { width: w, height: h },
+            canvas: { clientWidth: w, clientHeight: h },
+            refresh() {
+                this.refreshed = (this.refreshed ?? 0) + 1;
+                // Phaser 의 refresh 가 하는 일 — 실제 캔버스 크기를 gameSize 로 끌어온다
+                this.gameSize.width = this.canvas.clientWidth;
+                this.gameSize.height = this.canvas.clientHeight;
+            },
+        },
+    };
 }
 
 /**
@@ -194,5 +211,85 @@ describe("카메라 드리프트 자가 교정", () => {
         expect(resyncViewportIfDrifted({ scale: { gameSize: { width: 800, height: 600 } } })).toBe(
             false
         );
+    });
+});
+
+/* ═══════════ 광고·복귀 뒤의 "좌측 하단 쏠림" (2026-08-08 사용자 제보) ═══════════ */
+
+const { syncScaleToCanvas } = await import("./viewport.js");
+
+describe("gameSize 자체가 낡은 경우 — 좌측 하단 쏠림", () => {
+    /**
+     * ★★★ **이것이 `resyncViewportIfDrifted` 만으로는 안 잡히던 사고다.**
+     *   그 함수는 카메라 ↔ `gameSize` 를 대조하는데, 여기서 틀린 것은 `gameSize`
+     *   **자신**이다. 카메라는 그 틀린 값에 정확히 맞춰져 있으므로 드리프트가 0 이다.
+     *   *기준이 틀렸을 때 기준과의 일치는 아무것도 보증하지 않는다.*
+     */
+    it("★★★ 캔버스만 커진 상태를 잡아낸다 (예전 검사는 통과시켰다)", () => {
+        const scene = fakeScene(915, 412);
+        applyViewport(scene); // 카메라는 915×412 에 정확히 맞다
+        // 광고가 화면을 덮었다 돌아오며 캔버스만 커졌다 — Phaser 는 리사이즈를 놓쳤다
+        scene.scale.canvas.clientWidth = 1080;
+        scene.scale.canvas.clientHeight = 500;
+
+        // 카메라 ↔ gameSize 는 여전히 완전히 일치한다 (= 옛 검사는 false 를 냈다)
+        const expectedOld = Math.min(412 / DESIGN.height, 915 / DESIGN.width);
+        expect(scene.cameras.main.zoom).toBeCloseTo(expectedOld, 6);
+
+        expect(resyncViewportIfDrifted(scene)).toBe(true);
+        expect(scene.scale.gameSize).toEqual({ width: 1080, height: 500 });
+        expect(scene.cameras.main.zoom).toBeCloseTo(
+            Math.min(500 / DESIGN.height, 1080 / DESIGN.width),
+            6
+        );
+    });
+
+    it("어긋나지 않았으면 refresh 하지 않는다", () => {
+        const scene = fakeScene(915, 412);
+        applyViewport(scene);
+        expect(syncScaleToCanvas(scene.scale)).toBe(false);
+        expect(scene.scale.refreshed ?? 0).toBe(0);
+    });
+
+    it("★ 캔버스가 0 이면 손대지 않는다 — 숨겨진 것이지 0 이 맞는 게 아니다", () => {
+        const scene = fakeScene(915, 412);
+        scene.scale.canvas.clientWidth = 0;
+        scene.scale.canvas.clientHeight = 0;
+        expect(syncScaleToCanvas(scene.scale)).toBe(false);
+        expect(scene.scale.gameSize).toEqual({ width: 915, height: 412 });
+    });
+
+    it("1px 오차는 무시한다 (반올림으로 늘 흔들린다)", () => {
+        const scene = fakeScene(915, 412);
+        scene.scale.canvas.clientWidth = 916;
+        expect(syncScaleToCanvas(scene.scale)).toBe(false);
+    });
+
+    it("scale 이 없거나 refresh 가 없으면 조용히 넘어간다", () => {
+        expect(syncScaleToCanvas(undefined)).toBe(false);
+        expect(syncScaleToCanvas({ canvas: { clientWidth: 100, clientHeight: 100 } })).toBe(false);
+    });
+
+    /**
+     * ★ 교정 뒤에는 **불변식**이 다시 성립해야 한다 — 이 파일의 존재 이유다.
+     *   방주(96)와 균열(1184)이 보이고, 세로는 정확히 0..720 이다.
+     */
+    it("교정 뒤 방주와 균열이 다시 보인다", () => {
+        const scene = fakeScene(915, 412);
+        applyViewport(scene);
+        scene.scale.canvas.clientWidth = 2340;
+        scene.scale.canvas.clientHeight = 1080;
+        resyncViewportIfDrifted(scene);
+
+        /**
+         * ★ `visible()` 을 쓴다. `scrollX .. scrollX + w/zoom` 으로 모델링하면
+         *   **이 파일이 이미 경고한 옛 실수**를 반복하게 된다 — Phaser 의 줌은
+         *   뷰포트 *중앙* 기준이라 그 식은 `(w − w/zoom)/2` 만큼 어긋난다.
+         */
+        const v = visible(scene);
+        expect(v.x[0], "방주가 왼쪽 밖").toBeLessThanOrEqual(LANES.arkX);
+        expect(v.x[1], "균열이 오른쪽 밖").toBeGreaterThanOrEqual(LANES.riftX);
+        expect(v.y[0], "위가 잘렸다").toBeLessThanOrEqual(0.01);
+        expect(v.y[1], "아래가 잘렸다").toBeGreaterThanOrEqual(DESIGN.height - 0.01);
     });
 });

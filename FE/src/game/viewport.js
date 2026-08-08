@@ -112,6 +112,9 @@ export function installViewport(scene, onChange) {
         //   씬이 정지된 뒤에도 도착할 수 있다.
         if (!scene.sys?.isActive?.() || !scene.cameras?.main) return;
         try {
+            // ★ resume/wake 로 들어온 경우 `gameSize` 자체가 낡아 있을 수 있다.
+            //   Phaser 의 resize 이벤트로 들어온 경우에는 이미 최신이라 아무 일도 안 한다.
+            syncScaleToCanvas(scene.scale);
             const vp = applyViewport(scene);
             scene.viewport = vp;
             onChange?.(vp);
@@ -124,6 +127,16 @@ export function installViewport(scene, onChange) {
     //   그 뒤의 `scene.start(...)` 가 실행되지 않아 **부팅 체인이 멈춘다.**
     //   실제로 Boot 에서 그 일이 났다. 화면 비율 계산이 게임을 못 켜게 만들면 안 된다.
     try {
+        /**
+         * ★★★ **씬이 시작되는 이 순간이 가장 위험하다** (2026-08-08 제보).
+         *
+         *   광고를 보고 돌아온 뒤 전투에 들어가면, `create()` 가 도는 시점의
+         *   `gameSize` 가 이미 낡아 있다. 그대로 `applyViewport` 하면 **첫 프레임부터**
+         *   좌측 하단으로 쏠린 그림이 나온다 — `BattleScene` 의 10Hz 검사가
+         *   고쳐 주더라도 그 전에 한 번은 보인다.
+         *   기준을 먼저 맞추고 카메라를 세운다.
+         */
+        syncScaleToCanvas(scene.scale);
         scene.viewport = applyViewport(scene);
     } catch (e) {
         console.warn("[viewport] initial apply failed — falling back to the design coordinate space", e);
@@ -176,13 +189,63 @@ export function installViewport(scene, onChange) {
 export function resyncViewportIfDrifted(scene) {
     const cam = scene.cameras?.main;
     if (!cam || !scene.scale) return false;
+
+    // ★ 카메라를 보기 **전에** 기준부터 맞춘다 — gameSize 가 틀렸으면 아래 비교는
+    //   "틀린 값끼리 일치"해서 언제나 통과한다 (syncScaleToCanvas 머리말).
+    const refreshed = syncScaleToCanvas(scene.scale);
+
     const { width: w, height: h } = scene.scale.gameSize;
     if (!(w > 0) || !(h > 0)) return false;
 
     const expected = Math.min(h / DESIGN.height, w / DESIGN.width);
-    if (Math.abs(cam.zoom - expected) < 1e-4) return false;
+    if (!refreshed && Math.abs(cam.zoom - expected) < 1e-4) return false;
 
     scene.viewport = applyViewport(scene);
+    return true;
+}
+
+/**
+ * `scale.gameSize` 가 **실제 캔버스 크기**와 어긋났으면 `scale.refresh()` 로 맞춘다.
+ *
+ * ★★★ **`resyncViewportIfDrifted` 만으로는 못 잡는 사고가 있다** (2026-08-08, 사용자 제보:
+ *   "광고를 보고 다시 전투에 들어가면 화면이 좌측 하단으로 쏠리고 나머지가 비어 있다").
+ *
+ *   그 함수는 **카메라 ↔ `gameSize`** 를 대조한다. 그런데 이 사고에서 틀린 것은
+ *   `gameSize` **자신**이었다. 카메라는 그 틀린 값에 정확히 맞춰져 있으므로
+ *   **드리프트가 0 으로 보이고**, 10Hz 로 돌던 검사가 아무것도 하지 않았다.
+ *   *기준이 틀렸을 때 기준과의 일치는 아무것도 보증하지 않는다.*
+ *
+ * ★★ **"좌측 하단"이 이 사고의 지문이다.** WebGL 의 `gl.viewport` 원점은
+ *   **좌측 하단**이다. 캔버스는 전체 화면으로 커졌는데 렌더러가 옛 크기의 뷰포트를
+ *   그대로 쓰면, 그림이 정확히 **좌측 하단 구석**에 그려지고 나머지가 빈다.
+ *   위/왼쪽으로 쏠렸다는 제보를 만나면 이 함수부터 의심한다.
+ *
+ * ★ **왜 리사이즈를 놓치는가.** 보상형 광고는 같은 프로세스의 다른 Activity 로
+ *   화면을 덮는다 — Capacitor 의 `appStateChange` 는 **프로세스 단위**(ProcessLifecycleOwner)
+ *   라 이때 뜨지 않는다. 그 사이 WebView 의 크기가 바뀌고(시스템 바 복귀 · 몰입 모드
+ *   재적용), 돌아왔을 때 `window resize` 가 오지 않거나 씬이 멈춰 있어 놓친다.
+ *   광고만의 문제가 아니다 — 알림창 · 분할 화면 · 키보드도 같은 모양을 만든다.
+ *
+ * ★ 그래서 **이벤트를 믿지 않고 값을 직접 잰다.** `canvas.clientWidth/Height` 는
+ *   브라우저가 실제로 화면에 차지하고 있는 CSS 크기이고, RESIZE 모드에서 Phaser 는
+ *   `gameSize` 를 그 값과 같게 유지해야 한다. 1px 을 넘게 어긋나면 놓친 것이다.
+ *
+ * @param {Phaser.Scale.ScaleManager} scale
+ * @returns {boolean} 실제로 새로고침했으면 true
+ */
+export function syncScaleToCanvas(scale) {
+    const canvas = scale?.canvas;
+    if (!canvas || typeof scale.refresh !== "function") return false;
+
+    const cw = canvas.clientWidth;
+    const ch = canvas.clientHeight;
+    // 0 은 "숨겨져 있다"는 뜻이지 "0 이 맞다"가 아니다 — 그때 refresh 하면 오히려 망친다
+    if (!(cw > 0) || !(ch > 0)) return false;
+
+    const { width: gw, height: gh } = scale.gameSize ?? {};
+    if (Math.abs(cw - gw) <= 1 && Math.abs(ch - gh) <= 1) return false;
+
+    scale.refresh();
     return true;
 }
 
