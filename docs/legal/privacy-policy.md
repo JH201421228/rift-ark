@@ -1,4 +1,8 @@
-# 균열의 방주 (RIFT ARK) 개인정보 처리방침
+<a id="korean"></a>
+
+# 균열의 방주 (RIFT ARK) 개인정보 처리방침 / Privacy Policy
+
+**한국어** · [English](#english)
 
 최종 수정일: 2026-08-08
 애플리케이션: 균열의 방주 (패키지 `com.superdimension.app`)
@@ -83,5 +87,104 @@ Google 의 데이터 처리에 관한 상세는 다음을 참고하십시오.
 갱신하고 변경 내용을 릴리스 노트에 기재합니다.
 
 ## 9. 문의
+
+741u741@gmail.com
+
+---
+
+<a id="english"></a>
+
+# RIFT ARK — Privacy Policy
+
+[한국어](#korean) · **English**
+
+Last updated: 2026-08-08
+Application: RIFT ARK (package `com.superdimension.app`)
+Developer: 박주헌
+Contact: 741u741@gmail.com
+
+## 1. Summary
+
+RIFT ARK has no accounts, no login, and no server that stores your game data.
+Your progress never leaves your device.
+
+The game does offer **optional rewarded video ads**. To serve them we use Google
+AdMob (the Google Mobile Ads SDK). Google collects and processes data in
+connection with those ads. Section 2 describes exactly what.
+
+## 2. Data collected for advertising
+
+When the advertising component is active, the Google Mobile Ads SDK collects the
+following and transmits it to Google:
+
+| Item | Detail | Purpose |
+|---|---|---|
+| IP address | The device's IP address (may be used to estimate approximate location) | Ad serving, analytics, fraud prevention |
+| Advertising identifiers | Android advertising ID, App set ID | Ad serving, frequency capping, fraud prevention |
+| App interactions | App launches, taps, ad views | Ad serving, analytics |
+| Diagnostics | Launch time, response latency, energy usage | Analytics |
+
+- All of this data is encrypted in transit using TLS.
+- The developer never reads or stores this data. The only thing the developer can
+  see is the **aggregated reporting** AdMob provides (impressions, revenue).
+- This data may be collected when the advertising component initialises, **even if
+  you never choose to watch an ad**.
+
+## 3. Data stored only on your device
+
+Your game progress (three save slots), settings, and a count of ads watched are
+stored only in the device's internal storage. This data is never transmitted, and
+it is deleted when you uninstall the app.
+
+## 4. Third parties and international transfers
+
+| Recipient | Purpose | Data transferred | Retention | Countries |
+|---|---|---|---|---|
+| Google LLC (and Google's advertising partners) | Ad serving, measurement, fraud prevention | The items in section 2 | Per Google's policies | The United States and other countries where Google operates data centres |
+
+For details on how Google processes this data:
+
+- Google Privacy Policy: https://policies.google.com/privacy
+- How Google uses data from partner sites: https://policies.google.com/technologies/partner-sites
+
+## 5. Your choices
+
+- **EEA, UK and Switzerland**: on first launch the app asks for consent through
+  Google's User Messaging Platform (UMP). **If you do not consent, no ads are
+  served** — the app does not fall back to non-personalised ads.
+- **Withdrawing or changing consent**: where consent is required, you can review
+  or withdraw it at any time in the app under **Settings > Data > Ad Privacy
+  Settings**. Withdrawing consent stops ads immediately and has no effect on your
+  game progress.
+- **Certain US states**: users in those states are offered an opt-out through
+  Google's User Messaging Platform. Opting out applies restricted data processing,
+  and only non-personalised ads are served.
+- **Resetting your advertising ID**: on Android you can reset or delete the
+  advertising ID under **Settings > Google > Ads**. Deleting it stops personalised
+  advertising.
+- **Choosing not to watch ads**: rewarded ads are entirely optional. They play only
+  when you tap the button on the results screen. There are no interstitial ads and
+  no banner ads. **You can complete all 100 stages without ever watching one.**
+
+## 6. Children's privacy
+
+This app is not directed at children under 13 and is not marketed to children.
+We do not knowingly collect personal data from children under 13.
+
+## 7. Your rights
+
+Under the Personal Information Protection Act (Korea), the GDPR, the UK GDPR, and
+the CCPA/CPRA, you have the right to access, correct, delete, or restrict the
+processing of your personal data. The developer holds no information that can
+identify you, so please exercise rights relating to advertising data through
+Google, or reset your advertising identifier as described in section 5. Game data
+stored on your device is deleted entirely when you uninstall the app.
+
+## 8. Changes
+
+If this policy changes, this document will be updated before the version it
+applies to is released, and the change will be noted in the release notes.
+
+## 9. Contact
 
 741u741@gmail.com
