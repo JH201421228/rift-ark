@@ -75,7 +75,11 @@ workflows:
   # ═══════════════════════════════════════════════════════════════════
   android-verify:
     name: RIFT ARK — 검증 (배포 없음)
-    instance_type: linux_x2
+    # ★ linux_x2 는 과금 계정에서만 열린다. 무료 요금제 포함 빌드 시간(월 500분)은
+    #   Mac mini M2 에서만 제공되므로, Android 빌드라도 무료 티어에서는 이 값을 쓴다.
+    #   (2026-08-08, "The selected instance type is not available with the
+    #    current billing plan." 에러로 확인)
+    instance_type: mac_mini_m2
     max_build_duration: 45
 
     environment:
@@ -121,7 +125,8 @@ workflows:
   # ═══════════════════════════════════════════════════════════════════
   android-release:
     name: RIFT ARK — Android Release
-    instance_type: linux_x2
+    # ★ 위 android-verify 와 같은 이유로 mac_mini_m2 (무료 요금제에서 열리는 값).
+    instance_type: mac_mini_m2
     max_build_duration: 60
 
     environment:
