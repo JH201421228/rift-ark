@@ -20,6 +20,7 @@ import { spellDef } from "@/game/logic/spells";
 // ★ 광고 보상의 규칙 · 어댑터 · 스토어는 각자 자기 자리에 있다 (화면은 배선만 한다)
 import { canWatchAd, viewsLeft, AD_REWARD_MULT, AD_UNLIMITED } from "@/game/logic/adReward";
 import { preloadRewarded, showRewarded } from "@/native/ads";
+import { gameManager } from "@/game/GameManager";
 import { useGameStore } from "@/store";
 import LangToggle from "@/components/LangToggle";
 // ★ React 는 `t` 를 직접 import 하지 않는다 — 언어를 바꿔도 다시 그려지지 않는다
@@ -135,6 +136,20 @@ function AdBonus({ stageId, baseGold }) {
             }
             setGained(r.gold);
         } finally {
+            /**
+             * ★★★ **광고가 덮었던 화면을 렌더러에 다시 알려 준다** (2026-08-08 제보:
+             *   "광고를 보고 다시 전투에 들어가면 좌측 하단으로 쏠린다").
+             *
+             *   보상형 광고는 **같은 프로세스의 다른 Activity** 로 화면을 덮는다.
+             *   그래서 Capacitor 의 `appStateChange` 가 뜨지 않는다 — 그것은
+             *   프로세스 단위 신호다. 그 사이 WebView 크기가 바뀌어도(시스템 바 복귀 ·
+             *   몰입 모드 재적용) Phaser 는 모른 채 남고, 다음에 전투에 들어갈 때
+             *   그 낡은 크기로 카메라를 세운다.
+             *
+             * ★ `finally` 다 — **끝까지 봤든 중간에 닫았든** 화면은 똑같이 덮였다.
+             * ★ 어긋나지 않았으면 아무 일도 하지 않는다 (`syncScaleToCanvas`).
+             */
+            gameManager.resyncScale();
             setBusy(false);
         }
     };

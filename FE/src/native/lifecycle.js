@@ -52,6 +52,15 @@ export async function installLifecycle(hooks = {}) {
             }
             game?.sound.unlock();
             game?.sound.resumeAll();
+            /**
+             * ★★★ **크기부터 다시 맞춘다** (2026-08-08 제보).
+             *   백그라운드에 있는 동안 WebView 크기가 바뀌면(시스템 바 · 분할 화면 ·
+             *   회전) `window resize` 가 오지 않거나 루프가 자고 있어 Phaser 가
+             *   놓친다. 그러면 돌아왔을 때 그림이 **좌측 하단 구석**에 그려진다.
+             * ★ 소리보다 뒤, `onResume` 훅보다 앞이다 — 훅이 화면을 만지기 전에
+             *   렌더러가 옳은 크기를 알고 있어야 한다.
+             */
+            gameManager.resyncScale();
             hooks.onResume?.();
             // 자동 재개하지 않는다 — React 가 "탭하여 계속" 모달을 띄운다
         })
