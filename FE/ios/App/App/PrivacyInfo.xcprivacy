@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  앱 레벨 개인정보 매니페스트 (2026-08-08).
+
+  ★★★ Google Mobile Ads SDK(GoogleMobileAds.xcframework)와 UserMessagingPlatform
+    는 각각 **자기 몫의 PrivacyInfo.xcprivacy 를 프레임워크 안에 내장**한다
+    (v11.2.0 이상, 확인됨). Xcode 는 빌드 시 그 매니페스트들을 이 파일과
+    **자동으로 병합**해 하나의 Privacy Report 로 만든다 — 구글 SDK 가 쓰는
+    광고 트래킹 도메인·데이터 수집 항목을 여기서 대신 선언할 필요는 없다.
+    이 파일이 책임지는 것은 **우리 앱 자신의 코드**가 직접 쓰는 것뿐이다.
+
+  ★ NSPrivacyTracking = true 인 이유: 이 앱은 ATT 허가를 받으면(native/ads.js
+    의 requestTrackingAuthorization) 그 IDFA 를 개인화 광고 목적으로 광고 SDK
+    에 넘긴다 — Apple 정의상 이것이 "추적"이다 (`docs/06-release/56 §4.3`).
+    ATT 를 거부한 사용자에게는 비개인화 광고만 나가고 추적이 일어나지 않지만,
+    이 키는 **앱이 추적 기능을 갖고 있는가**를 묻는 것이지 모든 사용자에게
+    실제로 일어나는가를 묻지 않는다 — 그래서 true 다.
+
+  ⚠ NSPrivacyTrackingDomains: 이 배열은 **아직 채우지 않았다.** 구글 SDK 가
+    자기 도메인을 자기 매니페스트에 이미 선언하므로 앱 레벨에서 중복 선언이
+    필요한지 여부가 불확실했고(추측으로 도메인을 적지 않기로 했다),
+    실제로 GoogleMobileAds.xcframework 를 Xcode 프로젝트에 물리고
+    `xcodebuild -showBuildSettings` 또는 Xcode 의 병합된 Privacy Report 를
+    열어 실제 선언 여부를 확인한 뒤 필요하면 채운다.
+    절차: docs/06-release/56-admob-rewarded-integration.md §4.4
+    TODO(iOS 빌드 파이프라인 연결 시): 실제 병합 결과 확인 후 이 배열을 채우거나,
+    구글 SDK 가 이미 선언하고 있음을 확인하고 이 주석만 남긴다.
+
+  ★ CA92.1 (UserDefaults) — `@capacitor/preferences` 가 게임 세이브·설정을
+    기기 내 UserDefaults 에 저장한다. 기기 밖으로 나가지 않으므로 "수집"은
+    아니지만(Google 의 "수집" 정의처럼 Apple 도 기기 밖 전송을 수집으로 본다),
+    **API 사용 사유**는 별개로 선언해야 한다 — Required Reason API 목록에
+    UserDefaults 가 있고, "앱 자신의 데이터를 앱 자신의 UserDefaults 에
+    저장·접근"이 CA92.1 사유다.
+-->
+<plist version="1.0">
+<dict>
+  <key>NSPrivacyTracking</key>
+  <true/>
+  <key>NSPrivacyTrackingDomains</key>
+  <array/>
+  <key>NSPrivacyCollectedDataTypes</key>
+  <array>
+    <dict>
+      <key>NSPrivacyCollectedDataType</key>
+      <string>NSPrivacyCollectedDataTypeDeviceID</string>
+      <key>NSPrivacyCollectedDataTypeLinked</key>
+      <false/>
+      <key>NSPrivacyCollectedDataTypeTracking</key>
+      <true/>
+      <key>NSPrivacyCollectedDataTypePurposes</key>
+      <array>
+        <string>NSPrivacyCollectedDataTypePurposeThirdPartyAdvertising</string>
+      </array>
+    </dict>
+  </array>
+  <key>NSPrivacyAccessedAPITypes</key>
+  <array>
+    <dict>
+      <key>NSPrivacyAccessedAPIType</key>
+      <string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+      <key>NSPrivacyAccessedAPIReasons</key>
+      <array>
+        <string>CA92.1</string>
+      </array>
+    </dict>
+  </array>
+</dict>
+</plist>

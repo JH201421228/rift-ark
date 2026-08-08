@@ -25,6 +25,9 @@ const admob = {
     prepareRewardVideoAd: vi.fn(async () => {}),
     showRewardVideoAd: vi.fn(async () => ({ type: "reward" })),
     addListener: vi.fn(async () => ({ remove: async () => {} })),
+    // ★ ATT(App Tracking Transparency, iOS 전용) — 기본은 "아직 안 물어봤다"
+    trackingAuthorizationStatus: vi.fn(async () => ({ status: "notDetermined" })),
+    requestTrackingAuthorization: vi.fn(async () => {}),
 };
 
 vi.mock("@capacitor-community/admob", () => ({
@@ -33,8 +36,10 @@ vi.mock("@capacitor-community/admob", () => ({
     AdmobConsentStatus: { NOT_REQUIRED: "NOT_REQUIRED", OBTAINED: "OBTAINED", REQUIRED: "REQUIRED" },
 }));
 
+// ★ getPlatform 을 vi.fn() 으로 둔다 — ATT 는 iOS 전용이라 테스트마다 플랫폼을 바꿔야 한다.
+const mockGetPlatform = vi.fn(() => "android");
 vi.mock("@capacitor/core", () => ({
-    Capacitor: { isNativePlatform: () => true, getPlatform: () => "android" },
+    Capacitor: { isNativePlatform: () => true, getPlatform: mockGetPlatform },
 }));
 
 const {
@@ -59,9 +64,14 @@ function consent({ canRequestAds = true, privacy = "NOT_REQUIRED" }) {
 beforeEach(() => {
     __resetAdsForTest();
     vi.clearAllMocks();
+    // ★ clearAllMocks 는 호출 기록만 지운다 — mockReturnValue 로 바꾼 구현은
+    //   남으므로, 이전 테스트가 "ios" 로 바꿔 둔 것을 여기서 명시적으로 되돌린다.
+    mockGetPlatform.mockReturnValue("android");
     admob.initialize.mockResolvedValue(undefined);
     admob.showPrivacyOptionsForm.mockResolvedValue(undefined);
     admob.prepareRewardVideoAd.mockResolvedValue(undefined);
+    admob.trackingAuthorizationStatus.mockResolvedValue({ status: "notDetermined" });
+    admob.requestTrackingAuthorization.mockResolvedValue(undefined);
     consent({});
 });
 
@@ -150,5 +160,66 @@ describe("★★★ 철회하면 그 자리에서 광고가 멈춘다", () => {
         await openPrivacyOptions();
         await preloadRewarded();
         expect(adReady()).toBe(true);
+    });
+});
+
+/**
+ * ATT(App Tracking Transparency, iOS 14+) — 2026-08-08 추가.
+ *
+ * ★★★ UMP 와는 **다른 층**이다. UMP 는 GDPR 상 EEA 사용자 동의이고, ATT 는
+ *   iOS 가 **모든 지역**에 요구하는 OS 레벨 IDFA 접근 허가다. 그래서 한국처럼
+ *   UMP 가 즉시 통과되는 지역에서도 ATT 프롬프트는 그대로 떠야 한다 — "UMP 가
+ *   필요없으니 ATT 도 필요없다"로 착각하지 않는다 (`56 §3.3`).
+ */
+describe("★ iOS ATT — UMP 다음에 요청한다", () => {
+    it("iOS 이고 아직 안 물어봤으면(notDetermined) 요청한다", async () => {
+        mockGetPlatform.mockReturnValue("ios");
+        await initAds();
+        expect(admob.trackingAuthorizationStatus).toHaveBeenCalledTimes(1);
+        expect(admob.requestTrackingAuthorization).toHaveBeenCalledTimes(1);
+    });
+
+    it("Android 에서는 절대 부르지 않는다 — ATT 는 iOS 전용 API 다", async () => {
+        mockGetPlatform.mockReturnValue("android");
+        await initAds();
+        expect(admob.trackingAuthorizationStatus).not.toHaveBeenCalled();
+        expect(admob.requestTrackingAuthorization).not.toHaveBeenCalled();
+    });
+
+    it("이미 답이 정해져 있으면(authorized) 다시 묻지 않는다", async () => {
+        mockGetPlatform.mockReturnValue("ios");
+        admob.trackingAuthorizationStatus.mockResolvedValue({ status: "authorized" });
+        await initAds();
+        expect(admob.requestTrackingAuthorization).not.toHaveBeenCalled();
+    });
+
+    it("denied 상태에서도 다시 묻지 않는다 — 이미 낸 답을 존중한다", async () => {
+        mockGetPlatform.mockReturnValue("ios");
+        admob.trackingAuthorizationStatus.mockResolvedValue({ status: "denied" });
+        await initAds();
+        expect(admob.requestTrackingAuthorization).not.toHaveBeenCalled();
+    });
+
+    it("★★★ UMP 에서 이미 거부됐으면 ATT 를 묻지 않는다 — 그 선택을 무시하지 않는다", async () => {
+        mockGetPlatform.mockReturnValue("ios");
+        consent({ canRequestAds: false, privacy: "REQUIRED" });
+        await initAds();
+        expect(admob.trackingAuthorizationStatus).not.toHaveBeenCalled();
+        expect(admob.requestTrackingAuthorization).not.toHaveBeenCalled();
+    });
+
+    it("ATT 요청이 실패해도 초기화 자체는 깨지지 않는다 — 광고는 비개인화로 계속된다", async () => {
+        mockGetPlatform.mockReturnValue("ios");
+        admob.requestTrackingAuthorization.mockRejectedValue(new Error("boom"));
+        // ATT 실패가 initAds() 밖으로 던져지면 여기서 reject 되어 테스트가 실패한다.
+        await expect(initAds()).resolves.toBe(true);
+        expect(adReady()).toBe(false); // preloadRewarded 를 안 불렀으니 아직 광고는 없다 — 죽지만 않았다
+    });
+
+    it("상태 조회 자체가 실패해도 초기화는 계속된다", async () => {
+        mockGetPlatform.mockReturnValue("ios");
+        admob.trackingAuthorizationStatus.mockRejectedValue(new Error("boom"));
+        await expect(initAds()).resolves.toBe(true);
+        expect(admob.requestTrackingAuthorization).not.toHaveBeenCalled();
     });
 });
