@@ -100,6 +100,37 @@ export function initAds() {
                       info?.status === AdmobConsentStatus.OBTAINED;
             // ★ 동의를 **거부해도** 철회 입구는 필요하다 — allowed 와 독립이다.
             privacyRequired = info?.privacyOptionsRequirementStatus === "REQUIRED";
+
+            /**
+             * ★★★ **iOS ATT(App Tracking Transparency) — UMP *다음*에 요청한다**
+             *   (`56 §3.3`, 순서는 구글 권장 · EEA 에서는 두 프롬프트가 연달아 뜬다).
+             *
+             *   ATT 는 UMP 와 **다른 층**이다 — UMP 는 GDPR 상 EEA 사용자 동의이고,
+             *   ATT 는 iOS 14+ 가 **모든 지역**에 요구하는 OS 레벨 IDFA 접근 허가다.
+             *   그래서 한국처럼 UMP 가 `NOT_REQUIRED` 로 즉시 넘어가는 지역에서도
+             *   ATT 프롬프트는 그대로 뜬다.
+             *
+             *   `allowed` 가 false 일 때는 요청하지 않는다 — UMP 에서 이미 광고
+             *   자체를 거부한 사용자에게 또 추적 허가를 묻는 것은 그 선택을
+             *   무시하는 모양이 된다.
+             *
+             * ★ **딱 한 번만 묻는다.** `notDetermined` 일 때만 부른다 — 이미
+             *   `authorized`/`denied`/`restricted` 인데 다시 부르면 시스템이
+             *   프롬프트를 그리지 않고 그대로 반환하지만, 불필요한 호출을 피한다.
+             * ★ 거부해도 **던지지 않는다** — 광고는 비개인화로 계속 나간다
+             *   (§3.3 "거부하면: 광고는 계속 나온다"). 초기화 자체를 막지 않는다.
+             */
+            if (allowed && Capacitor.getPlatform?.() === "ios") {
+                try {
+                    const { status } = await AdMob.trackingAuthorizationStatus();
+                    if (status === "notDetermined") {
+                        await AdMob.requestTrackingAuthorization();
+                    }
+                } catch {
+                    // ATT 조회·요청 실패 — 비개인화 광고로 계속 진행한다
+                }
+            }
+
             return allowed;
         } catch {
             // 초기화 실패 · 동의 거부 · 네트워크 없음 — 전부 같은 결과다
