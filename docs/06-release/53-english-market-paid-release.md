@@ -799,7 +799,7 @@ under 13, and we do not sell or share the personal information of minors.
 
 | 경로 | 내용 |
 |---|---|
-| `https://<계정>.github.io/riftark-privacy/` | ★ **한국어 + 영어 한 페이지** (`docs/legal/privacy-policy.md`). 영어권 확대 시 §5.7.2 를 그 영문 절에 덧붙인다 |
+| **https://jh201421228.github.io/riftark-privacy/** (게시됨 2026-08-08) | ★ **한국어 + 영어 한 페이지** (`docs/legal/privacy-policy.md`). 영어권 확대 시 §5.7.2 를 그 영문 절에 덧붙인다 |
 
 > ### ★★★ `/en/` 분리 계획은 폐기됐다 (2026-08-08)
 >
