@@ -5,8 +5,10 @@
 >
 > **이 문서 하나만 보고 끝까지 갈 수 있게 썼다.** 순서대로 하면 된다.
 >
-> ⚠ **파일 이름의 `paid` 는 역사적 잔재다.** 저장소 전체가 이 경로로 상호 참조하고
-> 있어서 이름을 바꾸지 않았다. **내용은 무료 앱 기준이다.**
+> ⚠ **파일 이름의 `paid` 도 `codemagic` 도 역사적 잔재다.** 저장소 전체가 이 경로로
+> 상호 참조하고 있어서 이름을 바꾸지 않았다.
+> **내용은 무료 앱 기준이고, 1.0 은 Codemagic 없이 손으로 올린다** (§9.0).
+> CI 연결은 **iOS 를 붙일 때** 한다 (2026-08-08 결정).
 
 ---
 
@@ -91,7 +93,7 @@
                                           │
  [첫 업로드] ★ 손으로 AAB 1회 업로드 (API 로는 안 된다)
                                           │
- [CI]     GCP 서비스 계정 ──→ Codemagic 연동 ──→ codemagic.yaml ──→ 자동 업로드
+ [업로드] ★ **로컬에서 AAB 를 만들어 손으로 올린다** (1.0 은 CI 없이 간다 — §9)
                                           │
  [트랙]   내부 테스트 ──→ 클로즈드 테스트 **12명 × 14일** ──→ 프로덕션
                                           │
@@ -354,9 +356,43 @@ CI 는 Codemagic 의 `CM_*` 환경변수, 로컬은 `key.properties`.
 | 결정 | 왜 |
 |---|---|
 | 자격증명이 **하나도 없으면 서명을 배선하지 않는다** (`canSignRelease`) | 무조건 `signingConfig` 를 걸면 **키 없는 환경의 `assembleDebug` 까지 설정 단계에서 죽는다.** 클론 직후 첫 빌드가 `storeFile is null` 로 실패하면 안 된다 — 서명이 필요한 것은 `bundleRelease` 뿐이다 |
-| `BUILD_NUMBER` 가 정수가 아니면 **빌드를 멈춘다** | 조용히 `1` 로 떨어지는 쪽이 훨씬 위험하다. `versionCode` 는 **한 번 올린 값보다 커야만** 업로드되므로, 1 을 이미 쓴 뒤에 다시 1 이 나오면 업로드가 거부되고 원인이 CI 환경변수라는 것을 알기까지 한참 걸린다 |
+| `versionCode` = **`VERSION_CODE_BASE` + `BUILD_NUMBER`** | ★★★ 아래 절 |
+| `BUILD_NUMBER`·`VERSION_CODE_BASE` 가 정수가 아니면 **빌드를 멈춘다** | 조용히 떨어지면 이미 쓴 번호가 다시 나오고, 원인이 환경변수라는 것을 알기까지 한참 걸린다 |
+| 합이 1 미만이면 **빌드를 멈춘다** | Play 가 거부하는 값을 만들어 놓고 성공으로 끝내지 않는다 |
 | `keyPassword` 가 비면 `storePassword` 로 폴백 | PKCS12 는 저장소 비밀번호 하나가 키까지 보호한다. 둘을 다르게 적는 실수가 "키를 못 연다"로 나타나는 것을 막는다 |
 | `minifyEnabled false` 유지 | Phaser 는 씬·플러그인을 **문자열 이름**으로 찾고 Capacitor 플러그인은 리플렉션으로 불린다. R8 이 지우면 **빌드는 성공하고 실행이 죽는다** (§1.4 크기 표의 원인이기도 하다) |
+
+#### ★★★ `versionCode` — CI 와 로컬은 **번호 공간을 나눠 쓴다** (2026-08-08)
+
+**한 번 올린 `versionCode` 는 영원히 재사용할 수 없다.** 앱에서 지워도, 초안이어도 같다.
+
+그리고 **Codemagic 의 `BUILD_NUMBER` 는 그 앱의 첫 빌드에서 1부터 시작한다.**
+그래서 손으로 1·2 를 올린 뒤 CI 를 붙이면 **첫 자동 빌드가 그대로 거부된다.**
+
+> 실제로 겪었다 (2026-08-08): *"1 버전 코드는 이미 사용되었습니다."*
+
+| 어디 | 값 | 범위 |
+|---|---|---|
+| **CI** | `VERSION_CODE_BASE`(1000) + `BUILD_NUMBER` | **1001 부터** |
+| **로컬 수동** | `BUILD_NUMBER` (오프셋 없음) | **1000 미만** |
+| 로컬 기본 (환경변수 없음) | `1` | 디버그·개발용 |
+
+두 공간이 겹치지 않으므로 어느 쪽을 몇 번 돌려도 충돌하지 않는다.
+
+```bash
+# 손으로 올릴 AAB 를 만들 때 — 다음 번호를 직접 준다
+cd FE/android && BUILD_NUMBER=3 ./gradlew bundleRelease
+```
+
+> ★ **CI 인지 코드가 추측하지 않는다.** `CM_BUILD_ID` 나 `CI` 같은 변수를 보고
+> 분기하면 그 이름이 바뀌는 날 오프셋이 **조용히 0** 이 되고 충돌이 돌아온다.
+> 오프셋은 `codemagic.yaml` 의 `vars` 에 적힌 값이라 **코드 리뷰에 보인다.**
+>
+> ★ **Codemagic 콘솔의 "빌드 번호 시작값"으로 대신하지 않는다.** 콘솔 설정은
+> 저장소를 아무리 봐도 알 수 없고, Codemagic 앱을 다시 만들면 조용히 1 로 돌아간다.
+>
+> ★ CI 검증 스텝이 **`versionCode > 1000`** 을 따로 본다 — 오프셋이 전달되지
+> 않으면 빌드 단계에서 멈춘다. 그러지 않으면 실패가 **업로드에서** 나고, 그건 한참 뒤다.
 
 #### 사용자가 직접 만들 것 — `FE/android/key.properties`
 
@@ -383,7 +419,7 @@ cd android && JAVA_HOME="C:/Program Files/Java/jdk-21.0.10" ./gradlew bundleRele
 | `app-release.aab` | **32,051,860 바이트** |
 | 서명 | `jar verified` · **4096-bit RSA** · SHA384withRSA · 만료 **2053-12-24** |
 | 인증서 주체 | ✅ `CN=Rift Ark, OU=Development, O=Rift Ark, L=Seoul, ST=Seoul, C=KR` |
-| `versionCode` / `versionName` | **1** / **1.0.0** — `BUILD_NUMBER` 가 없을 때의 설계값 (§1.3) |
+| `versionCode` / `versionName` | **1** / **1.0.0** — 환경변수가 없을 때의 설계값 (§1.3). 실제 업로드는 `BUILD_NUMBER` 를 지정해 만든다 |
 | `targetSdkVersion` / `minSdkVersion` | **35** / 23 |
 | ★ `com.google.android.gms.permission.AD_ID` | **머지된 매니페스트에 있다** — §4.6 이 말하는 자동 주입이 실측으로 확인됐다. 즉 **광고 ID 선언은 이미 신고할 사실이 있는 상태다** |
 
@@ -561,9 +597,24 @@ R8 이 꺼져 있으면 광고 SDK 의 미사용 클래스가 그대로 남는�
 
 ---
 
-## 3. GCP 서비스 계정 — Codemagic 이 대신 업로드하게 만든다
+## 3. GCP 서비스 계정 — ⏸ **지금은 하지 않는다** (iOS 단계로 미룸)
 
-Codemagic 이 Play 에 AAB 를 자동 업로드하려면 **서비스 계정 JSON 키**가 필요하다.
+> ### ⏸ 2026-08-08 — CI 는 iOS 를 붙일 때 함께 연결한다
+>
+> **1.0 은 CI 없이 간다.** 로컬에서 AAB 를 만들어 손으로 올린다 (§9).
+> 서비스 계정은 **Codemagic 이 대신 업로드할 때만** 필요하므로 지금 만들 이유가 없다.
+>
+> | | |
+> |---|---|
+> | 왜 미뤘나 | 앱이 하나이고 릴리스가 드물다. **손으로 올리는 비용 < CI 를 세우고 유지하는 비용** |
+> | 언제 하나 | **iOS 를 붙일 때.** macOS 빌드는 손으로 하기 어렵고, 그때는 CI 가 실제로 이득이다 |
+> | 그때까지 | `codemagic.yaml` 은 저장소에 **그대로 둔다** — 지우면 그때 다시 쓴다 |
+>
+> ⚠ **서비스 계정 JSON 은 곧 업로드 권한이다.** 쓰지도 않을 키를 미리 만들어 두면
+> 유출 표면만 늘어난다. 필요해질 때 만든다.
+
+아래는 **그때** 할 일이다. Codemagic 이 Play 에 AAB 를 자동 업로드하려면
+**서비스 계정 JSON 키**가 필요하다.
 
 ### 3.1 Play Console 에서 API 접근 활성화
 
@@ -1093,11 +1144,26 @@ Play Console → **정책 → 앱 콘텐츠 → 데이터 보안**
 | **"광고를 안 봐도 전부 진행할 수 있다"** | 사실이고, 심사자와 사용자 둘 다에게 필요한 문장이다 |
 | 게임 데이터와 광고 데이터의 **구분** | 섞어 읽히면 "세이브를 서버로 보낸다"로 오해된다 |
 
-#### 호스팅
+#### 호스팅 ✅ **게시됨 (2026-08-08)**
+
+> ## https://jh201421228.github.io/riftark-privacy/
+>
+> | | |
+> |---|---|
+> | 저장소 | `JH201421228/riftark-privacy` (**Public**) |
+> | 배포 | Pages · `main` / `(root)` · HTTPS 강제 |
+> | 확인 | **미인증 요청으로 HTTP 200** · 14,615 bytes · 한/영·앵커·표 전부 정상 |
+>
+> ★ **이 URL 하나를 세 곳에 넣는다** — Play 앱 콘텐츠(§7.2) · AdMob GDPR 메시지 ·
+> AdMob 미국 주 규정 메시지.
+>
+> ⚠ **정본은 그 저장소가 아니다.** 원본은 `docs/legal/privacy-policy.md` 이고
+> `index.md` 는 사본이다. **원본을 먼저 고치고 그 다음 사본에 반영한다** —
+> 반대로 하면 두 곳이 갈라진다 (그 저장소 `README.md` 에도 적어 두었다).
 
 GitHub 에 `riftark-privacy` 저장소를 만들고 `docs/legal/privacy-policy.md` 를
-**`index.md`** 로 두면 `https://<계정>.github.io/riftark-privacy/` 가 공개 URL 이 된다.
-**무료이고 영구적이다.** 한국어와 영어가 그 한 페이지 안에 있다.
+**`index.md`** 로 두면 그 주소가 공개 URL 이 된다. **무료이고 영구적이다.**
+한국어와 영어가 그 한 페이지 안에 있다.
 
 > ### ★★ 저장소는 **public** 이어야 한다 — 그리고 로그아웃 상태로 확인한다
 >
@@ -1269,7 +1335,43 @@ AdMob 잔액에 반영
 
 ---
 
-## 9. Codemagic 설정
+## 9. 릴리스 절차
+
+### 9.0 ★ 지금은 **손으로 올린다** (2026-08-08 결정)
+
+**1.0 은 CI 없이 간다.** Codemagic 연결은 **iOS 를 붙일 때** 함께 한다 (§9.1 이하).
+
+```bash
+# ① 웹 빌드 + Capacitor 동기화
+cd FE && JAVA_HOME="C:/Program Files/Java/jdk-21.0.10" npm run build:android
+
+# ② AAB — versionCode 는 직접 준다 (한 번 쓴 값은 영원히 재사용 불가 · §1.3)
+cd android && BUILD_NUMBER=<다음 숫자> JAVA_HOME="..." ./gradlew bundleRelease
+
+# ③ (선택) 실기 확인용 APK
+BUILD_NUMBER=<같은 숫자> ./gradlew assembleRelease
+
+# ④ 올리기 전 확인 — BUILD SUCCESSFUL 은 "올바른 키로 서명됐다"가 아니다
+jarsigner -verify -verbose:summary -certs app/build/outputs/bundle/release/app-release.aab
+grep -o 'android:versionCode="[^"]*"'   app/build/outputs/intermediates/merged_manifest/release/processReleaseMainManifest/AndroidManifest.xml
+```
+
+**나오는 곳**
+`FE/android/app/build/outputs/bundle/release/app-release.aab` (Play 업로드)
+`FE/android/app/build/outputs/apk/release/app-release.apk` (직접 설치)
+
+> ★ **왜 CI 를 미뤘나.** 앱이 하나이고 릴리스가 드물다 — 손으로 올리는 비용이
+> CI 를 세우고 유지하는 비용보다 작다. **iOS 는 다르다:** macOS 빌드는 손으로 하기
+> 어렵고, 그때 Codemagic 이 실제로 이득이 된다. 그래서 그 시점에 함께 연결한다.
+>
+> ⚠ **`npm run verify` 를 릴리스 전에 직접 돌린다.** CI 가 없으므로 게이트를
+> 대신 돌려 줄 것이 없다. 단 `economy` 는 **실패가 정상**이다 (광고 무제한 결정).
+
+---
+
+### ⏸ 아래 §9.1–9.6 은 **iOS 단계에서 실행한다**
+
+지금 하지 않는다. `codemagic.yaml` 은 저장소에 이미 있고 검증도 끝났다.
 
 ### 9.1 프로젝트 연결
 
@@ -1356,7 +1458,7 @@ Codemagic → 앱 설정 → **Environment variables**
 > | AAB 파일이 존재하는가 | ★ "파일이 없다"와 "서명이 없다"를 **같은 메시지로 말하지 않는다** — 처음엔 그렇게 짰다가 깨뜨려 보고 고쳤다 |
 > | `jar verified` 인가 | `canSignRelease` 가 false 로 떨어졌다 |
 > | `CN=Unknown` 이 아닌가 | `-dname` 이 빠진 키다 (§1.2) |
-> | `versionCode == $BUILD_NUMBER` 인가 | Play 는 증가하지 않는 `versionCode` 를 거부한다 |
+> | `versionCode == VERSION_CODE_BASE + BUILD_NUMBER` 인가 · **1000 을 넘는가** | Play 는 이미 쓴 `versionCode` 를 거부한다. 오프셋이 조용히 0 이 되면 CI 가 손으로 태운 번호와 충돌하는데, 그 실패는 빌드가 아니라 **업로드에서** 나므로 한참 뒤다 |
 >
 > 추가로 `AD_ID` 권한 유무를 **보고**한다 (실패시키지는 않는다) — Play 광고 ID
 > 선언(§4.6)과 어긋나면 여기서 먼저 보인다.
@@ -1374,8 +1476,8 @@ Codemagic → 앱 설정 → **Environment variables**
 > (`CLAUDE.md` · `docs/02-design/22-nightmare.md` §0-A.1). 넣으면 **모든 릴리스가
 > 막힌다.** 결정이 나면 그때 넣는다.
 
-> **`versionCode` 는 `$BUILD_NUMBER` 에서 온다** (§1.3). Codemagic 이 빌드마다
-> 자동 증가시키므로 손댈 것이 없다.
+> **`versionCode` 는 `$VERSION_CODE_BASE + $BUILD_NUMBER` 다** (§1.3).
+> Codemagic 이 `BUILD_NUMBER` 를 자동 증가시키므로 손댈 것이 없다.
 >
 > **`triggering` 을 태그로 제한한 이유:** 커밋마다 Play 에 올리면 `versionCode` 를
 > 낭비하고 트랙이 지저분해진다. 릴리스는 의도적인 행위여야 한다.
@@ -1428,7 +1530,7 @@ Codemagic → 앱 설정 → **Environment variables**
 - [ ] Play Console 개인 계정 + 신원 확인 (§2.1)
 - [ ] **개인 vs 사업자 결정** (§2.2)
 - [ ] ⛔ **Play 결제 프로필은 만들지 않는다** — 무료 앱에 필요 없다 (§2.3)
-- [ ] GCP 서비스 계정 + Play 권한 (§3)
+- [ ] ⏸ GCP 서비스 계정 + Play 권한 (§3) — **iOS 단계로 미룸**
 - [ ] ★★★ **앱 생성 — 무료로 생성** (§4.1) ← **되돌릴 수 없다. 경고를 읽었는가**
 - [ ] 스토어 등록정보 · 아이콘 512 · 피처 1024×500 · 스크린샷 (§4.2)
 - [ ] ★ 자세한 설명에 **"광고가 없습니다" 를 넣지 않았다** (§4.3)
@@ -1438,8 +1540,8 @@ Codemagic → 앱 설정 → **Environment variables**
 - [ ] **타겟층 및 콘텐츠 — 13세 미만 미선택 · 아동 어필 아니오** (§4.7)
 - [ ] IARC 콘텐츠 등급 (§5)
 - [ ] **첫 AAB 손으로 업로드** (§6.3)
-- [ ] Codemagic 연결 + 키스토어/JSON 등록 (§9.1–9.3)
-- [ ] `codemagic.yaml` 커밋 → 태그 푸시 → 자동 업로드 확인
+- [ ] ⏸ Codemagic 연결 + 키스토어/JSON 등록 (§9.1–9.3) — **iOS 단계로 미룸**
+- [x] `codemagic.yaml` 커밋 완료 (연결은 iOS 때) · **1.0 은 손으로 올린다 (§9.0)**
 - [ ] **클로즈드 테스트 15명+ 초대 · 14일 시작** (§6.2)
 - [ ] 국가 선택 · **EU DSA 거래자 지위** (`53 §5.4`)
 - [ ] 프로덕션 액세스 신청 → 승인
@@ -1494,9 +1596,9 @@ Codemagic → 앱 설정 → **Environment variables**
 | 증상 | 원인 · 해결 |
 |---|---|
 | `invalid source release: 21` | CI 의 Java 가 21 미만. yaml 의 `java: 21` 확인. 로컬은 `JAVA_HOME` 을 명령마다 지정 |
-| Codemagic 이 첫 업로드에서 실패 | **§6.3** — 첫 AAB 는 손으로 올려야 한다 |
+| Codemagic 이 첫 업로드에서 실패 | **§6.3** — 첫 AAB 는 손으로 올려야 한다. 그리고 **1.0 은 CI 자체를 쓰지 않는다** (§9.0) |
 | `Package not found: com.superdimension.app` | 서비스 계정이 아직 그 앱 권한을 못 받았거나, 앱이 생성만 되고 릴리스가 0개 |
-| `versionCode` 중복 거부 | `$BUILD_NUMBER` 배선 확인 (§1.3) |
+| `versionCode` 중복 거부 ("이미 사용되었습니다") | 그 번호는 **영원히** 못 쓴다. 로컬은 `BUILD_NUMBER=<다음 숫자>` 로 다시 빌드, CI 는 `VERSION_CODE_BASE` 확인 (§1.3) |
 | `gradlew: Permission denied` | yaml 에 `chmod +x gradlew` (§9.4 에 포함됨) |
 | 서명 불일치 | 업로드 키가 바뀌었다. Play App Signing 의 업로드 키 재설정 요청 |
 | `assets:pack` 이 CI 에서 실패 | `ffmpeg-static` 다운로드 실패 가능. 아틀라스를 커밋해 두고 `assets:audio` 만 건너뛰는 것도 방법 |

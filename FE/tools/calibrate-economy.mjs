@@ -145,7 +145,7 @@ console.log("──────────────────────�
 if (adGoldFail && ADS.enabled !== true) {
     console.log(
         `⚠ 광고를 켜면 ${adGoldFail}개 구간에서 파워가 +${Math.round(AD_GAIN_MAX * 100)}% 를 넘는다 ` +
-            `(현재 설정: ×${ADS.rewardMult} · 하루 ${ADS.dailyViews}회 · ${ADS.minStage}스테이지부터).`
+            `(현재 설정: ×${ADS.rewardMult} · 하루 ${Number(ADS.dailyViews) > 0 ? `${ADS.dailyViews}회` : "무제한"} · ${ADS.minStage}스테이지부터).`
     );
     console.log(
         "  → 켜기 전에 결정할 것: ① 수치를 낮춘다 ② 100 스테이지 difficultyMult 를 재보정한다 " +
