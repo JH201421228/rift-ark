@@ -68,7 +68,7 @@
 
 | 확인할 것 | 어디서 |
 |---|---|
-| target API 레벨 요구치 (매년 8월 말 상향) | Play Console → 앱 번들 업로드 시 경고 |
+| target API 레벨 요구치 (매년 8월 말 상향) | ✅ **2026-08-08 대응: `targetSdk 36`**(Android 16). `src/androidTarget.test.js` 가 붙잡는다 — 다음 상향 때 그 검사도 함께 올린다 |
 | 개인 계정의 클로즈드 테스트 요구 (인원 · 일수) | Play Console → 대시보드 → 프로덕션 액세스 |
 | **데이터 보안 · 광고 ID · 광고 포함 선언의 문항 문구** | Play Console → 정책 → 앱 콘텐츠 |
 | **AdMob 지급 기준액 · 지급일 · 세금 양식** | AdMob → 지급 |
@@ -420,7 +420,7 @@ cd android && JAVA_HOME="C:/Program Files/Java/jdk-21.0.10" ./gradlew bundleRele
 | 서명 | `jar verified` · **4096-bit RSA** · SHA384withRSA · 만료 **2053-12-24** |
 | 인증서 주체 | ✅ `CN=Rift Ark, OU=Development, O=Rift Ark, L=Seoul, ST=Seoul, C=KR` |
 | `versionCode` / `versionName` | **1** / **1.0.0** — 환경변수가 없을 때의 설계값 (§1.3). 실제 업로드는 `BUILD_NUMBER` 를 지정해 만든다 |
-| `targetSdkVersion` / `minSdkVersion` | **35** / 23 |
+| `targetSdkVersion` / `minSdkVersion` | **36** / 23 |
 | ★ `com.google.android.gms.permission.AD_ID` | **머지된 매니페스트에 있다** — §4.6 이 말하는 자동 주입이 실측으로 확인됐다. 즉 **광고 ID 선언은 이미 신고할 사실이 있는 상태다** |
 
 > ★ **`jarsigner` 의 타임스탬프 경고는 무시한다** — 이것을 쫓지 않기 위해 적어 둔다.
