@@ -54,20 +54,22 @@ function fakeScene(w, h, { staleCam = true } = {}) {
         },
     };
     /**
-     * ★ `canvas` 는 **브라우저가 실제로 화면에 그리고 있는 크기**다.
-     *   RESIZE 모드에서 Phaser 는 `gameSize` 를 그 값과 같게 유지해야 한다 —
-     *   둘이 어긋난 상태가 곧 2026-08-08 의 "좌측 하단 쏠림" 사고다.
+     * ★★★ **기준은 `parent`(#game-container) 다 — `canvas` 가 아니다.**
+     *   캔버스 크기는 Phaser 가 `gameSize` 로부터 정하므로 둘은 언제나 일치한다.
+     *   그래서 캔버스를 기준으로 삼은 첫 수정은 아무것도 잡지 못했다 (2026-08-08).
+     *   부모는 CSS 로 창을 채우므로 **브라우저가 아는 실제 크기**다.
      */
     return {
         cameras: { main: cam },
         scale: {
             gameSize: { width: w, height: h },
-            canvas: { clientWidth: w, clientHeight: h },
+            parent: { clientWidth: w, clientHeight: h },
+            resize(nw, nh) {
+                this.gameSize.width = nw;
+                this.gameSize.height = nh;
+            },
             refresh() {
                 this.refreshed = (this.refreshed ?? 0) + 1;
-                // Phaser 의 refresh 가 하는 일 — 실제 캔버스 크기를 gameSize 로 끌어온다
-                this.gameSize.width = this.canvas.clientWidth;
-                this.gameSize.height = this.canvas.clientHeight;
             },
         },
     };
@@ -225,12 +227,12 @@ describe("gameSize 자체가 낡은 경우 — 좌측 하단 쏠림", () => {
      *   **자신**이다. 카메라는 그 틀린 값에 정확히 맞춰져 있으므로 드리프트가 0 이다.
      *   *기준이 틀렸을 때 기준과의 일치는 아무것도 보증하지 않는다.*
      */
-    it("★★★ 캔버스만 커진 상태를 잡아낸다 (예전 검사는 통과시켰다)", () => {
+    it("★★★ 컨테이너만 커진 상태를 잡아낸다 (캔버스 기준 검사는 통과시켰다)", () => {
         const scene = fakeScene(915, 412);
         applyViewport(scene); // 카메라는 915×412 에 정확히 맞다
         // 광고가 화면을 덮었다 돌아오며 캔버스만 커졌다 — Phaser 는 리사이즈를 놓쳤다
-        scene.scale.canvas.clientWidth = 1080;
-        scene.scale.canvas.clientHeight = 500;
+        scene.scale.parent.clientWidth = 1080;
+        scene.scale.parent.clientHeight = 500;
 
         // 카메라 ↔ gameSize 는 여전히 완전히 일치한다 (= 옛 검사는 false 를 냈다)
         const expectedOld = Math.min(412 / DESIGN.height, 915 / DESIGN.width);
@@ -251,23 +253,43 @@ describe("gameSize 자체가 낡은 경우 — 좌측 하단 쏠림", () => {
         expect(scene.scale.refreshed ?? 0).toBe(0);
     });
 
-    it("★ 캔버스가 0 이면 손대지 않는다 — 숨겨진 것이지 0 이 맞는 게 아니다", () => {
+    it("★ 컨테이너가 0 이면 손대지 않는다 — 레이아웃 전이지 0 이 맞는 게 아니다", () => {
         const scene = fakeScene(915, 412);
-        scene.scale.canvas.clientWidth = 0;
-        scene.scale.canvas.clientHeight = 0;
+        scene.scale.parent.clientWidth = 0;
+        scene.scale.parent.clientHeight = 0;
         expect(syncScaleToCanvas(scene.scale)).toBe(false);
         expect(scene.scale.gameSize).toEqual({ width: 915, height: 412 });
     });
 
     it("1px 오차는 무시한다 (반올림으로 늘 흔들린다)", () => {
         const scene = fakeScene(915, 412);
-        scene.scale.canvas.clientWidth = 916;
+        scene.scale.parent.clientWidth = 916;
         expect(syncScaleToCanvas(scene.scale)).toBe(false);
     });
 
     it("scale 이 없거나 refresh 가 없으면 조용히 넘어간다", () => {
         expect(syncScaleToCanvas(undefined)).toBe(false);
-        expect(syncScaleToCanvas({ canvas: { clientWidth: 100, clientHeight: 100 } })).toBe(false);
+        expect(syncScaleToCanvas({ parent: { clientWidth: 100, clientHeight: 100 } })).toBe(false);
+    });
+
+    /**
+     * ★★★ **이것이 실기에서 실제로 일어난 모양이다** (2026-08-08).
+     *   광고가 세로로 뜨면서 회전 왕복이 일어났고, Phaser 가 **세로 크기**를
+     *   자기 크기로 기억한 채 남았다. 컨테이너는 가로 그대로다.
+     */
+    it("★★★ 세로↔가로가 뒤바뀐 상태(광고 회전 왕복)를 잡아낸다", () => {
+        const scene = fakeScene(915, 412);
+        applyViewport(scene);
+        // 광고가 세로로 떴다 — Phaser 만 세로 크기를 기억한 채 남았다
+        scene.scale.gameSize.width = 412;
+        scene.scale.gameSize.height = 915;
+        scene.cameras.main.zoom = Math.min(915 / DESIGN.height, 412 / DESIGN.width);
+
+        expect(resyncViewportIfDrifted(scene)).toBe(true);
+        expect(scene.scale.gameSize).toEqual({ width: 915, height: 412 });
+        const v = visible(scene);
+        expect(v.x[0], "방주가 왼쪽 밖").toBeLessThanOrEqual(LANES.arkX);
+        expect(v.x[1], "균열이 오른쪽 밖").toBeGreaterThanOrEqual(LANES.riftX);
     });
 
     /**
@@ -277,8 +299,8 @@ describe("gameSize 자체가 낡은 경우 — 좌측 하단 쏠림", () => {
     it("교정 뒤 방주와 균열이 다시 보인다", () => {
         const scene = fakeScene(915, 412);
         applyViewport(scene);
-        scene.scale.canvas.clientWidth = 2340;
-        scene.scale.canvas.clientHeight = 1080;
+        scene.scale.parent.clientWidth = 2340;
+        scene.scale.parent.clientHeight = 1080;
         resyncViewportIfDrifted(scene);
 
         /**

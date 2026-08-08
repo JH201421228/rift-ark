@@ -234,20 +234,43 @@ export function resyncViewportIfDrifted(scene) {
  * @returns {boolean} 실제로 새로고침했으면 true
  */
 export function syncScaleToCanvas(scale) {
-    const canvas = scale?.canvas;
-    if (!canvas || typeof scale.refresh !== "function") return false;
+    if (!scale || typeof scale.refresh !== "function") return false;
 
-    const cw = canvas.clientWidth;
-    const ch = canvas.clientHeight;
-    // 0 은 "숨겨져 있다"는 뜻이지 "0 이 맞다"가 아니다 — 그때 refresh 하면 오히려 망친다
-    if (!(cw > 0) || !(ch > 0)) return false;
+    /**
+     * ★★★ **기준은 캔버스가 아니라 부모 컨테이너다** (2026-08-08 재수정 — 한 번 틀렸다).
+     *
+     *   처음에는 `canvas.clientWidth/Height` 를 `gameSize` 와 비교했다. **그 둘은
+     *   Phaser 가 직접 동기화하므로 언제나 일치한다** — RESIZE 모드에서 캔버스
+     *   크기를 정하는 것이 바로 `gameSize` 다. 그래서 검사는 아무것도 잡지 못했고,
+     *   실기에서 증상이 그대로 남았다.
+     *
+     *   *기준이 틀렸을 때 기준과의 일치는 아무것도 보증하지 않는다* — 바로 앞
+     *   문단에서 그렇게 적어 놓고 같은 실수를 했다.
+     *
+     *   진짜 기준은 **부모 컨테이너(`#game-container`)** 다. 그것은 CSS
+     *   (`position:absolute; inset:0`)로 창을 그대로 채우므로 **브라우저가 아는
+     *   실제 크기**이고, Phaser 가 리사이즈를 놓쳐도 영향을 받지 않는다.
+     */
+    const parent = scale.parent;
+    const w = parent?.clientWidth;
+    const h = parent?.clientHeight;
+    // 0 은 "아직 레이아웃 전 · 숨겨져 있다"는 뜻이지 "0 이 맞다"가 아니다.
+    if (!(w > 0) || !(h > 0)) return false;
 
     const { width: gw, height: gh } = scale.gameSize ?? {};
-    if (Math.abs(cw - gw) <= 1 && Math.abs(ch - gh) <= 1) return false;
+    // 1px 오차는 반올림으로 늘 흔들린다
+    if (Math.abs(w - gw) <= 1 && Math.abs(h - gh) <= 1) return false;
 
+    /**
+     * ★ `refresh()` 만으로는 부족할 수 있다 — 그것은 부모 크기를 **다시 읽어** 주지만
+     *   RESIZE 모드에서 `gameSize` 를 갱신하는 경로는 `resize()` 다. 값을 이미
+     *   알고 있으므로 직접 넘긴다. `refresh()` 는 뒤이어 경계·중심을 다시 계산한다.
+     */
+    if (typeof scale.resize === "function") scale.resize(w, h);
     scale.refresh();
     return true;
 }
+
 
 /**
  * 디자인 좌표 → 화면(CSS) 좌표.
