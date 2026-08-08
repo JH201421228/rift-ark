@@ -27,19 +27,46 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         /**
-         * ★★ `versionCode` 는 **한 번 올린 값보다 커야만** 업로드된다. 되돌릴 수 없다.
-         *   CI 에서는 Codemagic 의 `BUILD_NUMBER`(단조 증가)를 그대로 쓴다.
-         * ★ 숫자가 아닌 값이 들어오면 **빌드를 멈춘다.** 조용히 1 로 떨어지면
-         *   이미 1 을 쓴 뒤에는 업로드가 거부되고, 원인이 CI 환경변수라는 것을
-         *   알아내기까지 한참 걸린다.
+         * `versionCode` = `VERSION_CODE_BASE` + `BUILD_NUMBER`
+         *
+         * ★★ **한 번 올린 값은 영원히 재사용할 수 없다.** 앱에서 지워도, 초안이어도
+         *   마찬가지다. 그래서 이 값은 되돌릴 수 없는 자원이다.
+         *
+         * ★★★ **CI 와 로컬이 같은 번호 공간을 쓰면 반드시 충돌한다** (2026-08-08, 실제로 겪음).
+         *
+         *   Codemagic 의 `BUILD_NUMBER` 는 그 앱의 **첫 빌드에서 1부터** 시작한다.
+         *   그런데 손으로 올리면서 1·2 를 이미 태웠다 — 그 상태로 CI 를 붙이면
+         *   **첫 자동 빌드가 그대로 거부된다** ("1 버전 코드는 이미 사용되었습니다").
+         *
+         *   그래서 CI 쪽에 오프셋을 준다. `codemagic.yaml` 이
+         *   `VERSION_CODE_BASE: "1000"` 을 넘기므로 CI 는 **1001 부터** 쓰고,
+         *   로컬 수동 빌드는 오프셋이 없어 **1000 미만**을 쓴다. 두 공간이 겹치지 않는다.
+         *
+         * ★ **CI 인지 코드가 추측하지 않는다.** `CM_BUILD_ID` 나 `CI` 같은 환경변수를
+         *   보고 분기하면, 그 이름이 바뀌는 날 오프셋이 조용히 0 이 되고 충돌이
+         *   돌아온다. 오프셋은 **`codemagic.yaml` 에 적힌 값**이라 버전 관리 안에 보인다.
+         *
+         * ★ 숫자가 아닌 값이 들어오면 **빌드를 멈춘다.** 조용히 떨어지면 이미 쓴
+         *   번호가 다시 나오고, 원인이 CI 환경변수라는 것을 알아내기까지 한참 걸린다.
          */
         versionCode = {
-            def bn = System.getenv("BUILD_NUMBER")
-            if (!bn) return 1
-            if (!bn.isInteger()) {
-                throw new GradleException("BUILD_NUMBER 가 정수가 아니다: '${bn}'")
+            def readInt = { String name, int fallback ->
+                def raw = System.getenv(name)
+                if (!raw) return fallback
+                if (!raw.isInteger()) {
+                    throw new GradleException("${name} 가 정수가 아니다: '${raw}'")
+                }
+                return raw.toInteger()
             }
-            return bn.toInteger()
+            def base = readInt("VERSION_CODE_BASE", 0)
+            def build = readInt("BUILD_NUMBER", 1)
+            def code = base + build
+            if (code < 1) {
+                throw new GradleException(
+                    "versionCode 가 1 미만이다 (${base} + ${build} = ${code}) — Play 가 거부한다"
+                )
+            }
+            return code
         }()
         // ★ 스토어 표시용. 세 자리로 둔다 — 스토어 등록정보·릴리스 노트가 이 값을 쓴다
         versionName "1.0.0"

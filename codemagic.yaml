@@ -119,6 +119,20 @@ workflows:
         - google_play             # §9.3 의 변수 그룹
       vars:
         PACKAGE_NAME: "com.superdimension.app"
+        # ★★★ CI 의 versionCode 오프셋 (2026-08-08).
+        #
+        #   Codemagic 의 BUILD_NUMBER 는 그 앱의 **첫 빌드에서 1부터** 시작한다.
+        #   그런데 손으로 올리면서 versionCode 1·2 를 이미 태웠고, 한 번 쓴 값은
+        #   영원히 재사용할 수 없다 — 그대로 두면 **CI 첫 빌드가 거부된다**
+        #   ("1 버전 코드는 이미 사용되었습니다", 실제로 겪음).
+        #
+        #   CI 는 1001 부터, 로컬 수동 빌드는 1000 미만을 쓴다. 두 공간이 겹치지 않아
+        #   어느 쪽을 몇 번 돌려도 충돌하지 않는다.
+        #
+        #   ★ 이 값을 Codemagic 콘솔의 "빌드 번호 시작값" 으로 대신하지 않는다 —
+        #     콘솔 설정은 저장소를 아무리 봐도 알 수 없고, 앱을 다시 만들면 조용히
+        #     1 로 돌아간다. 여기 있으면 코드 리뷰에 보인다.
+        VERSION_CODE_BASE: "1000"
 
     triggering:
       events:
@@ -214,9 +228,17 @@ workflows:
 
           MANIFEST=FE/android/app/build/intermediates/merged_manifest/release/processReleaseMainManifest/AndroidManifest.xml
           VC=$(grep -o 'android:versionCode="[^"]*"' "$MANIFEST" | head -1 | grep -o '[0-9]\+')
-          echo "versionCode=$VC  BUILD_NUMBER=$BUILD_NUMBER"
-          if [ "$VC" != "$BUILD_NUMBER" ]; then
-            echo "✗ versionCode 가 BUILD_NUMBER 와 다르다. Play 는 증가하지 않는 versionCode 를 거부한다 (§1.3)."
+          WANT=$((${VERSION_CODE_BASE:-0} + BUILD_NUMBER))
+          echo "versionCode=$VC  (VERSION_CODE_BASE=${VERSION_CODE_BASE:-0} + BUILD_NUMBER=$BUILD_NUMBER = $WANT)"
+          if [ "$VC" != "$WANT" ]; then
+            echo "✗ versionCode 가 기대값과 다르다 — build.gradle 이 VERSION_CODE_BASE 를 읽지 못했다 (§1.3)."
+            exit 1
+          fi
+          # ★ 오프셋이 조용히 0 으로 떨어지면 CI 가 손으로 태운 1·2 와 충돌한다.
+          #   그때 나오는 것은 빌드 실패가 아니라 **업로드 거부**이고, 그건 한참 뒤다.
+          if [ "$VC" -le 1000 ]; then
+            echo "✗ versionCode 가 $VC 다 — CI 는 1000 을 넘겨야 한다."
+            echo "  VERSION_CODE_BASE 가 환경에 전달되지 않았다. codemagic.yaml 의 vars 를 확인하라."
             exit 1
           fi
 
