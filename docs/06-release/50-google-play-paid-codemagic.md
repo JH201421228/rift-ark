@@ -5,8 +5,10 @@
 >
 > **이 문서 하나만 보고 끝까지 갈 수 있게 썼다.** 순서대로 하면 된다.
 >
-> ⚠ **파일 이름의 `paid` 는 역사적 잔재다.** 저장소 전체가 이 경로로 상호 참조하고
-> 있어서 이름을 바꾸지 않았다. **내용은 무료 앱 기준이다.**
+> ⚠ **파일 이름의 `paid` 도 `codemagic` 도 역사적 잔재다.** 저장소 전체가 이 경로로
+> 상호 참조하고 있어서 이름을 바꾸지 않았다.
+> **내용은 무료 앱 기준이고, 1.0 은 Codemagic 없이 손으로 올린다** (§9.0).
+> CI 연결은 **iOS 를 붙일 때** 한다 (2026-08-08 결정).
 
 ---
 
@@ -91,7 +93,7 @@
                                           │
  [첫 업로드] ★ 손으로 AAB 1회 업로드 (API 로는 안 된다)
                                           │
- [CI]     GCP 서비스 계정 ──→ Codemagic 연동 ──→ codemagic.yaml ──→ 자동 업로드
+ [업로드] ★ **로컬에서 AAB 를 만들어 손으로 올린다** (1.0 은 CI 없이 간다 — §9)
                                           │
  [트랙]   내부 테스트 ──→ 클로즈드 테스트 **12명 × 14일** ──→ 프로덕션
                                           │
@@ -595,9 +597,24 @@ R8 이 꺼져 있으면 광고 SDK 의 미사용 클래스가 그대로 남는�
 
 ---
 
-## 3. GCP 서비스 계정 — Codemagic 이 대신 업로드하게 만든다
+## 3. GCP 서비스 계정 — ⏸ **지금은 하지 않는다** (iOS 단계로 미룸)
 
-Codemagic 이 Play 에 AAB 를 자동 업로드하려면 **서비스 계정 JSON 키**가 필요하다.
+> ### ⏸ 2026-08-08 — CI 는 iOS 를 붙일 때 함께 연결한다
+>
+> **1.0 은 CI 없이 간다.** 로컬에서 AAB 를 만들어 손으로 올린다 (§9).
+> 서비스 계정은 **Codemagic 이 대신 업로드할 때만** 필요하므로 지금 만들 이유가 없다.
+>
+> | | |
+> |---|---|
+> | 왜 미뤘나 | 앱이 하나이고 릴리스가 드물다. **손으로 올리는 비용 < CI 를 세우고 유지하는 비용** |
+> | 언제 하나 | **iOS 를 붙일 때.** macOS 빌드는 손으로 하기 어렵고, 그때는 CI 가 실제로 이득이다 |
+> | 그때까지 | `codemagic.yaml` 은 저장소에 **그대로 둔다** — 지우면 그때 다시 쓴다 |
+>
+> ⚠ **서비스 계정 JSON 은 곧 업로드 권한이다.** 쓰지도 않을 키를 미리 만들어 두면
+> 유출 표면만 늘어난다. 필요해질 때 만든다.
+
+아래는 **그때** 할 일이다. Codemagic 이 Play 에 AAB 를 자동 업로드하려면
+**서비스 계정 JSON 키**가 필요하다.
 
 ### 3.1 Play Console 에서 API 접근 활성화
 
@@ -1318,7 +1335,43 @@ AdMob 잔액에 반영
 
 ---
 
-## 9. Codemagic 설정
+## 9. 릴리스 절차
+
+### 9.0 ★ 지금은 **손으로 올린다** (2026-08-08 결정)
+
+**1.0 은 CI 없이 간다.** Codemagic 연결은 **iOS 를 붙일 때** 함께 한다 (§9.1 이하).
+
+```bash
+# ① 웹 빌드 + Capacitor 동기화
+cd FE && JAVA_HOME="C:/Program Files/Java/jdk-21.0.10" npm run build:android
+
+# ② AAB — versionCode 는 직접 준다 (한 번 쓴 값은 영원히 재사용 불가 · §1.3)
+cd android && BUILD_NUMBER=<다음 숫자> JAVA_HOME="..." ./gradlew bundleRelease
+
+# ③ (선택) 실기 확인용 APK
+BUILD_NUMBER=<같은 숫자> ./gradlew assembleRelease
+
+# ④ 올리기 전 확인 — BUILD SUCCESSFUL 은 "올바른 키로 서명됐다"가 아니다
+jarsigner -verify -verbose:summary -certs app/build/outputs/bundle/release/app-release.aab
+grep -o 'android:versionCode="[^"]*"'   app/build/outputs/intermediates/merged_manifest/release/processReleaseMainManifest/AndroidManifest.xml
+```
+
+**나오는 곳**
+`FE/android/app/build/outputs/bundle/release/app-release.aab` (Play 업로드)
+`FE/android/app/build/outputs/apk/release/app-release.apk` (직접 설치)
+
+> ★ **왜 CI 를 미뤘나.** 앱이 하나이고 릴리스가 드물다 — 손으로 올리는 비용이
+> CI 를 세우고 유지하는 비용보다 작다. **iOS 는 다르다:** macOS 빌드는 손으로 하기
+> 어렵고, 그때 Codemagic 이 실제로 이득이 된다. 그래서 그 시점에 함께 연결한다.
+>
+> ⚠ **`npm run verify` 를 릴리스 전에 직접 돌린다.** CI 가 없으므로 게이트를
+> 대신 돌려 줄 것이 없다. 단 `economy` 는 **실패가 정상**이다 (광고 무제한 결정).
+
+---
+
+### ⏸ 아래 §9.1–9.6 은 **iOS 단계에서 실행한다**
+
+지금 하지 않는다. `codemagic.yaml` 은 저장소에 이미 있고 검증도 끝났다.
 
 ### 9.1 프로젝트 연결
 
@@ -1477,7 +1530,7 @@ Codemagic → 앱 설정 → **Environment variables**
 - [ ] Play Console 개인 계정 + 신원 확인 (§2.1)
 - [ ] **개인 vs 사업자 결정** (§2.2)
 - [ ] ⛔ **Play 결제 프로필은 만들지 않는다** — 무료 앱에 필요 없다 (§2.3)
-- [ ] GCP 서비스 계정 + Play 권한 (§3)
+- [ ] ⏸ GCP 서비스 계정 + Play 권한 (§3) — **iOS 단계로 미룸**
 - [ ] ★★★ **앱 생성 — 무료로 생성** (§4.1) ← **되돌릴 수 없다. 경고를 읽었는가**
 - [ ] 스토어 등록정보 · 아이콘 512 · 피처 1024×500 · 스크린샷 (§4.2)
 - [ ] ★ 자세한 설명에 **"광고가 없습니다" 를 넣지 않았다** (§4.3)
@@ -1487,8 +1540,8 @@ Codemagic → 앱 설정 → **Environment variables**
 - [ ] **타겟층 및 콘텐츠 — 13세 미만 미선택 · 아동 어필 아니오** (§4.7)
 - [ ] IARC 콘텐츠 등급 (§5)
 - [ ] **첫 AAB 손으로 업로드** (§6.3)
-- [ ] Codemagic 연결 + 키스토어/JSON 등록 (§9.1–9.3)
-- [ ] `codemagic.yaml` 커밋 → 태그 푸시 → 자동 업로드 확인
+- [ ] ⏸ Codemagic 연결 + 키스토어/JSON 등록 (§9.1–9.3) — **iOS 단계로 미룸**
+- [x] `codemagic.yaml` 커밋 완료 (연결은 iOS 때) · **1.0 은 손으로 올린다 (§9.0)**
 - [ ] **클로즈드 테스트 15명+ 초대 · 14일 시작** (§6.2)
 - [ ] 국가 선택 · **EU DSA 거래자 지위** (`53 §5.4`)
 - [ ] 프로덕션 액세스 신청 → 승인
@@ -1543,7 +1596,7 @@ Codemagic → 앱 설정 → **Environment variables**
 | 증상 | 원인 · 해결 |
 |---|---|
 | `invalid source release: 21` | CI 의 Java 가 21 미만. yaml 의 `java: 21` 확인. 로컬은 `JAVA_HOME` 을 명령마다 지정 |
-| Codemagic 이 첫 업로드에서 실패 | **§6.3** — 첫 AAB 는 손으로 올려야 한다 |
+| Codemagic 이 첫 업로드에서 실패 | **§6.3** — 첫 AAB 는 손으로 올려야 한다. 그리고 **1.0 은 CI 자체를 쓰지 않는다** (§9.0) |
 | `Package not found: com.superdimension.app` | 서비스 계정이 아직 그 앱 권한을 못 받았거나, 앱이 생성만 되고 릴리스가 0개 |
 | `versionCode` 중복 거부 ("이미 사용되었습니다") | 그 번호는 **영원히** 못 쓴다. 로컬은 `BUILD_NUMBER=<다음 숫자>` 로 다시 빌드, CI 는 `VERSION_CODE_BASE` 확인 (§1.3) |
 | `gradlew: Permission denied` | yaml 에 `chmod +x gradlew` (§9.4 에 포함됨) |

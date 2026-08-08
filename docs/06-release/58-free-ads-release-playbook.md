@@ -39,7 +39,8 @@
 ✅ git 원격      github.com/JH201421228/rift-ark (private)
 ✅ 릴리스 서명   C:\keys\riftark-release.jks · PKCS12 · 4096-bit · CN=Rift Ark
 ✅ AAB           jar verified · CN=Rift Ark · versionCode 는 BUILD_NUMBER 로 준다
-✅ CI            codemagic.yaml (android-verify · android-release) — 커밋됨, 아직 연결 전
+⏸ CI            codemagic.yaml 은 커밋됨 · **연결은 iOS 단계로 미룸** (2026-08-08 결정)
+                 1.0 은 로컬에서 AAB 를 만들어 손으로 올린다 (50 §9.0)
 
 ❌ UMP 동의 메시지 (GDPR · US 주) — AdMob 콘솔에서 **게시**까지 해야 한다
 ❌ AdMob 차단 관리 → 광고 콘텐츠 등급 G/PG
