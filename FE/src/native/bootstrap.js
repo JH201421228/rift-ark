@@ -43,12 +43,31 @@ export async function bootstrapNative() {
         console.warn("[native] SafeArea.enable failed", e);
     }
 
-    try {
-        await ScreenOrientation.lock({ orientation: "landscape" });
-    } catch (e) {
-        // Android 16+ 대형 화면에서는 방향 고정이 불가능하다.
-        // FIT 레이아웃이 4:3 에서도 성립하므로 치명적이지 않다.
-        console.warn("[native] landscape lock failed (may be a tablet)", e);
+    /**
+     * ★★★ **안드로이드에서는 잠그지 않는다 — 매니페스트가 이미 더 정확하다**
+     *   (2026-08-08, 사용자 제보: "폰을 거꾸로 들면 180도 회전이 안 된다").
+     *
+     *   플러그인의 `lock({ orientation: "landscape" })` 는
+     *   `ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE` 로 간다 — **한쪽 가로에 고정**이다
+     *   (`ScreenOrientation.java` 확인). 그런데 매니페스트는 `sensorLandscape` 로
+     *   **좌우 두 방향을 모두 허용**하고 있었다. 런타임 호출이 그것을 덮어써서
+     *   폰을 180° 돌려도 화면이 따라오지 않았다.
+     *
+     *   ★ 플러그인에는 `sensorLandscape` 에 해당하는 값이 없다 —
+     *     `landscape-secondary` 는 반대쪽 **고정**이라 마찬가지다.
+     *     그러니 여기서는 아무것도 하지 않는 것이 정답이다. 방향의 단일 출처는
+     *     `AndroidManifest.xml` 의 `screenOrientation` 이다.
+     *
+     *   ⚠ iOS 에는 그 매니페스트가 없다. `Info.plist` 의
+     *     `UISupportedInterfaceOrientations` 가 그 역할을 하지만, iOS 빌드를 낼 때
+     *     확인해야 하므로 **iOS 에서는 기존 동작(잠금)을 유지**한다.
+     */
+    if (Capacitor.getPlatform() === "ios") {
+        try {
+            await ScreenOrientation.lock({ orientation: "landscape" });
+        } catch (e) {
+            console.warn("[native] landscape lock failed (may be a tablet)", e);
+        }
     }
 
     try {
