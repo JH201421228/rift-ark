@@ -28,9 +28,26 @@ const CLEAN_BUNDLE = () =>
         ["dist/assets/index-aaaa.css", "._a_1abcd{color:red}"],
     ]);
 const CLEAN_CAP = { android: { webContentsDebuggingEnabled: false } };
+/** 광고를 켠 정상 상태. id 는 형식만 맞으면 되고 실제 값일 필요는 없다. */
+const CLEAN_ADS = () => ({
+    enabled: true,
+    testMode: false,
+    units: { android: "ca-app-pub-1234567890123456/1111111111", ios: "" },
+});
+const CLEAN_MANIFEST = (id = "ca-app-pub-1234567890123456~2222222222") =>
+    `<manifest><application><meta-data\n` +
+    `  android:name="com.google.android.gms.ads.APPLICATION_ID"\n` +
+    `  android:value="${id}" />\n</application></manifest>`;
 
-function run({ sources = new Map(), bundle = CLEAN_BUNDLE(), capacitor = CLEAN_CAP, stale = [] }) {
-    return analyze({ sources, bundle, capacitor, stale });
+function run({
+    sources = new Map(),
+    bundle = CLEAN_BUNDLE(),
+    capacitor = CLEAN_CAP,
+    ads = CLEAN_ADS(),
+    manifest = CLEAN_MANIFEST(),
+    stale = [],
+}) {
+    return analyze({ sources, bundle, capacitor, ads, manifest, stale });
 }
 const joined = (r) => r.errors.join("\n");
 
@@ -271,6 +288,70 @@ describe("번들 규칙 — 일부러 깨뜨린 번들", () => {
         const r = run({ capacitor: { android: { webContentsDebuggingEnabled: true } } });
         expect(joined(r)).toMatch(/C1 .*webContentsDebuggingEnabled/);
         expect(joined(run({ capacitor: { android: {} } }))).toMatch(/C1/);
+    });
+
+    /* ── A1–A4 광고 배선 ──
+     *
+     * ★ 광고의 실패는 전부 조용하다 — 어댑터가 초기화 실패·동의 거부·오프라인·빈 id 를
+     *   같은 결과로 다루기 때문에, **잘못된 설정도 정상과 같은 얼굴로 배포된다.**
+     *   그래서 여기서는 "잡는다"뿐 아니라 **"정상은 안 잡는다"** 도 같이 못박는다.
+     */
+    it("A1 광고를 켜 놓고 units.android 가 비면 잡는다 (수익 0)", () => {
+        const ads = CLEAN_ADS();
+        ads.units.android = "";
+        expect(joined(run({ ads }))).toMatch(/A1 .*units\.android 가 비어 있다/);
+    });
+
+    it("A1 광고가 꺼져 있으면 빈 id 를 잡지 않는다 (켜기 전의 정상 상태다)", () => {
+        const ads = CLEAN_ADS();
+        ads.enabled = false;
+        ads.units.android = "";
+        expect(joined(run({ ads }))).not.toMatch(/A1/);
+    });
+
+    it("A2 광고 단위 자리에 앱 id(`~`) 를 넣으면 잡는다", () => {
+        const ads = CLEAN_ADS();
+        ads.units.android = "ca-app-pub-1234567890123456~1111111111";
+        expect(joined(run({ ads }))).toMatch(/A2 .*units\.android/);
+    });
+
+    it("A2 빈 ios 는 잡지 않는다 (Android 만 내는 상태다)", () => {
+        expect(joined(run({}))).not.toMatch(/A2/);
+    });
+
+    it("A3 testMode 인 채로 배포하면 잡는다", () => {
+        const ads = CLEAN_ADS();
+        ads.testMode = true;
+        expect(joined(run({ ads }))).toMatch(/A3 .*testMode/);
+    });
+
+    it("A4 매니페스트에 앱 id 자체가 없으면 잡는다 (앱이 부팅 즉시 죽는다)", () => {
+        expect(joined(run({ manifest: "<manifest><application/></manifest>" }))).toMatch(
+            /A4 .*APPLICATION_ID meta-data 가 없다/
+        );
+    });
+
+    it("A4 매니페스트에 광고 단위 id(`/`) 를 넣으면 잡는다", () => {
+        const bad = CLEAN_MANIFEST("ca-app-pub-1234567890123456/3333333333");
+        expect(joined(run({ manifest: bad }))).toMatch(/A4 .*앱 id 형식이 아니다/);
+    });
+
+    it("A4 광고를 켠 채 구글 테스트 앱 id 가 남으면 잡는다", () => {
+        const bad = CLEAN_MANIFEST("ca-app-pub-3940256099942544~3347511713");
+        expect(joined(run({ manifest: bad }))).toMatch(/A4 .*테스트 앱 id/);
+    });
+
+    it("A4 광고가 꺼져 있으면 테스트 앱 id 를 잡지 않는다", () => {
+        // 플러그인이 설치돼 있으면 매니페스트에는 **무엇이든** 있어야 하고,
+        // 켜기 전이라면 테스트 값이 정상이다.
+        const ads = CLEAN_ADS();
+        ads.enabled = false;
+        const m = CLEAN_MANIFEST("ca-app-pub-3940256099942544~3347511713");
+        expect(joined(run({ ads, manifest: m }))).not.toMatch(/A4/);
+    });
+
+    it("정상 배선은 A 규칙을 하나도 발동시키지 않는다", () => {
+        expect(joined(run({}))).not.toMatch(/A[1-4]/);
     });
 
     it("D1 번들이 없거나 낡으면 통과시키지 않는다", () => {

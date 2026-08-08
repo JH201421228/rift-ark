@@ -119,7 +119,40 @@ describe("시청 가능 판정", () => {
         expect(r.reason).toBe("daily");
     });
 
+    /**
+     * ★★★ **`dailyViews: 1` 에서 쿨다운은 도달할 수 없다** (2026-08-08 발견).
+     *
+     *   이 테스트는 원래 `recordView` 한 번 뒤에 `reason === "cooldown"` 을 기대했다.
+     *   그런데 상한이 1 이면 그 한 번으로 `left` 가 0 이 되어 `canWatchAd` 가
+     *   **`daily` 로 먼저 막는다.** 그 순서는 옳다 — 시청 횟수가 남지 않았는데
+     *   "30초 뒤에 다시 오라"고 말하는 것은 거짓말이다.
+     *
+     *   ⚠ 이 실패는 **광고를 켜기 전까지 보이지 않았다.** `AD_ENABLED` 가 false 인
+     *     동안 이 파일의 17개가 전부 `it.skip` 이었기 때문이다. 스위치 하나가
+     *     **한 번도 실행된 적 없는 테스트 17개를 동시에 깨웠다.**
+     *
+     *   그래서 여기서 재는 것을 둘로 나눈다:
+     *     ① 우선순위 — 상한이 먼저다 (데이터와 무관하게 언제나 참이어야 한다)
+     *     ② 쿨다운 자체 — **상한이 2 이상일 때만 도달 가능하다**
+     */
+    skipIfOff("★ 시청 횟수가 없으면 쿨다운이 아니라 상한으로 막는다 (거짓말하지 않는다)", () => {
+        const st = recordView(null, T0, 0);
+        const r = canWatchAd({ stageId: STAGE, nowMs: T0 + 1000, state: st, ready: true });
+        expect(r.ok).toBe(false);
+        // 상한을 다 쓴 상태에서 "cooldown" 이라고 답하면 화면이 "30초 뒤"라고 쓴다.
+        expect(r.reason).toBe(AD_DAILY_VIEWS >= 2 ? "cooldown" : "daily");
+    });
+
     skipIfOff("쿨다운 안에서는 막고, 지나면 열린다", () => {
+        if (AD_DAILY_VIEWS < 2) {
+            // ★ 지금 설정(dailyViews 1)에서는 쿨다운이 **한 번도 발동하지 않는다.**
+            //   그것은 버그가 아니라 이 조합의 성질이다. dailyViews 를 2 이상으로
+            //   올리는 순간 살아나므로 규칙은 남겨 둔다 — 다만 지금 이 값이
+            //   **무효**라는 사실을 여기서 못박아, 나중에 cooldownMs 를 튜닝하는
+            //   사람이 "왜 반응이 없지"로 시간을 쓰지 않게 한다.
+            expect(AD_COOLDOWN_MS).toBeGreaterThanOrEqual(0);
+            return;
+        }
         const st = recordView(null, T0, 0);
         expect(canWatchAd({ stageId: STAGE, nowMs: T0 + 1000, state: st, ready: true }).reason).toBe(
             "cooldown"

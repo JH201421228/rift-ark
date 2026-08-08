@@ -63,7 +63,24 @@ const VIEWPORTS = [
 
 /** §3.2 장면 정의의 코드 단일 사본. */
 const SCENES = [
-    { id: 1, name: "전투 한복판", route: "#/battle/2-4", type: "battle-mid" },
+    /**
+     * ★★★ 1번은 **공중 적이 실제로 나오는 스테이지**여야 한다 (2026-08-08, S-01).
+     *
+     *   카피가 `세 개의 레인과 하늘 / Three lanes and the sky.` 인데, 예전 고정
+     *   장면 `2-4` 에는 **FLYING 적이 한 마리도 없다.** 그래서 4개월 동안 캡처
+     *   로그의 `airEnemies` 가 언제나 0 이었고, 스토어 그림이 카피를 지키지 못했다.
+     *   `battleScore` 는 처음부터 `airEnemies` 를 점수에 넣고 있었지만, 데이터에
+     *   없는 것을 점수가 만들어 낼 수는 없다.
+     *
+     *   `2-8` 로 옮겼다 — **같은 월드 2 · 같은 goblin 진영 · 같은 assault 모드 ·
+     *   같은 18 웨이브**인데 FLYING 이 웨이브 1부터 총 43마리 나온다. 화면 톤은
+     *   그대로 두고 하늘만 채워진다.
+     *
+     *   ⛔ **스테이지 데이터(`2-4` 의 웨이브)를 고쳐서 해결하지 않았다.** 스크린샷
+     *   한 장 때문에 밸런스 검증을 통과한 캠페인 데이터를 흔들 이유가 없다
+     *   (`57 §1` 의 선택지 ②를 골랐다).
+     */
+    { id: 1, name: "전투 한복판", route: "#/battle/2-8", type: "battle-mid" },
     { id: 2, name: "지휘관 오라", route: "#/battle/3-2", type: "battle-aura" },
     { id: 3, name: "각인 3지선다", route: "#/battle/2-7", type: "battle-draft" },
     { id: 4, name: "보스", route: "#/battle/2-10", type: "battle-boss" },
@@ -536,8 +553,21 @@ async function captureBattleMid(cdp, copy, viewport) {
         (value) => value.wave >= 4 && value.allies >= 8 && value.enemies >= 5,
         "전투 한복판 첫 후보"
     );
+    /**
+     * ★ 후보를 5개 본다 (2026-08-08, 3 → 5).
+     *
+     *   ⚠ **표본을 늘려도 `engagedGround` 는 2 였다** (실측). 후보 사이 간격이
+     *   1.8초뿐이라 5개가 전부 같은 국면(웨이브 4의 8초 안)에 몰린다 — 표본 수가
+     *   아니라 **시간 폭**이 병목이다. 그래도 5개 쪽이 점수가 조금 낫고 비용이
+     *   후보당 2초라 남겨 둔다.
+     *
+     *   `engagedGround` 3 을 꼭 맞춰야 한다면 `targetTime` 간격을 늘려 웨이브를
+     *   가로질러 표본을 뜨는 쪽을 손봐야 한다. **지금은 하지 않았다** — 공중 적이
+     *   있는 지금 그림이 카피(`세 개의 레인과 하늘`)를 지키기 때문이다.
+     */
+    const CANDIDATES = 5;
     const candidates = [];
-    for (let index = 0; index < 3; index++) {
+    for (let index = 0; index < CANDIDATES; index++) {
         await freezeBattle(cdp);
         moment = await pumpBattle(cdp, { ...pump, speed: 0 });
         candidates.push({
@@ -545,7 +575,7 @@ async function captureBattleMid(cdp, copy, viewport) {
             summary: moment,
             buffer: await captureBuffer(cdp, copy, viewport),
         });
-        if (index === 2) break;
+        if (index === CANDIDATES - 1) break;
         const targetTime = moment.t + 1800;
         await waitBattleMoment(
             cdp,
@@ -558,6 +588,26 @@ async function captureBattleMid(cdp, copy, viewport) {
     candidates.sort((a, b) => b.score - a.score);
     console.log(`[capture] 1번 후보 점수 ${candidates.map((item) => item.score).join(", ")}`);
     console.log(`[capture] 1번 선택 상태 ${JSON.stringify(candidates[0].summary)}`);
+
+    /**
+     * ★★★ **카피를 지키지 못하는 그림이 조용히 저장되는 것을 막는다** (S-01).
+     *
+     *   1번 카피는 `세 개의 레인과 하늘` 을 약속한다. `battleScore` 는 공중 적에
+     *   가점을 주지만 **가점은 강제가 아니다** — 0 마리인 후보도 지상 교전
+     *   점수만으로 1위가 될 수 있고, 실제로 4개월 동안 그랬다. 검사기
+     *   (`check-store-shots.mjs`)는 픽셀 속 적을 세지 못하므로 여기서 막는 수밖에 없다.
+     *
+     *   ★ 실패하면 **저장하지 않고 멈춘다.** 잘못된 그림을 남기고 경고만 하면
+     *     그 그림이 그대로 스토어에 올라간다.
+     */
+    if (!(candidates[0].summary.airEnemies >= 1)) {
+        throw new Error(
+            `1번 장면에 공중 적이 없다 (airEnemies=${candidates[0].summary.airEnemies}). ` +
+                `카피는 "세 개의 레인과 하늘" 을 약속한다 — 그림이 그것을 지키지 못한다. ` +
+                `SCENES[0].route(${SCENES[0].route}) 가 FLYING 적이 나오는 스테이지인지 확인하라 ` +
+                `(docs/06-release/57-store-image-recapture-register.md §1).`
+        );
+    }
     return candidates[0].buffer;
 }
 
