@@ -211,8 +211,21 @@ export function adGold(s, force = false) {
     const mult = Number(ADS.rewardMult) || 1;
     if (mult <= 1) return 0;
 
-    // 이 시점까지 볼 수 있었던 총 시청 횟수 (하루 상한 × 경과 일수)
-    const budget = Math.floor(Math.max(0, daysToStage(s)) * (Number(ADS.dailyViews) || 0));
+    /**
+     * 이 시점까지 볼 수 있었던 총 시청 횟수 (하루 상한 × 경과 일수).
+     *
+     * ★★★ **`dailyViews <= 0` 은 "0회"가 아니라 "무제한"이다** (2026-08-08).
+     *   예전 코드는 `Number(ADS.dailyViews) || 0` 이라 무제한 설정에서 예산을 0 으로
+     *   읽고 **광고 영향이 없다고 보고했다.** 켜 놓은 광고를 하네스가 못 본 채
+     *   "✅ 통과" 를 찍는 것이 이 저장소가 가장 두려워하는 모양이다 —
+     *   경제 검증이 광고를 모르면 광고가 경제를 망가뜨려도 아무도 실패하지 않는다.
+     *
+     *   무제한이면 **모든 플레이에 광고를 붙일 수 있다.** 아래 루프가 스테이지마다
+     *   `repeatFactor` 만큼만 소비하므로, `Infinity` 를 넣으면 그 모델이 그대로 성립한다.
+     */
+    const perDay = Number(ADS.dailyViews);
+    const budget =
+        perDay > 0 ? Math.floor(Math.max(0, daysToStage(s)) * perDay) : Number.POSITIVE_INFINITY;
     if (budget <= 0) return 0;
 
     // 골드가 큰 순서(= 최근 스테이지부터)로 예산을 소진한다

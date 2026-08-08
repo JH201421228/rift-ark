@@ -12,10 +12,10 @@
 | | |
 |---|---|
 | 결정일 | 2026-08-07 (사용자) |
-| 모델 | **무료 앱 + 보상형 광고(AdMob) — 클리어 보상 골드 2배** |
+| 모델 | **무료 앱 + 보상형 광고(AdMob) — 클리어 보상 골드 ×1.5 · 하루 무제한 · 1-1 부터** |
 | 판정 경위 | [`55-monetization-decision.md`](55-monetization-decision.md) |
 | 기술 상세 | [`56-admob-rewarded-integration.md`](56-admob-rewarded-integration.md) |
-| 코드 상태 | **구현 완료 · `ads.json:enabled = false`** (계정이 없어서) |
+| 코드 상태 | **구현 완료 · `ads.json:enabled = true`** (실제 ID 투입 2026-08-08) |
 
 ---
 
@@ -27,26 +27,29 @@
 
 ```
 ✅ 코드          logic/adReward.js · native/ads.js · BattleResult 버튼 · meta.ads
-✅ 데이터        game/data/ads.json  enabled: true · 배수 1.5 · 하루 2회 · 6스테이지부터
+✅ 데이터        game/data/ads.json  enabled: true · 배수 1.5 · **하루 무제한** · **1-1 부터**
 ✅ 플러그인      @capacitor-community/admob@7.2.0  (Capacitor 7 계열)
 ✅ AdMob 계정·ID  앱 ca-app-pub-6178685918745796~5932212438
                  단위 ca-app-pub-6178685918745796/2344321218  (Android 보상형)
 ✅ 네이티브      AndroidManifest APPLICATION_ID = 실제 앱 ID (테스트 ID 아님 · 병합 매니페스트 확인)
-✅ 경제 결정     §2 = A (×1.5 · 하루 2회) · npm run economy ✅ 통과
+⚠ 경제 결정     §2 — 사용자가 **무제한**을 선택. npm run economy ✗ (11개 구간 초과)
+                 결정이지 회귀가 아니다. CI 게이트에는 없으므로 릴리스는 막히지 않는다
 ✅ 검사기        check:prod 에 A1–A4 (광고 배선) · check-store-shots 에 신선도 규칙
 ✅ 스토어 이미지  한/영 각 16장 재촬영 (S-02 · S-03 완료 · 57번 대장)
 ✅ git 원격      github.com/JH201421228/rift-ark (private)
 ✅ 릴리스 서명   C:\keys\riftark-release.jks · PKCS12 · 4096-bit · CN=Rift Ark
-✅ AAB           app-release.aab 32,056,323 바이트 · jar verified · versionCode 1
-✅ CI            codemagic.yaml (android-verify · android-release) — 커밋됨, 아직 연결 전
+✅ AAB           jar verified · CN=Rift Ark · versionCode 는 BUILD_NUMBER 로 준다
+⏸ CI            codemagic.yaml 은 커밋됨 · **연결은 iOS 단계로 미룸** (2026-08-08 결정)
+                 1.0 은 로컬에서 AAB 를 만들어 손으로 올린다 (50 §9.0)
 
 ❌ UMP 동의 메시지 (GDPR · US 주) — AdMob 콘솔에서 **게시**까지 해야 한다
 ❌ AdMob 차단 관리 → 광고 콘텐츠 등급 G/PG
 ❌ AdMob 지급 프로필 · W-8BEN 확인
-❌ 개인정보 처리방침 (지금 문안은 "아무것도 수집하지 않습니다" — 거짓이 된다)
-❌ Play Console 앱 생성 · 앱 콘텐츠 · 첫 수동 업로드
+✅ 개인정보 처리방침  https://jh201421228.github.io/riftark-privacy/ (한/영 한 페이지)
+✅ Play Console 앱 생성 · 앱 콘텐츠 8항목 · 비공개 테스트 업로드 (2026-08-08)
+❌ 테스터 12명 옵트인 — **여기서 14일이 시작된다**
 ❌ 실기기 광고 확인 (§3.3)
-❌ S-01 (1번 장면에 공중 적이 없다) — 57번 §1, **결정이 먼저다**
+✅ S-01 (장면을 2-8 로 옮겨 재촬영 · 57번 §1)
 ```
 
 > ★ **`❌ git 원격 · 릴리스 서명 키 · CI ← 여전히 임계 경로` 라고 적혀 있던 줄은
@@ -159,7 +162,15 @@
 | **B** | **2배를 유지하고 80·90 을 재보정한다** | 같다 | `difficultyMult` 조정 + `balance:check` 300시드(약 2시간). 미결인 B3·BN3 와 얽힌다 |
 | **C** | 골드가 아닌 보상으로 바꾼다 (예: 그 판의 각인 리롤 +1) | 가장 높다 — 하루 상한이 필요 없어 매 전투마다 제안할 수 있다 | 리롤은 기록보관소 시설과 축이 겹친다. 별도 설계 판단 필요 |
 
-> ### ✅ **결론: A (×1.5 · 하루 2회)** — 2026-08-08 확정
+> ### ⚠ **2026-08-08 오후 — 사용자가 무제한을 선택했다. 아래 A 결론은 갱신됐다**
+>
+> `dailyViews: 0`(무제한) · `minStage: 1`. **`npm run economy` 는 실패 상태이고
+> 그것이 정직한 상태다** — 실측(하루 2회 +19% ✅ / 3회 +28% ✗ / 10회 +69% ✗ /
+> 무제한 = 11개 구간 초과)을 읽은 뒤의 **결정**이지 회귀가 아니다.
+> 되돌리는 방법은 `dailyViews` 2 · `minStage` 6 으로 되돌리는 것 하나뿐이다.
+> 근거와 무엇이 걸려 있는지는 `CLAUDE.md` 의 광고 절.
+>
+> ### (이전) 결론: A (×1.5 · 하루 2회) — 2026-08-08 오전 확정
 >
 > 2026-08-07 에는 B(2배 유지 + 재보정)를 골랐고 재보정은 하지 않은 채였다.
 > 08-08 에 `enabled` 를 켜자 **`npm run economy` 가 경고가 아니라 실패로** 바뀌었고
