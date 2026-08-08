@@ -18,6 +18,7 @@
 import Phaser from "phaser";
 import { GAME_CONFIG } from "./config.js";
 import { SCENES, OVERLAY_SCENES } from "./scenes/index.js";
+import { syncScaleToCanvas } from "./viewport.js";
 import { FAULT, recordFault, setLivenessProbe, setLoopReviver } from "@/utils/diagnostics";
 /**
  * ★ 여기서 만드는 문구는 **진단 배너와 진단 기록에 그대로 뜬다** — 사용자가 읽는
@@ -130,6 +131,21 @@ export class GameManager {
             console.error("[GameManager] init failed:", error);
             this.game = null;
         }
+    }
+
+    /**
+     * 렌더러 크기를 **실제 캔버스**에 다시 맞춘다.
+     *
+     * ★★★ 화면을 덮었다가 돌아오는 것들 뒤에 부른다 — 보상형 광고 · 앱 복귀 ·
+     *   분할 화면. 그때 `window resize` 가 오지 않거나 게임 루프가 자고 있어
+     *   Phaser 가 크기 변화를 놓치고, 그러면 그림이 **좌측 하단 구석**에 그려진다
+     *   (`viewport.js:syncScaleToCanvas` 머리말 — WebGL 뷰포트 원점이 좌측 하단이다).
+     *
+     * ★ 안전하다: 어긋나지 않았으면 아무 일도 하지 않는다. 게임이 없으면 그냥 false.
+     * @returns {boolean} 실제로 맞췄으면 true
+     */
+    resyncScale() {
+        return syncScaleToCanvas(this.game?.scale);
     }
 
     /**
