@@ -300,3 +300,138 @@ workflows:
         #     화면에서 실제 트랙 이름을 확인할 것.
         track: alpha               # internal → alpha(비공개) → production (§9.5)
         submit_as_draft: false
+
+  # ═══════════════════════════════════════════════════════════════════
+  # ③ iOS 릴리스 — Android 와 같은 태그(v*)를 밀 때 함께 돈다. TestFlight 로 올라간다.
+  # ═══════════════════════════════════════════════════════════════════
+  #
+  # ★★★ 사전 준비물 전부 확인됨 (2026-08-08):
+  #   Apple Developer Program 가입 완료
+  #   App Store Connect 앱 등록 완료 (Bundle ID com.superdimension.app,
+  #     App Store Connect App ID 6799441695)
+  #   App Store Connect API 키 — 기존에 다른 앱으로 이미 Codemagic 에 등록된
+  #     키를 재사용한다. API 키는 Apple Developer 팀(계정) 단위로 발급되고
+  #     Codemagic 등록도 팀 단위라, 같은 Apple 계정·같은 Codemagic 계정이면
+  #     앱마다 새로 만들 필요가 없다 (사용자 확인 2026-08-08).
+  #   PrivacyInfo.xcprivacy 작성 완료 (트래킹 도메인은 TODO — 파일 주석 참조)
+  #   ATT(App Tracking Transparency) 요청 로직 구현 완료 (native/ads.js)
+  #   AdMob iOS 앱 ID·광고 단위 ID 반영 완료
+  #   ★ 공유(shared) Xcode scheme 신규 작성 — 이 프로젝트가 한 번도 Xcode 로
+  #     열린 적이 없어서 xcshareddata/xcschemes/App.xcscheme 가 아예 없었다.
+  #     Codemagic 은 git 클론만으로 빌드하므로 로컬에서 생성됐을 개인용
+  #     scheme(xcuserdata, .gitignore 대상)은 안 보인다 — 공유로 커밋해 두지
+  #     않으면 `xcodebuild -scheme App` 이 "scheme 을 찾을 수 없다"로 실패한다.
+  ios-release:
+    name: RIFT ARK — iOS Release
+    instance_type: mac_mini_m2
+    max_build_duration: 90
+
+    integrations:
+      # ★ 2026-08-08 사용자 확인. Codemagic → Team settings → Team integrations
+      #   → Developer Portal → Manage keys 에 등록된 실제 key name 이다.
+      #   ⚠ 이름이 "eatlog_..." 인 것은 **오타가 아니다** — 이 프로젝트(RIFT ARK)
+      #     때문에 새로 만든 키가 아니라, 다른 앱("eatlog") 작업 때 이미 만들어
+      #     Codemagic 에 등록해 둔 키를 그대로 재사용한다. App Store Connect
+      #     API 키는 앱 하나가 아니라 **Apple Developer 팀(계정) 전체**에
+      #     App Manager 권한으로 걸리고, Codemagic 등록도 팀 단위라, 같은
+      #     Apple 계정·같은 Codemagic 계정이면 앱마다 새로 만들 필요가 없다
+      #     (사용자 확인 — 두 조건 모두 이 프로젝트와 같은 계정임).
+      #   ⚠ 이름이 안 맞으면 빌드 스텝이 아니라 **설정 해석 단계**에서
+      #     "integration not found" 로 막힌다 — Android 서명 변수처럼 "실제
+      #     이름을 출력하고 멈추는" 방어 스크립트를 짤 수조차 없는 자리라,
+      #     이 값은 반드시 사람이 직접 확인해서 채워 넣어야 했다.
+      app_store_connect: "eatlog_app_store_connect"
+
+    environment:
+      <<: *base_env
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.superdimension.app
+      vars:
+        # ★ get-latest-app-store-build-number 가 어느 앱을 볼지 알려주는 값.
+        #   App Store Connect → App Information → Apple ID (2026-08-08 확인).
+        APP_STORE_APPLE_ID: "6799441695"
+        XCODE_WORKSPACE: "ios/App/App.xcworkspace"
+        XCODE_SCHEME: "App"
+
+    triggering:
+      events:
+        - tag
+      tag_patterns:
+        - pattern: 'v*'
+          include: true
+
+    scripts:
+      - *install
+      - *gates
+
+      # ★★★ `&webbuild` 앵커를 쓰지 않는다 — 그 앵커는 `npx cap sync android`
+      #   를 **명시적으로** 부른다(위 android 워크플로들 참조). 그대로 재사용하면
+      #   iOS 네이티브 프로젝트에는 아무것도 동기화되지 않은 채 그다음 pod
+      #   install·xcodebuild 가 옛 웹 빌드(또는 아무것도 없는 상태)로 진행된다 —
+      #   실패하지 않고 **낡은 콘텐츠로 조용히 성공**할 수 있어 더 위험하다.
+      - name: 웹 빌드 + Capacitor 동기화 (iOS)
+        # ★ `prebuild` 가 assets:all 을 자동으로 돌린다 — 여기서 또 부르지 않는다.
+        script: |
+          cd FE
+          npm run build
+          npx cap sync ios
+
+      - name: CocoaPods 설치
+        # ★ cap sync 가 Podfile 을 갱신할 수 있으므로 그 **뒤**에 돈다.
+        script: |
+          cd FE/ios/App
+          pod install
+
+      - name: Xcode 코드 서명 설정 적용
+        # ★ integrations.app_store_connect 로 등록한 키를 이용해 Codemagic 이
+        #   인증서·프로비저닝 프로파일을 자동으로 만들고 프로젝트에 적용한다.
+        script: xcode-project use-profiles
+
+      - name: 빌드 번호 증가
+        # ★★★ **첫 빌드는 "이전 빌드가 없다"를 정상으로 다룬다.**
+        #   get-latest-app-store-build-number 는 App Store Connect 에 그 앱의
+        #   제출 이력이 하나도 없으면 실패할 수 있다(알려진 동작 — Codemagic
+        #   CLI 문서·커뮤니티 다수 보고). 이 앱은 iOS 로는 **한 번도 낸 적이
+        #   없다** — 그 실패가 뜨는 것이 확실하다. 실패를 설정 오류로 오인해
+        #   막지 않고, **0 으로 폴백**해 첫 빌드가 1번을 받게 한다.
+        #   Android 의 versionCode 오프셋 사고(§1.3)와 같은 종류의 함정이라
+        #   미리 방어한다 — 여기서 안 막으면 이 스텝이 첫 실행에서 조용히
+        #   전체 빌드를 죽인다.
+        script: |
+          cd $CM_BUILD_DIR/FE/ios/App
+          LATEST_BUILD_NUMBER=$(app-store-connect get-latest-app-store-build-number "$APP_STORE_APPLE_ID" 2>/dev/null || echo "0")
+          if ! [[ "$LATEST_BUILD_NUMBER" =~ ^[0-9]+$ ]]; then
+            echo "⚠ get-latest-app-store-build-number 가 숫자가 아닌 값을 반환했다: '$LATEST_BUILD_NUMBER'"
+            echo "  이전 제출 이력이 없는 첫 빌드로 보고 0 으로 폴백한다."
+            LATEST_BUILD_NUMBER=0
+          fi
+          NEW_BUILD_NUMBER=$((LATEST_BUILD_NUMBER + 1))
+          echo "이전 빌드 번호=$LATEST_BUILD_NUMBER → 이번 빌드 번호=$NEW_BUILD_NUMBER"
+          agvtool new-version -all $NEW_BUILD_NUMBER
+
+      - name: IPA 빌드
+        script: |
+          cd $CM_BUILD_DIR/FE/ios/App
+          xcode-project build-ipa \
+            --workspace "$XCODE_WORKSPACE" \
+            --scheme "$XCODE_SCHEME"
+
+    artifacts:
+      - FE/ios/App/build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.dSYM
+
+    publishing:
+      email:
+        recipients:
+          - 741u741@gmail.com
+        notify:
+          success: true
+          failure: true
+
+      app_store_connect:
+        auth: integration
+        # ★ 프로덕션이 아니라 TestFlight 다 — Android 가 alpha(비공개 테스트)
+        #   로 가는 것과 같은 위치의 단계다. 심사 없이 내부 확인부터 한다.
+        submit_to_testflight: true
