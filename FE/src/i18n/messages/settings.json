@@ -1,47 +1,93 @@
 {
     "$doc": "네임스페이스 'settings' — 키는 'i18n.settings.<키>' 가 아니라 'settings.<키>' 다 (파일 이름이 곧 네임스페이스). 항목은 반드시 { \"ko\", \"en\" } 두 언어를 함께 갖는다 — 한쪽만 적으면 npm run check:i18n 이 막는다.",
-
     "$screen": "설정(`/settings`). ★ **열거형 선택지의 라벨은 여기 없다** — `game/data/settings.json:options[].label` 이 `{ko,en}` 으로 단일 출처다. 여기 사본을 만들면 기획이 선택지를 늘릴 때 둘이 갈라진다.",
-
-    "version": { "ko": "세이브 형식 v{n}", "en": "Save format v{n}" },
-
+    "version": {
+        "ko": "세이브 형식 v{n}",
+        "en": "Save format v{n}"
+    },
     "$sections": "좌측 분류. ★ 영어가 더 길다 — `.nav` 폭(Settings.module.css)이 그 기준으로 잡혀 있다.",
-    "sectionAudio": { "ko": "오디오", "en": "Audio" },
-    "sectionGraphics": { "ko": "그래픽", "en": "Graphics" },
-    "sectionAccess": { "ko": "접근성", "en": "Accessibility" },
-    "sectionPlay": { "ko": "게임플레이", "en": "Gameplay" },
-    "sectionData": { "ko": "데이터", "en": "Data" },
-    "sectionCredits": { "ko": "라이선스", "en": "Licenses" },
-    "sectionDev": { "ko": "개발자", "en": "Developer" },
-
+    "sectionAudio": {
+        "ko": "오디오",
+        "en": "Audio"
+    },
+    "sectionGraphics": {
+        "ko": "그래픽",
+        "en": "Graphics"
+    },
+    "sectionAccess": {
+        "ko": "접근성",
+        "en": "Accessibility"
+    },
+    "sectionPlay": {
+        "ko": "게임플레이",
+        "en": "Gameplay"
+    },
+    "sectionData": {
+        "ko": "데이터",
+        "en": "Data"
+    },
+    "sectionCredits": {
+        "ko": "라이선스",
+        "en": "Licenses"
+    },
+    "sectionDev": {
+        "ko": "개발자",
+        "en": "Developer"
+    },
     "$audio": "── 오디오 ──",
-    "rowBgm": { "ko": "배경음", "en": "Music" },
+    "rowBgm": {
+        "ko": "배경음",
+        "en": "Music"
+    },
     "hintBgm": {
         "ko": "전투 BGM 은 레이어로 강도가 올라갑니다",
         "en": "Battle music layers up as the fight escalates"
     },
-    "rowSfx": { "ko": "효과음", "en": "Sound Effects" },
-    "ariaMute": { "ko": "{name} 음소거", "en": "Mute {name}" },
-    "ariaUnmute": { "ko": "{name} 음소거 해제", "en": "Unmute {name}" },
-    "muted": { "ko": "음소거", "en": "Muted" },
+    "rowSfx": {
+        "ko": "효과음",
+        "en": "Sound Effects"
+    },
+    "ariaMute": {
+        "ko": "{name} 음소거",
+        "en": "Mute {name}"
+    },
+    "ariaUnmute": {
+        "ko": "{name} 음소거 해제",
+        "en": "Unmute {name}"
+    },
+    "muted": {
+        "ko": "음소거",
+        "en": "Muted"
+    },
     "noteAudio": {
         "ko": "· 효과음은 파일 없이 그 자리에서 합성됩니다. 볼륨은 즉시 반영됩니다.",
         "en": "· Sound effects are synthesized on the spot — no audio files. Volume applies instantly."
     },
-
     "$graphics": "── 그래픽 ──",
-    "groupScreenFx": { "ko": "화면 연출", "en": "Screen Effects" },
-    "rowShake": { "ko": "화면 흔들림 · 줌 · 섬광", "en": "Shake · Zoom · Flash" },
+    "groupScreenFx": {
+        "ko": "화면 연출",
+        "en": "Screen Effects"
+    },
+    "rowShake": {
+        "ko": "화면 흔들림 · 줌 · 섬광",
+        "en": "Shake · Zoom · Flash"
+    },
     "hintShake": {
         "ko": "흔들림 · 보스 등장 줌 · 피격 섬광을 함께 조절합니다. 멀미가 있다면 끄세요",
         "en": "Controls shake, boss-entry zoom and hit flashes together. Turn it off if you get motion sick"
     },
-    "rowDamageNumbers": { "ko": "데미지 숫자", "en": "Damage Numbers" },
+    "rowDamageNumbers": {
+        "ko": "데미지 숫자",
+        "en": "Damage Numbers"
+    },
     "hintDamageNumbers": {
         "ko": "'큰 피해만' 은 저사양에서 글자 수를 줄입니다",
         "en": "'Big hits only' cuts the glyph count on weak hardware"
     },
-    "rowEffectIntensity": { "ko": "이펙트 강도", "en": "Effect Intensity" },
+    "rowEffectIntensity": {
+        "ko": "이펙트 강도",
+        "en": "Effect Intensity"
+    },
     "hintEffectIntensity": {
         "ko": "동시에 재생되는 이펙트 수를 제한합니다",
         "en": "Caps how many effects play at once"
@@ -50,8 +96,14 @@
         "ko": "· 세 항목 모두 연출 계층만 바꿉니다. 전투 결과와 밸런스에는 영향이 없습니다.",
         "en": "· All three touch presentation only. Combat results and balance are unaffected."
     },
-    "groupQuality": { "ko": "품질", "en": "Quality" },
-    "rowQuality": { "ko": "그래픽 품질", "en": "Graphics Quality" },
+    "groupQuality": {
+        "ko": "품질",
+        "en": "Quality"
+    },
+    "rowQuality": {
+        "ko": "그래픽 품질",
+        "en": "Graphics Quality"
+    },
     "hintQuality": {
         "ko": "자동은 기기 성능(코어 · 메모리)으로 정합니다. 프레임이 불안정하면 낮추세요",
         "en": "Auto reads your device (cores, memory). Lower it if the frame rate wavers"
@@ -60,51 +112,84 @@
         "ko": "· 배경 레이어 수 · 동시 이펙트 수 · 데미지 숫자 수 · 화면 흔들림 폭을 함께 조절합니다. 전투 결과에는 영향이 없고, 전투 중에 바꿔도 즉시 반영됩니다.",
         "en": "· Sets background layers, concurrent effects, damage numbers and shake amplitude together. Combat results are unaffected, and changes apply mid-battle."
     },
-
     "$access": "── 접근성 ──",
-    "groupView": { "ko": "보기", "en": "Display" },
-    "rowLanguage": { "ko": "표시 언어", "en": "Display Language" },
+    "groupView": {
+        "ko": "보기",
+        "en": "Display"
+    },
+    "rowLanguage": {
+        "ko": "표시 언어",
+        "en": "Display Language"
+    },
     "hintLanguage": {
         "ko": "게임 전체에 즉시 반영됩니다. 화면 머리글의 버튼으로도 바꿀 수 있습니다",
         "en": "Applies everywhere at once. The button in each screen header does the same"
     },
-    "rowColorBlind": { "ko": "색약 모드", "en": "Colorblind Mode" },
+    "rowColorBlind": {
+        "ko": "색약 모드",
+        "en": "Colorblind Mode"
+    },
     "hintColorBlind": {
         "ko": "데미지 숫자에 속성 표기(물·술·신), 동료 이름에 등급 표기(C·R·E·L)를 함께 씁니다",
         "en": "Adds a damage-type mark (Ph · Ar · Ho) to damage numbers and a rarity mark (C · R · E · L) to companion names"
     },
-    "rowTextScale": { "ko": "텍스트 크기", "en": "Text Size" },
-    "hintTextScale": { "ko": "버튼 크기도 같이 커집니다", "en": "Buttons grow with it" },
+    "rowTextScale": {
+        "ko": "텍스트 크기",
+        "en": "Text Size"
+    },
+    "hintTextScale": {
+        "ko": "버튼 크기도 같이 커집니다",
+        "en": "Buttons grow with it"
+    },
     "noteColorBlind": {
         "ko": "· 적 태그(중장갑 · 결계 · 비행 …)는 색약 모드와 무관하게 항상 형태 아이콘과 이름으로 표시됩니다. 편성 경고도 아이콘 모양이 다릅니다.",
         "en": "· Enemy tags (Armored, Warded, Flying …) always carry a shaped icon and a name, colorblind mode or not. Loadout warnings differ in icon shape too."
     },
-    "groupControl": { "ko": "조작 · 반응", "en": "Controls · Feel" },
-    "rowHitStop": { "ko": "히트스톱", "en": "Hit Stop" },
+    "groupControl": {
+        "ko": "조작 · 반응",
+        "en": "Controls · Feel"
+    },
+    "rowHitStop": {
+        "ko": "히트스톱",
+        "en": "Hit Stop"
+    },
     "hintHitStop": {
         "ko": "타격 순간의 짧은 멈춤. 끄면 전투가 매끄럽게 흐릅니다",
         "en": "A brief freeze on impact. Off makes combat flow smoothly"
     },
-    "rowAutoSpeed": { "ko": "자동 진행 속도", "en": "Auto-Play Speed" },
+    "rowAutoSpeed": {
+        "ko": "자동 진행 속도",
+        "en": "Auto-Play Speed"
+    },
     "hintAutoSpeed": {
         "ko": "자동 전투가 켜져 있을 때의 전투 배속입니다",
         "en": "Battle speed while auto-battle is on"
     },
-    "rowHaptics": { "ko": "진동", "en": "Vibration" },
-    "hintHaptics": { "ko": "기기 햅틱 피드백", "en": "Device haptic feedback" },
+    "rowHaptics": {
+        "ko": "진동",
+        "en": "Vibration"
+    },
+    "hintHaptics": {
+        "ko": "기기 햅틱 피드백",
+        "en": "Device haptic feedback"
+    },
     "noteAccess": {
         "ko": "· 손을 거의 쓰지 않고 플레이하려면 게임플레이 탭의 [자동 전투] 를 켜세요 — 전투 중 조작이 전부 사라집니다.",
         "en": "· To play almost hands-free, turn on [Auto-Battle] in the Gameplay tab — it takes over every input during combat."
     },
-
     "$play": "── 게임플레이 ──",
-    "groupBattle": { "ko": "전투", "en": "Battle" },
-    "rowBattleSpeed": { "ko": "전투 속도", "en": "Battle Speed" },
+    "groupBattle": {
+        "ko": "전투",
+        "en": "Battle"
+    },
+    "rowBattleSpeed": {
+        "ko": "전투 속도",
+        "en": "Battle Speed"
+    },
     "hintBattleSpeed": {
         "ko": "자동 전투 중에는 '자동 진행 속도' 가 우선합니다",
         "en": "'Auto-play speed' takes over while auto-battle is on"
     },
-
     "$autoCommander": [
         "★★★ **이 설정은 이름이 하는 것보다 적게 말하고 있었다** (2026-08-07 전수조사).",
         "  옛 이름은 '자동 지휘', 설명은 '지휘관 위치를 자동으로 잡습니다 (효율 약 70%)' 였다.",
@@ -117,7 +202,10 @@
         "  (밸런스 하네스가 같은 함수를 쓴다 — 동작을 바꾸면 게이트 수치가 흔들린다).",
         "★ 스토어 키 이름(`autoCommander`)은 그대로다. 세이브 스키마를 문구 때문에 바꾸지 않는다."
     ],
-    "rowAutoCommander": { "ko": "자동 전투", "en": "Auto-Battle" },
+    "rowAutoCommander": {
+        "ko": "자동 전투",
+        "en": "Auto-Battle"
+    },
     "hintAutoCommander": {
         "ko": "지휘관 이동 · 동료 소환 · 주문 · 각인 선택을 전부 맡깁니다. 켜져 있는 동안에는 지휘관을 손으로 옮길 수 없습니다",
         "en": "Hands over commander movement, summoning, spells and sigil picks. While it is on you cannot move the commander yourself"
@@ -126,28 +214,43 @@
         "ko": "· 배속은 렌더가 아니라 시뮬 진행 속도입니다. 고정 30Hz 틱을 그대로 유지하므로 결과가 달라지지 않습니다.",
         "en": "· Speed scales the simulation, not the renderer. The fixed 30Hz tick is untouched, so results never change."
     },
-
     "$data": "── 데이터 ──",
-    "groupToTitle": { "ko": "타이틀로", "en": "Back to Title" },
+    "groupToTitle": {
+        "ko": "타이틀로",
+        "en": "Back to Title"
+    },
     "noteToTitle": {
         "ko": "· 세이브 슬롯을 고르는 화면으로 돌아갑니다. 진행도는 저장됩니다.",
         "en": "· Returns to the save slot screen. Your progress is saved first."
     },
-    "btnToTitle": { "ko": "타이틀 화면으로", "en": "Go to Title Screen" },
-
-    "groupResetSettings": { "ko": "설정 초기화", "en": "Reset Settings" },
+    "btnToTitle": {
+        "ko": "타이틀 화면으로",
+        "en": "Go to Title Screen"
+    },
+    "groupResetSettings": {
+        "ko": "설정 초기화",
+        "en": "Reset Settings"
+    },
     "noteResetSettings": {
         "ko": "· 설정값만 기본값으로 되돌립니다. 진행도 · 동료 · 재화는 그대로입니다.",
         "en": "· Restores default settings only. Progress, companions and currency are untouched."
     },
-    "btnResetSettings": { "ko": "설정만 초기화", "en": "Reset Settings Only" },
-
-    "groupResetSave": { "ko": "세이브 초기화", "en": "Erase Save" },
+    "btnResetSettings": {
+        "ko": "설정만 초기화",
+        "en": "Reset Settings Only"
+    },
+    "groupResetSave": {
+        "ko": "세이브 초기화",
+        "en": "Erase Save"
+    },
     "noteResetSave": {
         "ko": "· 이 기기에 저장된 모든 진행도를 지우고 처음부터 시작합니다.",
         "en": "· Erases every bit of progress on this device and starts over."
     },
-    "btnResetSave": { "ko": "세이브 초기화", "en": "Erase Save" },
+    "btnResetSave": {
+        "ko": "세이브 초기화",
+        "en": "Erase Save"
+    },
     "warnResetSave1": {
         "ko": "되돌릴 수 없습니다. 스테이지 진행도 · 별 · 동료와 성장 · 방주 시설 · 골드가 전부 삭제됩니다.",
         "en": "This cannot be undone. Stage progress, stars, companions and their levels, ark facilities and gold are all deleted."
@@ -156,28 +259,74 @@
         "ko": "· 계속하려면 아래 버튼을 한 번 더 누르세요.",
         "en": "· Press the button below once more to continue."
     },
-    "btnUnderstood": { "ko": "이해했습니다", "en": "I Understand" },
+    "btnUnderstood": {
+        "ko": "이해했습니다",
+        "en": "I Understand"
+    },
     "warnResetSave2": {
         "ko": "마지막 확인입니다. 누르는 즉시 삭제되고 게임이 재시작됩니다.",
         "en": "Last chance. The moment you press it, everything is gone and the game restarts."
     },
-    "btnErase": { "ko": "영구 삭제", "en": "Erase Forever" },
-    "erasing": { "ko": "삭제 중", "en": "Erasing" },
-
+    "btnErase": {
+        "ko": "영구 삭제",
+        "en": "Erase Forever"
+    },
+    "erasing": {
+        "ko": "삭제 중",
+        "en": "Erasing"
+    },
     "$dev": "── 개발자 (개발 빌드 전용) ──",
-    "groupBuild": { "ko": "빌드", "en": "Build" },
-    "rowBuildMode": { "ko": "모드", "en": "Mode" },
+    "groupBuild": {
+        "ko": "빌드",
+        "en": "Build"
+    },
+    "rowBuildMode": {
+        "ko": "모드",
+        "en": "Mode"
+    },
     "hintBuildMode": {
         "ko": "개발 빌드에서는 이 메뉴가 항상 보입니다",
         "en": "This menu is always visible in development builds"
     },
-    "buildDev": { "ko": "개발", "en": "Dev" },
-    "buildProd": { "ko": "배포", "en": "Release" },
-    "rowSaveFormat": { "ko": "세이브 형식", "en": "Save Format" },
-    "hintSaveFormat": { "ko": "마이그레이션 대상 버전", "en": "Migration target version" },
-
+    "buildDev": {
+        "ko": "개발",
+        "en": "Dev"
+    },
+    "buildProd": {
+        "ko": "배포",
+        "en": "Release"
+    },
+    "rowSaveFormat": {
+        "ko": "세이브 형식",
+        "en": "Save Format"
+    },
+    "hintSaveFormat": {
+        "ko": "마이그레이션 대상 버전",
+        "en": "Migration target version"
+    },
     "$credits": "── 라이선스 ──",
-    "groupCredits": { "ko": "사용된 에셋 크레딧", "en": "Asset Credits" },
-    "creditsUpdated": { "ko": "· 최종 갱신 {date}", "en": "· Last updated {date}" },
-    "creditsEmpty": { "ko": "아직 없습니다", "en": "None yet" }
+    "groupCredits": {
+        "ko": "사용된 에셋 크레딧",
+        "en": "Asset Credits"
+    },
+    "creditsUpdated": {
+        "ko": "· 최종 갱신 {date}",
+        "en": "· Last updated {date}"
+    },
+    "creditsEmpty": {
+        "ko": "아직 없습니다",
+        "en": "None yet"
+    },
+    "groupAdPrivacy": {
+        "ko": "광고 개인정보 설정",
+        "en": "Ad Privacy Settings"
+    },
+    "noteAdPrivacy": {
+        "ko": "· 광고에 사용되는 개인정보 처리 동의를 언제든 다시 선택할 수 있습니다. 동의를 철회하면 광고가 표시되지 않으며, 게임 진행에는 아무 영향이 없습니다.",
+        "en": "· You can review or withdraw your consent for ad-related data processing at any time. Withdrawing consent stops ads from being shown; it does not affect game progress in any way."
+    },
+    "btnAdPrivacy": {
+        "ko": "광고 동의 다시 선택",
+        "en": "Review Ad Consent"
+    }
 }

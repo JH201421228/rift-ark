@@ -1,14 +1,53 @@
 # 54. 영어권 스토어 아트 — Codex 프롬프트 모음
 
 > 대상: **RIFT ARK** · Google Play(en-US) + App Store(en-US) 등록용 이미지 · 카피 · 설명문
-> 작성일 **2026-08-07** · 기준 상태: 스테이지 **100** · 월드 **5** · 적 **62종** · 보스 **10체** ·
-> 동료 **50종** · 각인 **18종** · 지휘관 주문 **12종** · 난이도 **3** · 재화 **골드 하나** ·
-> 확률형 **0** · 광고 **0** · 인앱결제 **0** · 네트워크 **0**
+> 작성일 **2026-08-07** · **같은 날 수익화 변경 반영** · 기준 상태: 스테이지 **100** ·
+> 월드 **5** · 적 **62종** · 보스 **10체** · 동료 **50종** · 각인 **18종** ·
+> 지휘관 주문 **12종** · 난이도 **3** · 재화 **골드 하나** ·
+> 확률형 **0** · 인앱결제 **0** · **보상형 광고 있음**(결과 화면 · 선택) · 계정 **0**
 >
 > **이 문서는 `52-store-image-codex-prompts.md` 의 영어권 대응판이다.**
 > 52 가 정본이고 이 문서는 그 위에 **영어권 사정만** 얹는다 —
 > 픽셀 규칙 · 캡처 파이프라인 · 뷰포트 · 배율은 **52 에만 있다. 여기에 다시 적지 않는다.**
 > (같은 사실을 두 곳에 적으면 갈라진다 — 이 저장소의 단일 실패 유형)
+
+---
+
+## 0-0. ★★★ `No ads.` 는 쓸 수 없다 (2026-08-07)
+
+수익화가 **무료 + 보상형 광고(AdMob)** 로 확정됐다 (`55` 의 판정이 같은 날 뒤집혔고,
+구현은 `56`). 이 문서의 앞선 판본은 §4.1 에서 **`No ads. No IAP. No gacha.`** 를
+"영어권 최대 무기"라고 적어 두었다. **그중 `No ads.` 는 이제 거짓이다.**
+
+> **영어권 리뷰어는 그것을 가장 먼저 지적한다.** 스토어가 통과시켜도 첫 리뷰 열 개가
+> "the listing says no ads" 로 채워진다. 이 저장소의 규약과 같은 종류의 문제다 —
+> **아무것도 하지 않는 설정은 거짓말이고, 지키지 않는 카피도 거짓말이다.**
+
+### 0-0.1 그래서 영어 카피의 규칙은 셋이다
+
+| # | 규칙 |
+|---|---|
+| ① | **`no ads` · `ad-free` · `without ads` · `zero ads` · `no advertising` 을 쓰지 않는다.** `ads.json:enabled` 가 지금 `false` 라 1.0 시점에는 사실이더라도 쓰지 않는다 — 1.1 에서 지워야 하고, 지운 것을 플레이어가 알아챈다 (`56 §8` 1단계) |
+| ② | **광고가 있다는 사실을 숨기지 않는다.** 카피가 침묵하면 리뷰어가 대신 말한다. `Ads are optional.` 처럼 **한 줄로 먼저 말하는 편이 언제나 낫다** |
+| ③ | **대신 아직 참인 것으로 차별점을 만든다** — 아래 표 |
+
+### 0-0.2 아직 참인 것 — **전부 검증된 사실이다. 지어내지 않는다**
+
+| 사실 | 무엇이 보증하는가 | 영어로 쓸 수 있는 형태 |
+|---|---|---|
+| 인앱결제 **0** | 결제 어댑터가 저장소에 없다 | `No in-app purchases.` |
+| 확률형 **0** | `CLAUDE.md` 절대규칙 6 · 한국 확률 공개 의무 적용 대상 없음 | `No gacha. No loot boxes.` |
+| **보상형 광고만** · 전면·배너 **없음** | `56 §5.4` — 어댑터 공개 API 가 셋뿐이다 | `Rewarded ads only. Never forced.` |
+| 광고는 **결과 화면에서 플레이어가 누를 때만** | `BattleResult.jsx:AdBonus` | `Ads only when you tap for them.` |
+| **광고 0회로 100 스테이지 완주 가능** | `npm run playthrough` 게이트 (`56 §6.6`) | `Finish all 100 stages without one ad.` |
+| 게임 자체는 **오프라인 100%** | 네트워크를 쓰는 것은 광고뿐 (`56 §5.4`) | `The game itself runs offline.` |
+| 서버 없음 · 계정 없음 | | `No account. No sign-in.` |
+
+> ⚠ **`Fully offline.` 은 더 이상 쓰지 않는다.** 광고가 네트워크를 쓴다.
+> `The game itself runs offline; only the optional ad needs a connection.` 이 정확하다.
+>
+> ⚠ **보상 배수를 숫자로 쓰지 않는다.** 값은 `ads.json:rewardMult` 에 있고 경제
+> 게이트에 따라 움직인다 (`56 §6.3`). 카피에 박으면 **같은 사실이 두 곳에 적혀 갈라진다.**
 
 ---
 
@@ -20,6 +59,7 @@
 
 | 순서 | 프롬프트 | 산출물 | 선행 조건 |
 |---|---|---|---|
+| ⓪ | **§0-0 읽기** | (읽기만) | ★★ **`No ads.` 는 못 쓴다.** 안 읽으면 아래 프롬프트가 거짓 카피를 만든다 |
 | ① | **§0-A 결정** | (사람이 결정) | ★ 이것부터. 안 정하면 아래가 전부 헛돈다 |
 | ② | P1 · P2 · P3 | 아이콘 3안 | 없음 |
 | ③ | P4 · P5 | 적응형 전경/배경 | ② 에서 안이 골라진 뒤 |
@@ -95,7 +135,7 @@ FE/asset/generated/store/
 | # | 안 | 얻는 것 | 잃는 것 |
 |---|---|---|---|
 | **A** | **영어 스토어를 미룬다.** 한국 선행 출시(원래 계획)만 하고, i18n 이후에 연다 | 정직하다. 추가 작업 0 | 영어권 출시가 늦어진다 |
-| **B** | **지금 낸다.** 영어 카피 오버레이 + 긴 설명 첫 문단에 "게임 내 텍스트는 현재 한국어"를 명시 | 지금 낼 수 있다. 정책 위반은 아니다(스크린샷이 실제 게임이므로 App Store 2.3.x 는 통과) | 설명을 안 읽고 산 사람이 환불한다. **유료 앱에서 그것이 첫 별점 1개다** |
+| **B** | **지금 낸다.** 영어 카피 오버레이 + 긴 설명 첫 문단에 "게임 내 텍스트는 현재 한국어"를 명시 | 지금 낼 수 있다. 정책 위반은 아니다(스크린샷이 실제 게임이므로 App Store 2.3.x 는 통과) | 설명을 안 읽고 받은 사람이 한국어 UI 를 보고 그 자리에서 지운다. **첫 별점 1개다** — 무료가 된 뒤(2026-08-07)로는 환불이라는 완충조차 없고, 설치·삭제가 더 가벼워 리뷰가 더 빨리 붙는다 |
 | **C** | **i18n 을 먼저 한다.** UI 라벨 영문화 → 영어 캡처 → 영어 스토어 | 가장 강하다. `name.en` 이 이미 있어 절반은 끝나 있다 | 화면 12종의 문자열 추출 + 라벨 사전 + 폰트 확인. 며칠 규모 |
 
 > ★ **이 문서는 어느 안도 고르지 않는다.** B 를 고를 경우에만 §5 의 P11 프롬프트에
@@ -229,6 +269,25 @@ Output: PNG-32 (RGBA), sRGB, lossless, metadata stripped.
 ---
 
 ## 2. 앱 아이콘 프롬프트 — 3안
+
+> ★★★ **2026-08-07: 아이콘은 이미 결정됐고, 코드가 만든다.**
+> 아래 3안(P1 · P2 · P3)은 **이미지 모델을 쓰는 경로**인데 이 저장소는 그 경로를
+> 쓰지 않기로 했다. 현재 아이콘은 `FE/tools/gen-app-icons.mjs` 가 렌더하고
+> (`npm run icons` · 검사 `npm run icons:check` 는 `npm run verify` 안에 있다),
+> **원본은 `FE/resources/icon-1024.png`** 다.
+>
+> | 채택된 디자인 | **균열 하나뿐** (사용자 결정 — "그냥 균열만 있는게 보기 좋다") |
+> |---|---|
+> | 왜 | 런처 아이콘이 실제로 보이는 크기는 **48dp** 다. 요소가 셋이면 어느 것도 읽히지 않고 "복잡한 얼룩"이 된다. **아이콘은 설명이 아니라 표식**이다 |
+> | 재료 | `public/assets/structures/rift-idle.png` 의 가장 밝은 프레임 — **게임이 실제로 쓰는 스프라이트**다. 아이콘이 게임과 다르다는 반려 경로가 원천적으로 막힌다 |
+> | 안전 영역 | 적응형 전경은 `SAFE_RATIO = 72/108` 안에만 그린다 |
+>
+> **그러므로 P1(지휘관 실루엣)은 채택되지 않은 안이고, P2 · P3 도 열려 있지 않다.**
+> 아래 3안은 **아이콘 결정을 다시 여는 경우에만** 쓴다 — 그때는 이미지 모델을 부르기
+> 전에 위의 48dp 논거부터 읽는다. 상세는 `52 §0-A.1`.
+>
+> ★ **아이콘은 광고와 무관하다.** §0-0 의 카피 변경이 아이콘·피처그래픽에는
+> 아무 영향도 주지 않는다.
 
 ### 2.0 공통 산출물 사양
 
@@ -504,16 +563,31 @@ Hard constraints:
 | 5 | 편성 | `#/loadout` | **50 중 6 — 배제가 결정** | `50 companions. You take six.` | 동료 50종 중 6종만 데려간다 | 28 |
 | 6 | 동료 상세 | `#/companions` | 성장 축 | `One currency. Three ways to grow.` | 재화 하나, 성장 세 갈래 | 33 |
 | 7 | 방주 | `#/ark` | 전투 밖 루프 | `Rebuild the ark between runs.` | 출격 사이에 방주를 재건한다 | 29 |
-| 8 | 출격/난이도 | `#/stages` | **분량 + 최대 차별점** | `100 stages. No ads. No IAP. No gacha.` | 100 스테이지. 광고·결제·확률형 없음 | 38 |
+| 8 | 출격/난이도 | `#/stages` | **분량 + 최대 차별점** | `100 stages. No IAP. No gacha. Ads are optional.` | 100 스테이지. 결제·확률형 없음. 광고는 선택 | 47 |
 
-> ★★ **8번을 두 겹으로 쓴다.** 원래 한국어판은 7 = 분량, 8 = 부재 보장이었다.
-> 영어권에서는 **"No ads. No IAP. No gacha." 가 이 게임의 최대 무기**이고,
-> 스토어 캐러셀에서 8번째 장까지 넘겨 보는 사람이 적으므로 **분량과 함께 묶어
-> 앞당긴다.** 7번은 방주(전투 밖 루프)로 내렸다.
+> ★★★ **8번이 2026-08-07 에 바뀌었다.** 예전 문장은
+> `100 stages. No ads. No IAP. No gacha.` 였고, 이 문서는 그것을 "영어권 최대 무기"라고
+> 적어 두었다. **`No ads.` 가 이제 거짓이다** (§0-0). 문장을 지우는 대신 **정직한 것으로
+> 바꾼다** — 광고의 존재를 숨기면 리뷰어가 대신 말한다.
 >
-> ★ **이 네 문장은 전부 코드로 강제된 사실이다** — 확률형 금지는 `CLAUDE.md`
-> 절대규칙 6, 광고·결제 SDK 는 저장소에 존재하지 않고, 네트워크 통신이 0 이다.
-> **검증 불가 주장이 아니라 검증된 부재다.** 그래서 §6 의 금지에 걸리지 않는다.
+> | | 문장 | 자수 |
+> |---|---|---|
+> | 예전 (거짓) | `100 stages. No ads. No IAP. No gacha.` | 38 |
+> | **채택** | **`100 stages. No IAP. No gacha. Ads are optional.`** | **47** |
+> | 후보 (분량을 포기하고 광고를 앞세울 때) | `No IAP. No gacha. Rewarded ads, never forced.` | 45 |
+> | 후보 (게이트를 그대로 문장으로) | `Finish all 100 stages without one ad.` | 37 |
+>
+> ★ **채택안이 47자로 상한(48)에 붙어 있다.** 한 글자라도 늘리면 접힌다 —
+> 줄이려면 `Ads are optional.` → `Ads optional.` (43자) 로 간다. **먼저 버릴 것은
+> `100 stages.` 가 아니다** — 8번 장면이 출격 화면이라 분량이 그림과 맞는다.
+>
+> ★★ **남은 세 항은 여전히 코드로 강제된 사실이다.** 확률형 금지는 `CLAUDE.md`
+> 절대규칙 6, 결제 어댑터는 저장소에 없다. 그리고 `Ads are optional.` 도 사실이다 —
+> 광고는 **결과 화면에서 플레이어가 누를 때만** 뜨고(전면·배너 없음),
+> **한 번도 안 봐도 100 스테이지를 완주할 수 있다** (`npm run playthrough` 가 광고 0회로
+> 검증한다 · `56 §6.6`). **검증 불가 주장이 아니라 검증된 사실이다.**
+>
+> ⚠ **`Fully offline.` 을 어디에도 되살리지 않는다.** 광고가 네트워크를 쓴다 (§0-0.2).
 
 ### 4.2 카피 작성 규칙 (영어권)
 
@@ -526,6 +600,9 @@ Hard constraints:
 | 숫자 | 아라비아 숫자로 쓴다 (`50`, `100`) — 3초 안에 읽힌다 |
 | 위치 | 상단 6% · 하단 8% 는 비워 둔다 (한국어판과 동일) |
 | 금지 | `best` · `#1` · `top` · `free` · `ultimate` · `addictive` · 다른 게임 이름 |
+| **금지 (2026-08-07 추가)** | **`no ads` · `ad-free` · `ad free` · `without ads` · `zero ads` · `no advertising`** — 거짓이다 (§0-0) |
+| **금지 (2026-08-07 추가)** | **보상 배수 숫자** (`double gold` · `2x`) — 값은 `ads.json:rewardMult` 에 있다 |
+| 허용 | **광고를 정직하게 말하는 것**은 허용이 아니라 **권장**이다: `Ads are optional.` · `Rewarded ads, never forced.` |
 
 ---
 
@@ -584,17 +661,36 @@ Read first (do not restate their values, follow them):
 [4] tools/check-store-shots.mjs
 
   - Add the same `--lang` flag and check the matching directories.
-  - Extend the forbidden-copy check so it runs against the correct column:
-      ko column: keep the existing Korean word list unchanged.
+  - Extend the forbidden-copy check so it runs against the correct column.
+
+  ★★ 2026-08-07 CHANGE — the game now ships FREE with rewarded ads (see 54 §0-0).
+     The checker must flip from "ads are a cut feature, never mention them" to
+     "ads exist; only FALSE claims about them are forbidden".
+
+      ko column:
+        - Keep the existing Korean word list, but REMOVE the bare word "광고"
+          from it. Ads are a real feature now; honest mentions must pass.
+        - ADD these false claims as forbidden:
+            "광고 없음", "광고없음", "광고 없이", "무광고", "광고 제거", "광고 0"
+        - ★ DELETE the existing `replaceAll("광고 없음", "")` exemption. That
+          exemption exists to let through exactly the sentence we now forbid.
+
       en column: fail if any of these appear (case-insensitive, word boundary):
         "gacha", "loot box", "lootbox", "battle pass", "season pass",
         "idle", "afk", "offline rewards", "shop", "store currency",
-        "gems", "energy", "stamina", "watch an ad", "rewarded",
-        "best", "#1", "number one", "top-rated", "ultimate", "free"
-    EXCEPTION: the exact phrases "No ads.", "No IAP.", "No gacha." are the
-    product's guaranteed-absence claims. Strip those three exact phrases from
-    the string BEFORE running the word check — mirror how the Korean check
-    already strips "광고 없음".
+        "gems", "energy", "stamina",
+        "best", "#1", "number one", "top-rated", "ultimate", "free",
+        ★ and these FALSE ad claims:
+        "no ads", "no ad", "ad-free", "ad free", "adfree", "without ads",
+        "zero ads", "no advertising", "no advertisements"
+        ★ REMOVE "watch an ad" and "rewarded" from the forbidden list — honest
+          ad wording must be allowed (e.g. "Rewarded ads, never forced.").
+
+      EXCEPTION: the exact phrases "No IAP." and "No gacha." are the product's
+      remaining guaranteed-absence claims. Strip those TWO exact phrases from
+      the string BEFORE running the word check.
+      ★ "No ads." is NOT on the exception list any more. It must fail.
+
   - Nothing else about the checker changes.
 
 ────────────────────────────────────────────
@@ -610,8 +706,12 @@ Read first (do not restate their values, follow them):
                   FE/asset/generated/store/play/, FE/asset/generated/store/ios/
   - Dev server port 5199. Port 5173 belongs to the user. CDP port 9333.
   - Kill Chrome and the Vite dev server when finished.
-  - BREAK THE CHECKER ON PURPOSE before you commit: put the word "gacha" into an
-    en copy line, run store:check:en, confirm it exits non-zero, then revert.
+  - BREAK THE CHECKER ON PURPOSE before you commit — TWICE:
+      (a) put the word "gacha" into an en copy line, run store:check:en,
+          confirm it exits non-zero, revert.
+      (b) ★ put "No ads." back into an en copy line and "광고 없음" into a ko
+          line, run both checkers, confirm BOTH exit non-zero, revert.
+    (b) is the one that matters: the old checker deliberately let those through.
     A checker that has only ever passed has never guarded anything.
   - Report anything you could not do. Do not silently skip it.
 ````
@@ -625,14 +725,21 @@ Read first (do not restate their values, follow them):
 바꿀 이유가 있는 줄만 지적하게 한다. 바꾸면 §0.3 의 단일 출처를 흔든다.
 
 ```
-[TASK] Review 8 store screenshot caption lines for a paid mobile game.
+[TASK] Review 8 store screenshot caption lines for a free mobile game that
+shows optional rewarded ads.
 
 Context:
   - Genre: landscape lane defense (Paladog / Cartoon Wars lineage), pixel art.
-  - Audience: English-speaking mobile players browsing a paid game listing.
+  - Audience: English-speaking mobile players browsing a free game listing
+    that carries Google Play's "Contains ads" label.
   - Each line sits on top of a real gameplay screenshot, one line, no wrapping.
   - Hard limit: 48 characters including spaces.
-  - The game's differentiator is the complete absence of ads, IAP, and gacha.
+  - The game is FREE. It has NO in-app purchases and NO gacha. It does show
+    rewarded ads, but only when the player taps a button on the results screen
+    after a stage — there are no interstitials and no banners, and the player
+    can finish all 100 stages without ever watching one.
+  - The differentiator is therefore "no IAP, no gacha, and ads you opt into",
+    NOT "no ads". Saying "no ads" would be false.
 
 Lines:
   1. Three lanes and the sky. Hold them all.
@@ -642,7 +749,7 @@ Lines:
   5. 50 companions. You take six.
   6. One currency. Three ways to grow.
   7. Rebuild the ark between runs.
-  8. 100 stages. No ads. No IAP. No gacha.
+  8. 100 stages. No IAP. No gacha. Ads are optional.
 
 For EACH line, answer in this exact format:
   <n>. KEEP  — or —  <n>. CHANGE: "<replacement>" (<= 48 chars) because <reason>
@@ -651,6 +758,8 @@ Rules for any replacement you propose:
   - Never exceed 48 characters.
   - Never introduce a feature that is not in the list above.
   - Never use: best, #1, top, ultimate, addictive, free, must-play.
+  - NEVER write "no ads", "ad-free", "without ads" or any equivalent. The game
+    has ads. Claiming otherwise is a false store listing.
   - Prefer short declarative sentences ending in a period.
   - Keep the meaning identical. This is a tone review, not a rewrite.
 
@@ -675,7 +784,23 @@ player stop scrolling, and why.
 
 Genre        : landscape (horizontal) mobile lane defense, single player
 Art          : HD pixel art, 16x16 and 32x32 sprites, limited palette
-Business     : PAID app. One up-front purchase.
+Business     : FREE app. No in-app purchases of any kind. Revenue comes from
+               OPTIONAL rewarded ads only. See the ADS block below and obey it
+               exactly — do not soften it and do not omit it.
+ADS          : ★ THE GAME SHOWS ADS. Never write "no ads", "ad-free",
+               "without ads", "zero ads" or any equivalent. That is false.
+               - Rewarded ads ONLY. There are no interstitials and no banners.
+               - The ad appears in exactly one place: the post-stage results
+                 screen, and only when the player taps the button themselves.
+                 It never interrupts a battle or a screen transition.
+               - Declining costs the player nothing. The reward is a bonus to
+                 the gold that stage already paid out.
+               - A player can finish all 100 stages without watching a single
+                 ad. This is enforced by an automated gate, not a promise.
+               - The reward multiplier and the daily cap are data values that
+                 change with balance passes. NEVER state them as numbers.
+               - Google Play will show an "Contains ads" label on the listing.
+                 Nothing you write may contradict that label.
 Content      : 100 stages across 5 worlds
                62 enemy types, 10 bosses (each with 3 phases)
                50 companions, of which 10 are guaranteed stage rewards and
@@ -698,12 +823,18 @@ Nightmare    : each world adds exactly one deterministic rule (plague zones,
 Saves        : 3 local save slots
 ABSENT ON PURPOSE (never mention these as if they exist, and never imply them):
                no gacha, no loot boxes, no randomized rewards of any kind,
-               no ads of any kind, no in-app purchases, no battle pass,
-               no shop, no premium currency, no energy or stamina system,
-               no daily quests, no login rewards, no idle or offline earnings,
-               no PvP, no co-op, no guilds, no network connection at all
-Privacy      : the game makes zero network requests. It works fully offline.
-               It collects no data and requires no account.
+               no in-app purchases, no battle pass, no shop, no premium
+               currency, no energy or stamina system, no daily quests,
+               no login rewards, no idle or offline earnings,
+               no PvP, no co-op, no guilds, no accounts, no sign-in
+               ★ "ads" is NOT on this list. See the ADS block above.
+Privacy      : the game itself makes no network requests and needs no account.
+               ONLY the optional rewarded ad requires a connection, and the ad
+               SDK collects advertising identifiers and usage data for that.
+               Correct phrasing: "The game itself runs offline; only the
+               optional ad needs a connection."
+               ★ Never write "fully offline", "zero network requests",
+               "collects no data" — the ad SDK makes those false.
 ```
 
 ---
@@ -729,7 +860,8 @@ B. SUBTITLE (App Store, <= 30 chars) — 5 candidates.
 
 C. SHORT DESCRIPTION (Google Play, <= 80 chars) — 5 candidates.
    - One sentence. It appears directly under the title in search results.
-   - At least two of the five must lead with the absence of ads/IAP/gacha.
+   - At least two of the five must lead with "no IAP, no gacha".
+   - ★ None of them may say or imply that the game has no ads. See ADS.
    - Print the character count after each.
 
 D. KEYWORDS (App Store, <= 100 chars total, comma-separated, no spaces after
@@ -742,7 +874,11 @@ D. KEYWORDS (App Store, <= 100 chars total, comma-separated, no spaces after
 Hard rules for all of the above:
   - Never claim "best", "#1", "top", "ultimate", "award-winning", "addictive",
     or any ranking or superlative.
-  - Never use the word "free" — this is a paid app.
+  - Never use the word "free". The app IS free, but both stores show the price
+    themselves and treat promotional wording in these fields as spam.
+  - ★ Never write "no ads", "ad-free", "without ads" or any equivalent. The
+    game has optional rewarded ads (see ADS). A false absence claim is grounds
+    for rejection and, if it ships, for the first one-star reviews.
   - Never name another game.
   - No emoji. No Unicode symbol glyphs. ASCII punctuation only.
   - Never mention a feature that is not in FACTS.
@@ -780,19 +916,34 @@ Structure, in this order:
 
 4. WHAT IS NOT IN THIS GAME — a short, blunt block. This is the strongest
    section for this audience, so do not soften it:
-      No ads. No in-app purchases. No gacha. No loot boxes.
+      No in-app purchases. No gacha. No loot boxes.
       No battle pass. No energy system. No daily login rewards.
-      No account. No network connection. It works on a plane.
-   Follow it with ONE sentence explaining that you pay once and own the game.
+      No account. No sign-in.
+   ★ Do NOT add "No ads." to this block. The game has ads. Section 5 says so.
 
-5. CONTENT AT A GLANCE — the numbers from FACTS as a compact list.
+5. HOW ADS WORK HERE — ★ REQUIRED. Do not omit this section and do not bury
+   it below the content list. Three or four plain sentences, no hedging:
+      - The game is free and shows rewarded ads.
+      - Rewarded only: no interstitials, no banners, nothing mid-battle.
+      - The ad appears on the results screen after a stage, and only if the
+        player taps the button. Declining costs nothing.
+      - Every one of the 100 stages can be finished without watching a
+        single ad.
+   State no reward multiplier and no daily cap. Those are balance values.
+   Follow with ONE sentence: the game itself runs offline; only the optional
+   ad needs a connection.
 
-6. CLOSING — 2 sentences. No call to action beyond a plain statement.
+6. CONTENT AT A GLANCE — the numbers from FACTS as a compact list.
+
+7. CLOSING — 2 sentences. No call to action beyond a plain statement.
 
 Hard rules:
   - Every factual claim must be traceable to FACTS. Invent nothing.
   - No superlatives, no rankings, no "best", "#1", "top", "ultimate".
-  - Never use the word "free".
+  - Never use the word "free" as a selling point. Stating the business model
+    plainly in section 5 is not the same thing and is required.
+  - ★ Never write "no ads", "ad-free", "without ads", "fully offline",
+    "no network connection", or "collects no data". All six are false now.
   - Never name or evoke another game, character, or franchise.
   - No emoji, no Unicode symbol glyphs, no ASCII-art dividers. Plain text and
     hyphen bullets only — Google Play strips most formatting and Apple shows
@@ -823,6 +974,11 @@ B. RELEASE NOTES for version 1.0 — 3 candidates, each <= 400 characters.
 
 Hard rules:
   - No superlatives, no rankings, no "free", no other game names.
+  - ★ No "no ads" / "ad-free" / "without ads" / "fully offline". The game has
+    optional rewarded ads (see ADS).
+  - ★ At least one of the three PROMOTIONAL TEXT candidates must mention that
+    ads are optional. This field is the second hook and it is the cheapest
+    place to be honest before someone opens the reviews.
   - No emoji, no Unicode symbol glyphs.
   - Nothing outside FACTS.
 ```
@@ -835,15 +991,19 @@ Hard rules:
 |---|---|---|
 | ① | **실제 게임에 없는 화면·기능을 그리는 것** | App Store 가이드라인 2.3.x(정확한 메타데이터) · Play 의 같은 취지 정책. **이 저장소는 이미 이 사유로 스크린샷 32장을 폐기했다** (52 §0-A) |
 | ② | **스크린샷을 생성하는 것** | 스크린샷의 본체는 **반드시 실제 실행 화면 캡처**다. 위에 카피를 얹는 것까지만 허용된다 (52 §0) |
-| ③ | **절삭된 기능을 광고하는 것** | 가챠 · 상점 · 배틀패스 · 광고 · 출석 · 일일퀘스트 · 방치 · 파견 · 던전 · 탑 · 도감 — 전부 2026-08-04 에 삭제됐다 (`04-plan/34-scope-cut.md`). 검사기가 카피에서 이 단어들을 잡는다 |
+| ③ | **절삭된 기능을 광고하는 것** | 가챠 · 상점 · 배틀패스 · 출석 · 일일퀘스트 · 방치 · 파견 · 던전 · 탑 · 도감 — 전부 2026-08-04 에 삭제됐다 (`04-plan/34-scope-cut.md`). 검사기가 카피에서 이 단어들을 잡는다. ★ **광고는 이 목록에서 빠졌다** — 2026-08-07 에 실제 기능이 됐다 (§0-0) |
 | ④ | **다른 게임의 IP · 캐릭터 · 로고를 연상시키는 것** | 프롬프트마다 명시했다. 이미지 모델은 시키지 않으면 학습한 유명 캐릭터를 섞는다 |
-| ⑤ | **`free` · `best` · `#1` · `top` · `ultimate` · `addictive`** | 검증 불가 주장. 그리고 `free` 는 **유료 앱에서 사실이 아니다** |
+| ⑤ | **`free` · `best` · `#1` · `top` · `ultimate` · `addictive`** | 검증 불가 주장. ★ `free` 의 이유는 2026-08-07 에 바뀌었다 — 앱은 이제 **실제로 무료다.** 그래도 쓰지 않는 이유는 **두 스토어가 가격을 스스로 표시하고**, 이름·부제·짧은 설명의 판촉 문구를 스팸으로 다루기 때문이다 |
 | ⑥ | **이모지 · 유니코드 글리프** | `CLAUDE.md` 절대규칙 5 와 같은 이유 — 기기마다 글리프가 다르고 일부는 두부(□)가 된다. 스토어 설명문도 예외가 아니다 |
 | ⑦ | **기기 프레임(아이폰 목업) 합성** | 스토어가 거부한다 |
 | ⑧ | **한국어 세트 위에 덮어쓰는 것** | §0.2. 어느 쪽이 올라갔는지 알 수 없게 된다 |
 | ⑨ | **새 캡처 스크립트를 만드는 것** | §0.3. 뷰포트·배율·장면이 갈라진다 |
 | ⑩ | **태블릿 · iPad 스크린샷을 지금 만드는 것** | 지원을 검증한 적이 없다. 올리면 **선언**이 된다 (§1.1 · `51 §5.4`) |
-| ⑪ | **`No ads. No IAP. No gacha.` 를 빼는 것** | 이 게임의 최대 차별점이고, **코드로 강제된 사실**이다. 안 쓰면 손해다 |
+| ⑪ | ★★★ **광고가 없다고 쓰는 것** — `no ads` · `ad-free` · `without ads` · `zero ads` · `no advertising` · `fully offline` | **거짓이다** (2026-08-07 · §0-0). 허위 표시는 반려 사유이고, 통과하더라도 플레이어가 광고를 보는 순간 별점으로 돌아온다. `ads.json:enabled` 가 지금 `false` 라 1.0 시점에는 사실이더라도 **쓰지 않는다** — 켜는 날 지워야 하고, 지운 것을 사람들이 알아챈다 (`56 §8`) |
+| ⑫ | **`No IAP. No gacha.` 를 빼는 것** | 남은 두 항은 여전히 **코드로 강제된 사실**이다. 안 쓰면 손해다 |
+| ⑬ | **광고를 숨기는 것 — 아무 말도 안 하는 것 포함** | 영어권 리뷰어는 그것을 가장 먼저 지적한다. 긴 설명에 **"HOW ADS WORK HERE" 절이 필수**인 이유다 (P11 §5) |
+| ⑭ | **보상 배수·일일 횟수를 카피에 숫자로 적는 것** | 값은 `ads.json` 에 있고 경제 게이트에 따라 움직인다 (`56 §6.3`). 카피에 박으면 갈라진다 |
+| ⑮ | **광고 크리에이티브 · UMP 동의 폼 · ATT 프롬프트를 스크린샷에 넣는 것** | 스토어 정책 위반 소지. **"광고 보고 골드 보너스" 버튼이 있는 결과 화면은 실제 UI 이므로 허용된다** — 경계는 `52 §3.6` |
 
 ---
 
@@ -851,6 +1011,8 @@ Hard rules:
 
 ### 7.1 결정
 
+- [ ] ★★ **§0-0 을 읽었고, 어떤 카피에도 `No ads.` 계열이 없다**
+- [ ] ★ 광고를 **켜는 릴리스**인지 아닌지를 알고 있다 (`ads.json:enabled`) — 어느 쪽이든 카피는 같다
 - [ ] **§0-A 를 A · B · C 중 하나로 정했다**
 - [ ] B 를 골랐다면 긴 설명에 **LANGUAGE NOTICE 문단이 실제로 들어 있다**
 - [ ] 태블릿 · iPad 세트를 **낼지 안 낼지** 정했다 (권장: 첫 출시는 폰 전용)
@@ -877,6 +1039,8 @@ Hard rules:
 - [ ] **한국어 세트(`play/` · `ios/`)를 덮지 않았다**
 - [ ] `npm run store:check:en` 이 통과한다
 - [ ] ★ **그 검사기를 일부러 깨뜨려(en 카피에 `gacha` 를 넣어) 실패를 봤다**
+- [ ] ★★ **`No ads.` 를 넣어도 실패하는 것을 봤다** — 옛 검사기는 그것을 **일부러 통과시켰다** (P8 [4])
+- [ ] ★ 8번 카피가 **`100 stages. No IAP. No gacha. Ads are optional.`** 이다 (47자 · 상한에 붙어 있다)
 - [ ] 카피가 **48자 이내 · 한 줄**이고 접히지 않았다
 - [ ] 카피가 상단 6% · 하단 8% 를 침범하지 않는다
 - [ ] FPS · 디버그 오버레이가 **한 장도 없다**
@@ -891,8 +1055,12 @@ Hard rules:
 - [ ] `free` · `best` · `#1` · `top` · `ultimate` 가 **한 번도 안 나온다**
 - [ ] 이모지 · 유니코드 글리프가 **하나도 없다**
 - [ ] 설명문의 **모든 사실이 FACTS 블록에서 나온 것**이다
-- [ ] 절삭된 기능(가챠 · 상점 · 배틀패스 · 광고 · 방치)이 **한 번도 언급되지 않는다**
-- [ ] `No ads. No IAP. No gacha.` 가 **짧은 설명과 긴 설명 양쪽에** 있다
+- [ ] 절삭된 기능(가챠 · 상점 · 배틀패스 · 방치)이 **한 번도 언급되지 않는다**
+- [ ] `No IAP. No gacha.` 가 **짧은 설명과 긴 설명 양쪽에** 있다
+- [ ] ★★ **`no ads` · `ad-free` · `without ads` · `fully offline` 이 한 번도 안 나온다** (§0-0)
+- [ ] ★★ 긴 설명에 **"HOW ADS WORK HERE" 절이 실제로 들어 있다** (P11 §5) — 숨기지 않았다
+- [ ] ★ 보상 배수 · 일일 횟수가 **숫자로 적혀 있지 않다**
+- [ ] ★ 개인정보처리방침 · Play 데이터 보안 · Apple App Privacy 가 **설명문과 같은 말을 한다** (`56 §4.1` 의 여덟 항목)
 - [ ] 한국어판과 영어판이 **같은 게임을 설명한다** (기능 목록이 갈라지지 않았다)
 
 ---
@@ -904,6 +1072,8 @@ Hard rules:
 | **스토어 이미지 정본 · 픽셀 규칙 · 캡처 파이프라인** | `06-release/52-store-image-codex-prompts.md` |
 | Google Play 등록 절차 | `06-release/50-google-play-paid-codemagic.md` |
 | App Store 등록 절차 (iPad 판정 §5.4) | `06-release/51-app-store-paid-codemagic.md` |
+| **수익화 판정과 그것이 뒤집힌 기록** | `06-release/55-monetization-decision.md` |
+| **★ 광고 구현 · 동의 · 제출물 8종 · 출시 순서** | `06-release/56-admob-rewarded-integration.md` |
 | **현재 재촬영 대상·광고 활성화 시 교체 카피** | `06-release/57-store-image-recapture-register.md` |
 | 아트·오디오 방향 (피아 표식 · 팔레트) | `02-design/19-art-audio-direction.md` |
 | 무엇이 왜 없는지 | `04-plan/34-scope-cut.md` |

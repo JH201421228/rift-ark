@@ -31,12 +31,12 @@
     },
     {
         "id": 7,
-        "ko": "100 스테이지 · 노멀 · 하드 · 나이트메어",
+        "ko": "출격 사이에 방주를 재건한다",
         "en": "Rebuild the ark between runs."
     },
     {
         "id": 8,
-        "ko": "확률형 없음 · 광고 없음 · 인앱결제 없음 · 오프라인",
-        "en": "100 stages. No ads. No IAP. No gacha."
+        "ko": "확률형 없음 · 인앱결제 없음 · 광고는 선택",
+        "en": "100 stages. No IAP. No gacha. Ads are optional."
     }
 ]

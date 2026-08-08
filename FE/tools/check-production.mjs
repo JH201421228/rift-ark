@@ -50,6 +50,10 @@
  *   B6  절대 로컬 경로(`C:\Users\…`) · 이메일 주소가 번들에 있다
  *   B7  `TODO` · `FIXME` · `XXX` · `HACK` 가 번들에 있다
  *   C1  `capacitor.config.json` 의 `webContentsDebuggingEnabled` 가 false 가 아니다  ← DoD §4
+ *   A1  `ads.json:enabled` 가 true 인데 `units.android` 가 비었다 (수익 0)      ★ `56 §5.5`
+ *   A2  `units.*` 가 광고 단위 id 형식(`/`)이 아니다 — 앱 id(`~`) 를 넣었다
+ *   A3  `ads.json:testMode` 가 true 인 채로 배포된다 (심사자가 테스트 광고를 본다)
+ *   A4  매니페스트의 AdMob `APPLICATION_ID` 가 없다 / 형식이 틀렸다 / 아직 테스트 앱 id 다
  *
  * ★ 검사 범위는 **번들**이다 — `dist/index.html` · `dist/assets/*.js` · `*.css`.
  *   `public/` 에서 복사된 에셋(아틀라스 · 오디오 · PNG)은 빌드가 만든 코드가 아니고,
@@ -75,6 +79,13 @@ const P = path.posix;
 export const SRC_DIR = "src";
 export const DIST_DIR = "dist";
 export const CAPACITOR_CONFIG = "capacitor.config.json";
+export const ADS_JSON = "src/game/data/ads.json";
+export const ANDROID_MANIFEST = "android/app/src/main/AndroidManifest.xml";
+/** 구글 공식 테스트 값. 배포 빌드에 이것이 남으면 수익이 0 이다 (`56 §1.3`). */
+export const GOOGLE_TEST_APP_ID = "ca-app-pub-3940256099942544~3347511713";
+/** AdMob id 는 `~`(앱) 와 `/`(광고 단위)로만 갈린다 — 앞 16자리는 같다. */
+const AD_APP_ID = /^ca-app-pub-\d{16}~\d+$/;
+const AD_UNIT_ID = /^ca-app-pub-\d{16}\/\d+$/;
 /** 빌드 시 리터럴로 치환되는 **유일한** 조건. 이것 말고는 코드를 지우지 못한다. */
 export const DEV_FLAG = "import.meta.env.DEV";
 /**
@@ -541,9 +552,17 @@ function harvest(masked, literals, ranges, dev, prod, devOnlyFile = false) {
  *   ("고쳤다"가 아니라 "되돌리면 깨진다"를 만든다).
  *
  * @param {{sources: Map<string,string>, bundle: Map<string,string>,
- *          capacitor?: object, stale?: string[]}} input
+ *          capacitor?: object, ads?: object, manifest?: string|null,
+ *          stale?: string[]}} input
  */
-export function analyze({ sources, bundle, capacitor = null, stale = [] }) {
+export function analyze({
+    sources,
+    bundle,
+    capacitor = null,
+    ads = null,
+    manifest = null,
+    stale = [],
+}) {
     const errors = [];
     const warnings = [];
     const infos = [];
@@ -768,6 +787,86 @@ export function analyze({ sources, bundle, capacitor = null, stale = [] }) {
         warnings.push(`C1 ${CAPACITOR_CONFIG} 을 읽지 못해 웹뷰 디버깅 설정을 검사하지 못했다`);
     }
 
+    /* ── A1–A4 광고 배선 ──────────────────────────────────────────────
+     *
+     * ★★★ **광고의 실패는 전부 조용하다.** 어댑터(`native/ads.js`)는 초기화 실패 ·
+     *   동의 거부 · 오프라인 · 빈 id 를 **같은 결과**로 다룬다 — 버튼이 비활성될
+     *   뿐 게임은 정상이다. 그 설계는 옳지만(광고가 게임을 망가뜨리면 안 된다),
+     *   **잘못된 설정도 같은 얼굴을 하고 배포된다.** 예외도 로그도 없다.
+     *   그래서 사람이 아니라 여기서 잡는다.
+     *
+     * ⚠ **`56 §5.5` 가 제안한 규칙 ①("번들에 테스트 단위 id 가 남았는가")은
+     *   그대로는 구현할 수 없다** (2026-08-08 실측). `native/ads.js` 가
+     *   `import ADS from "@/game/data/ads.json"` 으로 **JSON 전체**를 들여오므로
+     *   `units.testAndroid` 문자열은 **설계상 언제나 번들에 있다** — 실제 id 가
+     *   비었을 때 테스트 id 로 떨어지는 폴백이 런타임에 그 값을 쓰기 때문이다.
+     *   그 규칙을 곧이곧대로 넣으면 **언제나 실패**한다.
+     *   같은 사고를 잡는 실제 조건은 A1(빈 id) 과 A3(testMode) 이다.
+     */
+    if (ads) {
+        const u = ads.units ?? {};
+        if (ads.enabled === true) {
+            /* A1 — 켜 놓고 id 를 안 넣었다. 테스트 id 로 조용히 떨어져 **수익이 0** 이다 */
+            if (!u.android) {
+                errors.push(
+                    `A1 ${ADS_JSON} 의 enabled 가 true 인데 units.android 가 비어 있다 — ` +
+                        `어댑터가 테스트 id 로 떨어져 광고는 뜨지만 **수익이 0** 이다. ` +
+                        `그 폴백은 안전한 실패 방향이지 배포해도 되는 상태가 아니다`
+                );
+            }
+            /* A3 — 심사자가 테스트 광고를 본다. 그대로 승인되면 실제 광고가 영원히 안 뜬다 */
+            if (ads.testMode === true) {
+                errors.push(
+                    `A3 ${ADS_JSON} 의 testMode 가 true 다 — 배포 빌드가 테스트 광고를 요청한다. ` +
+                        `심사자가 그것을 보고, 그대로 승인되면 실제 광고가 영원히 뜨지 않는다`
+                );
+            }
+        }
+        /* A2 — `~` 와 `/` 를 바꿔 넣었다. 눈으로는 구분되지 않고 에러도 그 말을 안 한다 */
+        for (const [k, v] of [
+            ["android", u.android],
+            ["ios", u.ios],
+        ]) {
+            if (v && !AD_UNIT_ID.test(v)) {
+                errors.push(
+                    `A2 ${ADS_JSON} 의 units.${k} 가 광고 단위 id 형식이 아니다: ${JSON.stringify(v)} — ` +
+                        `광고 단위 id 는 슬래시(\`/\`)다. 물결(\`~\`)이면 그것은 **앱 id** 이고 ` +
+                        `매니페스트에 들어갈 값이다 (\`56 §1.2\`)`
+                );
+            }
+        }
+    } else {
+        warnings.push(`A1 ${ADS_JSON} 을 읽지 못해 광고 배선을 검사하지 못했다`);
+    }
+
+    /* A4 — 매니페스트의 앱 id. 이것이 틀리면 앱이 **부팅 즉시** 죽는다 */
+    if (manifest !== null) {
+        const m = manifest.match(
+            /com\.google\.android\.gms\.ads\.APPLICATION_ID"[\s\S]{0,120}?android:value="([^"]*)"/
+        );
+        const appId = m?.[1];
+        if (!appId) {
+            errors.push(
+                `A4 ${ANDROID_MANIFEST} 에 AdMob APPLICATION_ID meta-data 가 없다 — ` +
+                    `SDK 의 MobileAdsInitProvider 가 프로세스 시작 시 읽으므로 ` +
+                    `**광고를 꺼도 앱이 시작하자마자 죽는다**`
+            );
+        } else if (!AD_APP_ID.test(appId)) {
+            errors.push(
+                `A4 ${ANDROID_MANIFEST} 의 APPLICATION_ID 가 앱 id 형식이 아니다: ${JSON.stringify(appId)} — ` +
+                    `앱 id 는 물결(\`~\`)이다. 슬래시(\`/\`)면 그것은 **광고 단위 id** 이고 ` +
+                    `ads.json 에 들어갈 값이다`
+            );
+        } else if (appId === GOOGLE_TEST_APP_ID && ads?.enabled === true) {
+            errors.push(
+                `A4 ${ANDROID_MANIFEST} 의 APPLICATION_ID 가 아직 **구글 공식 테스트 앱 id** 다 — ` +
+                    `광고를 켠 채 배포하면 이 앱의 노출이 내 AdMob 계정에 집계되지 않는다`
+            );
+        }
+    } else {
+        warnings.push(`A4 ${ANDROID_MANIFEST} 를 읽지 못해 AdMob 앱 id 를 검사하지 못했다`);
+    }
+
     /* ── 참고 (실패는 아니지만 사람이 봐야 하는 것) ── */
     if (!markers.length) {
         warnings.push(
@@ -833,8 +932,20 @@ export async function loadProject(root = ROOT) {
     } catch {
         /* analyze 가 경고한다 */
     }
+    let ads = null;
+    try {
+        ads = JSON.parse(await readFile(path.join(root, ADS_JSON), "utf8"));
+    } catch {
+        /* analyze 가 경고한다 */
+    }
+    let manifest = null;
+    try {
+        manifest = await readFile(path.join(root, ANDROID_MANIFEST), "utf8");
+    } catch {
+        /* analyze 가 경고한다 */
+    }
     const stale = await staleAgainstBundle(root, sources);
-    return { sources, bundle, capacitor, stale };
+    return { sources, bundle, capacitor, ads, manifest, stale };
 }
 
 /* ══════════════════════ CLI ══════════════════════ */

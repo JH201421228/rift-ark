@@ -247,7 +247,36 @@ async function main() {
             console.error(`\n아이콘 ${bad}건 불일치 — node tools/gen-app-icons.mjs 로 다시 만들라`);
             process.exit(1);
         }
-        console.log("아이콘 전 밀도 확인 — 정상");
+        /**
+         * ★★ 스토어 원본의 **알파 채널**까지 본다. 두 스토어의 요구가 정반대이고
+         *   (Play=알파 있음 · App Store=알파 없음) 보이는 그림은 똑같아서,
+         *   눈으로는 절대 발견되지 않고 업로드 단계에서만 드러난다.
+         */
+        for (const [name, wantAlpha] of [
+            ["icon-512.png", true],
+            ["icon-1024.png", false],
+        ]) {
+            const p = join(OUT_STORE, name);
+            try {
+                const m = await sharp(p).metadata();
+                if (!!m.hasAlpha !== wantAlpha) {
+                    console.error(
+                        `✗ resources/${name} 알파 ${m.hasAlpha ? "있음" : "없음"} ` +
+                            `(기대 ${wantAlpha ? "있음 — Play 는 32비트 PNG" : "없음 — App Store 는 알파 금지"})`
+                    );
+                    bad++;
+                }
+            } catch {
+                console.error(`✗ resources/${name} 없음`);
+                bad++;
+            }
+        }
+        if (bad) {
+            console.error(`
+아이콘 ${bad}건 불일치 — node tools/gen-app-icons.mjs 로 다시 만들라`);
+            process.exit(1);
+        }
+        console.log("아이콘 전 밀도 + 스토어 원본 알파 확인 — 정상");
         return;
     }
 
@@ -271,12 +300,29 @@ async function main() {
     }
     console.log(`  스플래시 ${SPLASH.length}종`);
 
-    // ── 스토어 · iOS 원본 ──
-    // ★ 512(구글플레이) · 1024(앱스토어) 는 **알파가 없어야 한다**. 알파가 있으면
-    //   업로드 단계에서 그대로 반려된다 (앱스토어 커넥트).
+    /* ── 스토어 · iOS 원본 ──
+     *
+     * ★★★ **두 스토어의 알파 요구가 정반대다** (2026-08-07 정정).
+     *
+     *   | | 요구 | 이유 |
+     *   |---|---|---|
+     *   | Google Play 512×512 | **32비트 PNG (알파 채널 있음)** | 업로드 검증이 채널 수를 본다 |
+     *   | App Store 1024×1024 | **알파 없음 (24비트)** | 알파가 있으면 Connect 가 반려한다 |
+     *
+     *   처음에는 둘 다 `flatten()` 해서 24비트로 냈다 — iOS 규칙을 Play 에도
+     *   적용한 것이다. 그림은 어차피 불투명하므로 **보이는 것은 같고**,
+     *   그래서 눈으로는 영영 발견되지 않는다. 업로드 단계에서만 드러난다.
+     *
+     * ★ 그래서 512 는 **완전히 불투명한 알파 채널**을 붙인다 (`ensureAlpha(1)`).
+     *   투명한 부분이 생기는 것이 아니라, 채널이 4개가 될 뿐이다.
+     */
     await writeFile(
         join(OUT_STORE, "icon-512.png"),
-        await sharp(await fullIcon(512)).flatten({ background: "#0b0b18" }).png().toBuffer()
+        await sharp(await fullIcon(512))
+            .flatten({ background: "#0b0b18" })
+            .ensureAlpha(1)
+            .png()
+            .toBuffer()
     );
     await writeFile(
         join(OUT_STORE, "icon-1024.png"),

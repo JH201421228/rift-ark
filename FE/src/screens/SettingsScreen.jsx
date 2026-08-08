@@ -16,7 +16,7 @@
  * @see docs/02-design/18-ux-ui.md §6
  * @see docs/03-tech/21-state-management.md §2
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useShallow } from "zustand/react/shallow";
 import {
@@ -28,10 +28,12 @@ import {
     Monitor,
     RotateCcw,
     ScrollText,
+    ShieldCheck,
     TriangleAlert,
     Volume2,
     VolumeX,
 } from "lucide-react";
+import { initAds, privacyOptionsRequired, openPrivacyOptions } from "@/native/ads";
 import { useGameStore, resetSave, flushSave, SAVE_VERSION } from "@/store";
 import { GuideButton } from "@/components/GuideOverlay";
 import LangToggle from "@/components/LangToggle";
@@ -486,6 +488,67 @@ function PlaySection() {
  *   되돌릴 수 없는 동작에서 한 번의 오조작이 계정을 지우게 두지 않는다.
  *   두 단계를 다 통과하기 전에는 `resetSave()` 가 호출되지 않는다.
  */
+/**
+ * 광고 동의 철회·변경 — **UMP 가 요구할 때만 나타난다.**
+ *
+ * ★★★ GDPR 은 동의를 **준 것만큼 쉽게 철회**할 수 있어야 한다고 요구한다.
+ *   2026-08-08 까지 이 앱에는 그 수단이 하나도 없었고, 그래서 개인정보
+ *   처리방침 초안의 "설정에서 언제든 변경할 수 있습니다" 는 **거짓**이었다
+ *   (`docs/06-release/56-admob-rewarded-integration.md` §4.5-A).
+ *
+ * ★ **지역으로 판정하지 않는다.** "EEA 면 보여 준다" 를 여기 적으면 그 목록이
+ *   두 번째 출처가 되고, AdMob 콘솔의 메시지 설정이 바뀌어도 따라가지 못한다.
+ *   답은 UMP 하나다 — `privacyOptionsRequired()` 가 그것을 중계한다.
+ *   한국은 `NOT_REQUIRED` 라 **이 절이 아예 그려지지 않는다.**
+ *
+ * ★ `hidden` 이나 `disabled` 로 감추지 않고 **조건부 렌더**한다 (CLAUDE.md —
+ *   `[hidden]` 은 작성자 스타일시트보다 약하고 `disabled` 는 포인터 이벤트를
+ *   막지 못한다).
+ */
+function PrivacyOptionsGroup() {
+    const t = useT();
+    const [show, setShow] = useState(false);
+    const [busy, setBusy] = useState(false);
+
+    useEffect(() => {
+        let alive = true;
+        // ★ initAds 는 멱등이다. 광고가 꺼져 있거나 웹이면 즉시 false 로 끝난다.
+        initAds().then(() => {
+            if (alive) setShow(privacyOptionsRequired());
+        });
+        return () => {
+            alive = false;
+        };
+    }, []);
+
+    if (!show) return null;
+
+    return (
+        <div className={s.group}>
+            <h2 className={s.groupTitle}>{t("settings.groupAdPrivacy")}</h2>
+            <p className={`${s.note} prose`}>{t("settings.noteAdPrivacy")}</p>
+            <button
+                className={`${s.btn} interactive`}
+                disabled={busy}
+                onClick={async () => {
+                    if (busy) return; // ★ disabled 를 믿지 않는다 (CLAUDE.md)
+                    hapticTap();
+                    setBusy(true);
+                    try {
+                        await openPrivacyOptions();
+                        // 철회했다면 입구 자체가 사라질 수 있다 — 다시 묻는다
+                        setShow(privacyOptionsRequired());
+                    } finally {
+                        setBusy(false);
+                    }
+                }}
+            >
+                <ShieldCheck size={14} aria-hidden /> {t("settings.btnAdPrivacy")}
+            </button>
+        </div>
+    );
+}
+
 function DataSection() {
     const t = useT();
     const [step, setStep] = useState(0);
@@ -535,6 +598,8 @@ function DataSection() {
               ★ 배포 빌드에서도 보인다. 개발자 메뉴가 아니라 **사용자의 창**이다.
             */}
             <FaultLog />
+
+            <PrivacyOptionsGroup />
 
             <div className={s.group}>
                 <h2 className={s.groupTitle}>{t("settings.groupResetSettings")}</h2>

@@ -27,6 +27,7 @@ import {
     availableGold,
     daysToStage,
     requiredTrainingYard,
+    powerFromGold,
 } from "./lib/f2p-power.mjs";
 
 const S = balance.scaling;
@@ -89,7 +90,15 @@ for (const s of CHECKPOINTS) {
      *   광고가 경제를 망가뜨려도 검증이 그것을 모르면 아무도 실패하지 않는다 —
      *   이 저장소가 반복해서 당한 "선언했는데 아무도 안 읽는 것"의 경제판이다.
      */
-    const haveGoldAds = ADS.enabled === true ? availableGold(s, { ads: true }) : haveGold;
+    /**
+     * ★★★ **`enabled` 와 무관하게 항상 계산한다** (2026-08-07).
+     *   꺼져 있을 때 계산하지 않으면, 켜는 순간 처음으로 문제를 만나게 된다 —
+     *   그때는 이미 스토어에 무료로 올라가 있어 되돌릴 수 없다(무료→유료 불가).
+     *   꺼져 있으면 **경고**로, 켜져 있으면 **실패**로 낸다. 정보는 언제나 보인다.
+     */
+    const haveGoldAds = availableGold(s, { ads: true, force: true });
+    /** 광고 골드까지 썼을 때 실제로 도달하는 파워 */
+    const powerAds = powerFromGold(haveGoldAds);
     const goldRatio = haveGold / needGold;
     const powerRatio = t.power / enemyHp;
 
@@ -99,7 +108,13 @@ for (const s of CHECKPOINTS) {
      *   광고 없이도 도달하는 것이 설계이므로(설계 결정 5), 광고는 '조금 빨라지는 것'
      *   이어야지 '다른 게임'이 되면 안 된다. 상한은 데이터가 정한다.
      */
-    if (ADS.enabled === true && haveGoldAds / haveGold > 1 + AD_GAIN_MAX) adGoldFail++;
+    /**
+     * ★★★ **파워로 잰다. 골드로 재지 않는다** (2026-08-07 정정).
+     *   골드 여유는 지금도 언제나 1 을 넘고(1.06~2.12) 넘는 것이 정상이다.
+     *   게임을 쉽게 만드는 것은 **그 골드로 산 파워**이고, 레벨·시설 비용이 지수라
+     *   골드 증가분과 파워 증가분은 전혀 다른 크기다.
+     */
+    if (powerAds / t.power > 1 + AD_GAIN_MAX) adGoldFail++;
     // 아군 파워가 적 HP 의 0.75배 밑으로 떨어지면 편성으로 메울 수 없는 구간이다
     if (powerRatio < 0.75) powerFail++;
 
@@ -110,9 +125,10 @@ for (const s of CHECKPOINTS) {
             `${powerRatio.toFixed(2).padStart(5)} │ ` +
             `${Math.round(needGold).toLocaleString().padStart(10)} ` +
             `${Math.round(haveGold).toLocaleString().padStart(10)} ${goldRatio.toFixed(2).padStart(5)} ` +
-            (ADS.enabled === true
-                ? `광고 ${(haveGoldAds / needGold).toFixed(2).padStart(5)} ` +
-                  `+${(((haveGoldAds - haveGold) / haveGold) * 100).toFixed(0).padStart(3)}% `
+            (true
+                ? `광고골드 +${(((haveGoldAds - haveGold) / haveGold) * 100).toFixed(0).padStart(3)}% ` +
+                  `파워 ${(powerAds / enemyHp).toFixed(2).padStart(5)} ` +
+                  `+${(((powerAds - t.power) / t.power) * 100).toFixed(0).padStart(3)}% `
                 : "") +
             "│ " +
             `Lv${String(t.level).padStart(3)} 무기고 ${String(t.armory.level).padStart(2)} ` +
@@ -122,10 +138,26 @@ for (const s of CHECKPOINTS) {
 
 console.log("──────────────────────────────────────────────────────────────────");
 
+/**
+ * ★★ 광고가 꺼져 있어도 **미리 말한다.** 켜는 순간 처음 알게 되면 그때는
+ *   이미 무료로 출시된 뒤이고, 무료 → 유료 전환은 불가능하다.
+ */
+if (adGoldFail && ADS.enabled !== true) {
+    console.log(
+        `⚠ 광고를 켜면 ${adGoldFail}개 구간에서 파워가 +${Math.round(AD_GAIN_MAX * 100)}% 를 넘는다 ` +
+            `(현재 설정: ×${ADS.rewardMult} · 하루 ${ADS.dailyViews}회 · ${ADS.minStage}스테이지부터).`
+    );
+    console.log(
+        "  → 켜기 전에 결정할 것: ① 수치를 낮춘다 ② 100 스테이지 difficultyMult 를 재보정한다 " +
+            "③ 골드가 아닌 보상으로 바꾼다  (docs/06-release/56 §6)"
+    );
+    console.log("──────────────────────────────────────────────────────────────────");
+}
+
 const fails = [];
 if (goldFail) fails.push(`골드 부족 ${goldFail}개 구간 — 목표 파워에 도달할 수 없다`);
 if (powerFail) fails.push(`파워 미달 ${powerFail}개 구간 — 편성으로 메울 수 없는 벽`);
-if (adGoldFail)
+if (adGoldFail && ADS.enabled === true)
     fails.push(
         `광고 증가분 초과 ${adGoldFail}개 구간 (> +${Math.round(AD_GAIN_MAX * 100)}%) — ` +
             `광고가 경제 벽을 없앤다. ads.json 의 rewardMult · dailyViews · minStage 를 낮춰라 ` +
