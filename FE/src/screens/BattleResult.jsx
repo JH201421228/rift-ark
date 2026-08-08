@@ -18,7 +18,7 @@ import { UNIT_DEFS } from "@/game/logic/stageConfig";
 import { COMMANDER_ITEM_BY_ID } from "@/game/logic/commander";
 import { spellDef } from "@/game/logic/spells";
 // ★ 광고 보상의 규칙 · 어댑터 · 스토어는 각자 자기 자리에 있다 (화면은 배선만 한다)
-import { canWatchAd, viewsLeft, AD_REWARD_MULT } from "@/game/logic/adReward";
+import { canWatchAd, viewsLeft, AD_REWARD_MULT, AD_UNLIMITED } from "@/game/logic/adReward";
 import { preloadRewarded, showRewarded } from "@/native/ads";
 import { useGameStore } from "@/store";
 import LangToggle from "@/components/LangToggle";
@@ -152,10 +152,18 @@ function AdBonus({ stageId, baseGold }) {
                     mult: AD_REWARD_MULT.toLocaleString(NUM_LOCALE[lang] ?? NUM_LOCALE.ko),
                 })}
             </button>
-            {/* ★ 상한이 있다는 사실을 **누르기 전에** 말한다. 누른 뒤에 알면 함정이다 */}
-            <span className={styles.adLeft}>
-                {t("result.adLeft", { n: viewsLeft(adState, nowMs, tz) })}
-            </span>
+            {/*
+              ★ 상한이 있다는 사실을 **누르기 전에** 말한다. 누른 뒤에 알면 함정이다.
+              ★★ 무제한이면 이 줄을 **그리지 않는다** — `viewsLeft` 가 `Infinity` 를
+                돌려주므로 그대로 그리면 "오늘 Infinity회 남음" 이 뜬다. 남은 횟수가
+                없는 것이 아니라 **셀 이유가 없는 것**이라, 0 으로 바꿔 그리는 것도 틀렸다.
+                조건부 렌더다 (`hidden`·`disabled` 를 믿지 않는다 — CLAUDE.md).
+            */}
+            {!AD_UNLIMITED && (
+                <span className={styles.adLeft}>
+                    {t("result.adLeft", { n: viewsLeft(adState, nowMs, tz) })}
+                </span>
+            )}
             {note && <span className={styles.adNote}>{note}</span>}
         </div>
     );

@@ -24,6 +24,7 @@ import {
     AD_REWARD_MULT,
     AD_DAILY_VIEWS,
     AD_COOLDOWN_MS,
+    AD_UNLIMITED,
 } from "./adReward.js";
 import ADS from "../data/ads.json" with { type: "json" };
 
@@ -40,20 +41,41 @@ describe("보상형 광고 — 데이터 규약", () => {
         expect(AD_COOLDOWN_MS).toBe(ADS.cooldownMs);
     });
 
-    it("★★★ 하루 상한이 실재한다 — 이것이 경제를 지키는 유일한 장치다", () => {
+    /**
+     * ★★★ **상한은 이제 선택이다 — 그러면 남는 제동 장치가 무엇인지 못박는다**
+     *   (2026-08-08, 사용자가 무제한을 선택).
+     *
+     *   이 자리에는 원래 "dailyViews > 0 이어야 한다" 는 불변식이 있었다. 그것이
+     *   경제를 지키는 유일한 장치였기 때문이다. 사용자가 실측(하루 2회 +19% ✅ /
+     *   3회 +28% ✗ / 10회 +69% ✗)을 읽고 수익 쪽을 택했으므로 그 불변식은 깨졌다.
+     *   **그래도 검사를 지우지는 않는다** — 무제한일 때 무엇이 남는지를 대신 잰다.
+     */
+    it("★★★ 무제한이면 쿨다운이 유일한 제동 장치다 — 그것까지 0 이면 안 된다", () => {
+        if (!AD_UNLIMITED) {
+            expect(Number.isInteger(ADS.dailyViews) && ADS.dailyViews > 0).toBe(true);
+            expect(ADS.dailyViews).toBeLessThanOrEqual(20);
+            return;
+        }
         expect(
-            Number.isInteger(ADS.dailyViews) && ADS.dailyViews > 0,
-            "dailyViews 가 없거나 0 이하면 광고 보상이 무제한이 된다 — " +
-                "골드원이 클리어 하나뿐이라 총수입이 그대로 배가 되고 " +
-                "40–60 구간의 편성 퍼즐이 사라진다 (55-monetization-decision.md §2)"
+            Number(ADS.cooldownMs) > 0,
+            "하루 상한이 없는데 쿨다운까지 0 이면, 결과 화면에서 연타로 무한히 " +
+                "받을 수 있다 — 그때는 광고를 보는 것조차 아니게 된다"
         ).toBe(true);
-        expect(ADS.dailyViews).toBeLessThanOrEqual(20);
     });
 
-    it("★ 초반 스테이지에는 광고를 제안하지 않는다", () => {
-        expect(ADS.minStage).toBeGreaterThan(1);
-        expect(adAllowedForStage("1-1")).toBe(false);
-        expect(adAllowedForStage("1-2")).toBe(false);
+    it("★ 무제한 표현은 큰 숫자가 아니라 술어다", () => {
+        // 999 같은 값으로 흉내 내면 화면이 "오늘 999회 남음" 을 그리고,
+        // 하네스가 그것을 상한으로 착각하며, 검사기는 "상한이 있다" 로 통과시킨다.
+        expect(AD_UNLIMITED).toBe(!(Number(ADS.dailyViews) > 0));
+        if (AD_UNLIMITED) expect(ADS.dailyViews).toBeLessThanOrEqual(0);
+    });
+
+    it("광고를 제안하는 스테이지 범위는 데이터가 정한다", () => {
+        // ★ 2026-08-08 에 minStage 가 6 → 1 로 내려갔다. 화면이 자기 판정을
+        //   만들지 않는다는 것이 이 검사의 요점이지, 특정 숫자가 아니다.
+        expect(ADS.minStage).toBeGreaterThanOrEqual(1);
+        expect(adAllowedForStage("1-1")).toBe(ADS.minStage <= 1);
+        expect(adAllowedForStage("0-0")).toBe(false);
     });
 
     it("★ 캠페인 밖의 id 는 통과하지 않는다 (NaN 인덱스 방어)", () => {
@@ -89,8 +111,13 @@ describe("하루 경계", () => {
         expect(dayKey(utcMidnight + 1000, KST)).toBe(dayKey(utcMidnight - 1000, KST));
     });
 
-    it("자정을 넘기면 상한이 초기화된다", () => {
+    it("자정을 넘기면 상한이 초기화된다 (무제한이면 언제나 Infinity)", () => {
         const st = { day: dayKey(T0, 0), views: AD_DAILY_VIEWS, lastAtMs: T0 };
+        if (AD_UNLIMITED) {
+            expect(viewsLeft(st, T0, 0)).toBe(Infinity);
+            expect(viewsLeft(st, T0 + 86_400_000, 0)).toBe(Infinity);
+            return;
+        }
         expect(viewsLeft(st, T0, 0)).toBe(0);
         expect(viewsLeft(st, T0 + 86_400_000, 0)).toBe(AD_DAILY_VIEWS);
     });
@@ -100,23 +127,30 @@ describe("시청 가능 판정", () => {
     skipIfOff("아무것도 안 본 상태에서는 볼 수 있다", () => {
         const r = canWatchAd({ stageId: STAGE, nowMs: T0, state: null, ready: true });
         expect(r.ok).toBe(true);
-        expect(r.left).toBe(AD_DAILY_VIEWS);
+        expect(r.left).toBe(AD_UNLIMITED ? Infinity : AD_DAILY_VIEWS);
     });
 
-    skipIfOff("★★ 상한을 넘기면 막힌다", () => {
+    skipIfOff("★★ 상한을 넘기면 막힌다 (무제한이면 대신 계속 열린다)", () => {
+        const N = AD_UNLIMITED ? 50 : AD_DAILY_VIEWS;
         let st = null;
-        for (let i = 0; i < AD_DAILY_VIEWS; i++) {
+        for (let i = 0; i < N; i++) {
             // 쿨다운을 피해 가며 상한까지 채운다
             st = recordView(st, T0 + i * (AD_COOLDOWN_MS + 1000), 0);
         }
         const r = canWatchAd({
             stageId: STAGE,
-            nowMs: T0 + AD_DAILY_VIEWS * (AD_COOLDOWN_MS + 1000),
+            nowMs: T0 + N * (AD_COOLDOWN_MS + 1000),
             state: st,
             ready: true,
         });
-        expect(r.ok).toBe(false);
-        expect(r.reason).toBe("daily");
+        if (AD_UNLIMITED) {
+            // ★ 50번을 봐도 막히지 않는다. 그것이 무제한의 정의다.
+            expect(r.ok).toBe(true);
+            expect(r.left).toBe(Infinity);
+        } else {
+            expect(r.ok).toBe(false);
+            expect(r.reason).toBe("daily");
+        }
     });
 
     /**
@@ -140,12 +174,13 @@ describe("시청 가능 판정", () => {
         const r = canWatchAd({ stageId: STAGE, nowMs: T0 + 1000, state: st, ready: true });
         expect(r.ok).toBe(false);
         // 상한을 다 쓴 상태에서 "cooldown" 이라고 답하면 화면이 "30초 뒤"라고 쓴다.
-        expect(r.reason).toBe(AD_DAILY_VIEWS >= 2 ? "cooldown" : "daily");
+        // ★ 무제한이면 다 쓸 상한이 없으므로 쿨다운이 정직한 답이다.
+        expect(r.reason).toBe(AD_UNLIMITED || AD_DAILY_VIEWS >= 2 ? "cooldown" : "daily");
     });
 
     skipIfOff("쿨다운 안에서는 막고, 지나면 열린다", () => {
-        if (AD_DAILY_VIEWS < 2) {
-            // ★ 지금 설정(dailyViews 1)에서는 쿨다운이 **한 번도 발동하지 않는다.**
+        if (!AD_UNLIMITED && AD_DAILY_VIEWS < 2) {
+            // ★ dailyViews 1 에서는 쿨다운이 **한 번도 발동하지 않는다.**
             //   그것은 버그가 아니라 이 조합의 성질이다. dailyViews 를 2 이상으로
             //   올리는 순간 살아나므로 규칙은 남겨 둔다 — 다만 지금 이 값이
             //   **무효**라는 사실을 여기서 못박아, 나중에 cooldownMs 를 튜닝하는
@@ -176,7 +211,17 @@ describe("시청 가능 판정", () => {
     });
 
     skipIfOff("허용 범위 밖 스테이지는 이유가 'stage' 다", () => {
-        expect(canWatchAd({ stageId: "1-1", nowMs: T0, state: null, ready: true }).reason).toBe(
+        // ★ `1-1` 은 minStage 가 1 로 내려가면서(2026-08-08) 더 이상 범위 밖이 아니다.
+        //   범위 밖을 확실히 만들려면 **데이터에서** 경계를 읽어 그 바깥을 쓴다 —
+        //   특정 스테이지 id 를 박아 두면 데이터가 움직일 때 조용히 무의미해진다.
+        const outside = `1-${Math.max(1, ADS.minStage - 1)}`;
+        if (ADS.minStage > 1) {
+            expect(canWatchAd({ stageId: outside, nowMs: T0, state: null, ready: true }).reason).toBe(
+                "stage"
+            );
+        }
+        // 캠페인 밖 id 는 minStage 와 무관하게 언제나 'stage' 다
+        expect(canWatchAd({ stageId: "tower-1", nowMs: T0, state: null, ready: true }).reason).toBe(
             "stage"
         );
     });
@@ -198,7 +243,9 @@ describe("손상된 상태", () => {
             { day: 9_999_999, views: 0, lastAtMs: 0 },
         ]) {
             const left = viewsLeft(bad, T0, 0);
-            expect(left).toBeLessThanOrEqual(AD_DAILY_VIEWS);
+            // ★ 무제한이면 '푸는 방향' 이라는 개념이 없다 — 언제나 Infinity 다.
+            //   그래도 **손상된 값이 그것을 바꾸지 못한다**는 것은 여전히 검사한다.
+            expect(left).toBeLessThanOrEqual(AD_UNLIMITED ? Infinity : AD_DAILY_VIEWS);
             expect(left).toBeGreaterThanOrEqual(0);
         }
     });

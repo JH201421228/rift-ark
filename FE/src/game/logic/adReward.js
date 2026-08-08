@@ -29,6 +29,19 @@ export const AD_DAILY_VIEWS = DATA.dailyViews;
 export const AD_COOLDOWN_MS = DATA.cooldownMs;
 
 /**
+ * 하루 상한이 **없는가** (`dailyViews <= 0` = 무제한, 2026-08-08 사용자 결정).
+ *
+ * ★★★ **무제한을 "아주 큰 숫자"로 흉내 내지 않는다.** 999 같은 값을 넣으면
+ *   `viewsLeft` 가 "오늘 999회 남음"을 화면에 그리고, 하네스는 그것을 상한으로
+ *   착각해 계산하며, 검사기는 여전히 "상한이 있다"고 통과시킨다. **셋 다 거짓말이다.**
+ *   무제한은 **상태이지 숫자가 아니다** — 그래서 술어로 만든다.
+ *
+ * ★★ 무제한이 되면 남는 유일한 제동 장치는 **쿨다운**(`cooldownMs`)이다.
+ *   그 값이 0 이면 결과 화면에서 연타로 무한히 받을 수 있다.
+ */
+export const AD_UNLIMITED = !(Number(DATA.dailyViews) > 0);
+
+/**
  * 시청 기록의 하루 경계를 만드는 키.
  *
  * ★★ 서버가 없으므로 **기기 로컬 자정**이 유일한 경계다. `Date` 를 여기서 만들지
@@ -59,7 +72,8 @@ function takenToday(state, today) {
     if (!state || state.day !== today) return 0;
     const v = Number(state.views);
     if (!Number.isFinite(v) || v <= 0) return 0;
-    return Math.min(AD_DAILY_VIEWS, Math.floor(v));
+    // ★ 무제한이면 clamp 할 상한이 없다 — 그대로 센다 (표시용으로만 쓰인다)
+    return AD_UNLIMITED ? Math.floor(v) : Math.min(AD_DAILY_VIEWS, Math.floor(v));
 }
 
 /**
@@ -93,7 +107,9 @@ export function canWatchAd({ stageId, nowMs, tzOffsetMin = 0, state = null, read
     if (!adAllowedForStage(stageId)) return { ok: false, reason: "stage" };
 
     const today = dayKey(nowMs, tzOffsetMin);
-    const left = AD_DAILY_VIEWS - takenToday(state, today);
+    // ★ 무제한이면 `left` 는 Infinity 다 — 화면은 `AD_UNLIMITED` 를 보고 문구를 지운다.
+    //   여기서 큰 유한수로 바꾸지 않는다. 그러면 "오늘 999회 남음" 이 그려진다.
+    const left = AD_UNLIMITED ? Infinity : AD_DAILY_VIEWS - takenToday(state, today);
     if (left <= 0) return { ok: false, reason: "daily", left: 0 };
 
     const last = state?.lastAtMs ?? 0;
@@ -138,7 +154,15 @@ export function recordView(state, nowMs, tzOffsetMin = 0) {
     };
 }
 
-/** 오늘 남은 횟수 (화면이 "오늘 3회 남음" 을 그리는 근거) */
+/**
+ * 오늘 남은 횟수 (화면이 "오늘 3회 남음" 을 그리는 근거).
+ *
+ * ★ 무제한이면 **`Infinity`** 다. 화면은 이 값을 그리기 전에 `AD_UNLIMITED` 를
+ *   먼저 보고 문구 자체를 빼야 한다 — 안 그러면 "오늘 Infinity회 남음" 이 뜬다.
+ *   그렇게 되는 것이 큰 유한수를 돌려주는 것보다 낫다: **틀린 화면은 눈에 띄지만
+ *   그럴듯한 거짓 숫자는 안 띈다.**
+ */
 export function viewsLeft(state, nowMs, tzOffsetMin = 0) {
+    if (AD_UNLIMITED) return Infinity;
     return Math.max(0, AD_DAILY_VIEWS - takenToday(state, dayKey(nowMs, tzOffsetMin)));
 }
