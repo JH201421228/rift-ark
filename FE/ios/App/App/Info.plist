@@ -11,12 +11,22 @@
 	    프로젝트명이 그대로 남은 자리 표시자이고, **게임 어디에도 없는 이름**이다.
 	    그대로 제출하면 스토어 등록명과 홈 화면 이름이 달라 심사에서 지적된다.
 
-	  ★ `CFBundleDevelopmentRegion` 이 `en` 이므로 여기 값이 영어 기본이다.
-	    한국어 기기에 `균열의 방주` 를 띄우려면 `ko.lproj/InfoPlist.strings` 를
-	    만들고 Xcode 프로젝트에 등록해야 한다 (`CFBundleDisplayName = "균열의 방주";`).
+	  ★★★ 2026-08-10: **`RIFT ARK` — 전부 대문자다.** App Store Connect 등록명이
+	    그렇게 되어 있고, 심사가 대조하는 것은 **스토어 등록명 ↔ 기기 홈 화면 이름**
+	    이다. 대소문자까지 같게 둔다. 등록명을 바꾸는 날 이 줄도 같이 바꾼다.
+
+	  ★★ **로케일별 값을 두지 않는다.** App Store 등록명이 `RIFT ARK` 하나뿐이라,
+	    한국어 기기에만 다른 이름을 띄우면 **그 로케일에서 둘이 어긋난다.**
+	    `ko.lproj/InfoPlist.strings` 에 `CFBundleDisplayName` 이 **일부러 없는**
+	    이유가 그것이고, 그 파일 머리에 적혀 있다.
+	    → 등록명에 한국어 현지화를 추가하는 날 두 파일을 같은 커밋에서 바꾼다.
+
+	  ★ `CFBundleDevelopmentRegion` 이 `en` 이라 여기 값이 전 로케일의 기본이다.
 	    **웹뷰 안의 i18n 은 이 글자를 절대 바꿀 수 없다** — OS 로케일이 정한다.
-	    안드로이드 쪽 대응은 `android/app/src/main/res/values-en/strings.xml` 이다.
-	    절차: `docs/06-release/53-english-market-paid-release.md`
+
+	  ⚠ 안드로이드는 **다른 스토어라 다른 답을 갖는다** — Play 등록명이 `균열의 방주`
+	    이므로 `values/strings.xml` 기본값이 한국어고 `values-en` 이 `Rift Ark` 다.
+	    **여기와 맞추려고 그쪽을 고치지 않는다.** 각자 자기 스토어와 맞으면 된다.
 	-->
 	<!--
 	  ★★★ **Google Mobile Ads 앱 ID (iOS)** — 안드로이드의 APPLICATION_ID meta-data 와
@@ -36,19 +46,32 @@
 	    심사 지침 5.1.2 위반이다. 아래 값은 그 위반을 피하면서 이 게임의 실제
 	    사실("허용 안 해도 전부 이용 가능")을 말한다.
 	  ⚠ 아래 값은 **영어 기본값**이다 (`CFBundleDevelopmentRegion` = en).
-	    한국어 문구는 `ko.lproj/InfoPlist.strings` 에 별도로 넣어야 하는데,
-	    이 프로젝트에는 아직 그 로케일 인프라 자체가 없다(`CFBundleDisplayName`
-	    의 한국어 로컬라이즈도 동일하게 안 되어 있다 — 위 주석 참조). Xcode
-	    프로젝트 파일(`project.pbxproj`) 등록이 필요해 텍스트 편집만으로는
-	    위험하므로, 로케일 인프라를 만들 때 함께 처리한다.
+	    한국어 문구는 2026-08-10 에 `ko.lproj/InfoPlist.strings` 로 들어갔다 —
+	    **두 문장은 같은 말을 해야 한다.** 한쪽에만 보상을 걸면 그 로케일에서만
+	    5.1.2(i) 위반이 된다.
 	  절차: docs/06-release/56-admob-rewarded-integration.md §2 · §3
 	-->
+	<!--
+	  ★★★ 수출 규정 면제 선언 (2026-08-10 추가).
+
+	    이 키가 없으면 제출할 때마다 App Store Connect 가 "수출 규정 준수" 를 묻고,
+	    답하지 않은 빌드는 **"Missing Compliance" 로 심사에 들어가지 못한다.**
+
+	  ★ 근거는 "이 게임은 네트워크 통신이 없다" 가 **아니다** — 그 문장은 광고 SDK 가
+	    붙은 2026-08-08 에 거짓이 됐다. 지금의 근거는 **OS 가 제공하는 표준 암호화
+	    (URLSession 의 HTTPS/TLS)만 쓰고 우리가 암호화를 구현하지 않는다** 는 것이다.
+
+	  ⚠ 면제 판정은 **번들에 들어가는 서드파티 SDK 까지 포함**한다. 자체 암호 엔진을
+	    싣는 SDK 를 붙이는 날 이 줄을 다시 본다. Google Mobile Ads 는 표준 HTTPS 만 쓴다.
+	-->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>GADApplicationIdentifier</key>
 	<string>ca-app-pub-6178685918745796~4018997989</string>
 	<key>NSUserTrackingUsageDescription</key>
 	<string>RIFT ARK uses your device's advertising identifier to show more relevant ads. Declining does not restrict any part of the game.</string>
 	<key>CFBundleDisplayName</key>
-	<string>Rift Ark</string>
+	<string>RIFT ARK</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>

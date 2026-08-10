@@ -1,7 +1,8 @@
 # 51. App Store — 개인 계정으로 **무료 앱 + 보상형 광고** 등록하기 (Codemagic)
 
-> 대상: **RIFT ARK / 균열의 방주** · `com.superdimension.app` · Capacitor 7 iOS
+> 대상: **RIFT ARK** · `com.superdimension.app` · Capacitor 7 iOS
 > 최초 작성 **2026-08-06** · **무료+광고 기준으로 본문 전면 개정 2026-08-07**
+> **제출 직전 실측 정정 2026-08-10** (§0-A)
 > 작업 환경 **Windows 11 (Mac 없음)** · 개발자 1인
 >
 > ★ **이 문서의 존재 이유 한 줄: 사용자에게 Mac 이 없다.**
@@ -63,6 +64,38 @@
 > ★ **App Store 에는 Play 의 "클로즈드 테스트 14일" 같은 관문이 없다.** 국가 추가는
 > 체크박스다. 다만 **영어권용 앱을 새로 만들지 않는다** — 리뷰·평점이 0에서 시작한다
 > (53 §8.1).
+
+---
+
+## 0-A. ★★★ 2026-08-10 정정 — 이 문서가 틀렸던 다섯 곳
+
+**TestFlight 에 빌드가 올라간 뒤 제출 직전에 저장소를 실측했다.** 아래는 본문이
+쓰인 뒤 코드가 바뀌었거나, 본문이 처음부터 틀렸던 항목이다. **충돌하면 이 절이 맞다.**
+
+| # | 본문이 말하던 것 | 실제 |
+|---|---|---|
+| ① | §2.6 · §5.3 — **"ATT 를 요청하지 않는다"** | ⛔ **거짓이 됐다.** 2026-08-08 에 `native/ads.js` 가 `requestTrackingAuthorization()` 을 **실제로 부른다.** → **App Privacy 의 "Used to Track You" = 예**, `PrivacyInfo.xcprivacy` 는 `NSPrivacyTracking = true` |
+| ② | §5.1 — 앱 이름 **`균열의 방주`** | **App Store 등록명은 `RIFT ARK`** (전부 대문자 · 로케일 하나). Play 만 `균열의 방주` 다. **두 스토어가 달라도 된다** — 심사가 대조하는 것은 *그 스토어 등록명 ↔ 그 기기 홈 화면 이름*이다 |
+| ③ | §5.4 — iPad 지원 여부 **미결** | ✅ **iPhone 전용으로 확정** (2026-08-10 사용자 결정). `TARGETED_DEVICE_FAMILY = 1` → **iPad 스크린샷이 필요 없다** |
+| ④ | §5.6 — 아이콘·스플래시가 Capacitor 기본값 | ✅ **교체 완료.** 그리고 **`icons:check` 가 이제 iOS 도 본다** — 크기가 아니라 `resources/` 원본과의 **내용 해시**를 대조한다 (기본 아이콘도 1024×1024 라 크기 검사는 통과시켰다) |
+| ⑤ | §5.3.2 — `PrivacyInfo.xcprivacy` 만 만들면 된다 | ⛔ **부족했다.** 파일은 2026-08-08 에 만들어졌지만 **`project.pbxproj` 에 참조가 없어 IPA 에 안 들어갔다.** 그 상태로 TestFlight 빌드가 여러 번 올라갔다. 2026-08-10 에 타깃 등록 완료 |
+
+### 0-A.1 그리고 검사기 넷이 새로 생겼다
+
+⑤ 는 **빌드가 성공한 채로** 실패한다 — CI 는 침묵하고 유일한 신호는 며칠 뒤 오는
+`ITMS-91053` 메일이다. ④ 는 4개월 동안 `verify` 전항 통과 아래 숨어 있었다.
+**둘 다 사람이 제출 직전에 눈으로 확인하는 것이 유일한 방어였다.** 이제 기계가 잡는다:
+
+| 검사 | 무엇 | 어디 |
+|---|---|---|
+| **A5** | iOS `Info.plist` 의 `GADApplicationIdentifier` — A4 의 iOS 짝 | `tools/check-production.mjs` |
+| **A6** | `ITSAppUsesNonExemptEncryption` 누락 → Missing Compliance | ″ |
+| **A7** | ATT **문구와 호출이 한쪽만** 있다 (양방향) | ″ |
+| **A8** | `PrivacyInfo.xcprivacy` 가 `project.pbxproj` 에 없다 | ″ |
+| iOS 아이콘 | 자산 카탈로그 ↔ `resources/` 내용 해시 | `tools/gen-app-icons.mjs --check` |
+
+**A1–A4 가 안드로이드만 보고 있었던 것이 문제의 뿌리다.** 한쪽 플랫폼만 보는
+검사기의 "통과"는 아무것도 보증하지 않는다 — 이 저장소가 이름을 붙여 둔 실패 유형이다.
 
 ---
 
@@ -141,27 +174,28 @@
 > **시뮬레이터로도 잡히지 않는다.** iOS 에서 광고를 켜는 릴리스는 **아이폰 실기가
 > 사실상 전제**다.
 
-### 1.1 현재 iOS 프로젝트 상태 [실측 2026-08-07]
+### 1.1 현재 iOS 프로젝트 상태 [실측 **2026-08-10**]
 
 | 항목 | 값 | 비고 |
 |---|---|---|
 | `PRODUCT_BUNDLE_IDENTIFIER` | `com.superdimension.app` | Android 와 동일 |
 | `IPHONEOS_DEPLOYMENT_TARGET` | `14.0` | 충분히 넓다 |
-| `TARGETED_DEVICE_FAMILY` | `"1,2"` (iPhone + iPad) | ★ §5.4 를 읽을 것 |
+| `TARGETED_DEVICE_FAMILY` | ✅ **`1` (iPhone 전용)** | 2026-08-10 에 `"1,2"` 에서 낮췄다 — **iPad 스크린샷 불필요** (§5.4) |
 | `MARKETING_VERSION` | `1.0` | = 사용자에게 보이는 버전 |
 | `CURRENT_PROJECT_VERSION` | `1` | = 빌드 번호. CI 가 올린다 |
 | 가로 고정 | `UISupportedInterfaceOrientations` 에 Landscape 만 | ✅ |
-| iPad 가로 고정 | `UIRequiresFullScreen = YES` | ✅ 이게 없으면 멀티태스킹 때문에 무시된다 |
-| Podfile | Capacitor 7 플러그인 **8종** 등록됨 | ⚠ **AdMob 은 아직 없다** — `@capacitor-community/admob` 미설치 (`56` §2.1) |
-| `CFBundleDisplayName` | **`Rift Ark`** | ★ 있다. 예전 값 `SuperDimension` 은 2026-08-07 에 교체됐다 |
-| `GADApplicationIdentifier` | **`ca-app-pub-3940256099942544~1458002511`** | ★ 있다. **구글 공식 테스트 앱 ID** 다 — AdMob 에 iOS 앱을 등록하면 실제 ID 로 바꾼다 (§2.5) |
-| `ITSAppUsesNonExemptEncryption` | **없다** | ★ 넣어야 한다 (§2.5) |
-| `NSUserTrackingUsageDescription` | **일부러 없다** | §2.6 — 지금 코드는 ATT 를 요청하지 않는다 |
-| `PrivacyInfo.xcprivacy` | **없다** | ★★ 넣어야 한다 (§5.3) |
-| `Assets.xcassets/AppIcon` | **Capacitor 기본 아이콘 (하늘색 X)** | ★★★ §5.6 |
-| `Assets.xcassets/Splash` | **Capacitor 기본 스플래시** | ★★★ §5.6 |
+| iPad 관련 키 | `UISupportedInterfaceOrientations~ipad` · `UIRequiresFullScreen` | ⚠ **남아 있다.** iPhone 전용이라 지금은 무해하고, iPad 를 다시 켜는 날 그대로 필요하다 |
+| Podfile | Capacitor 7 플러그인 **9종** | ✅ `@capacitor-community/admob` 포함 (2026-08-08) |
+| `CFBundleDisplayName` | ✅ **`RIFT ARK`** | **전부 대문자** — App Store 등록명과 같다 (§5.1) |
+| `ko.lproj/InfoPlist.strings` | ✅ **있다 — ATT 문구만** | `CFBundleDisplayName` 은 **일부러 없다** (§5.1) |
+| `GADApplicationIdentifier` | ✅ **`ca-app-pub-6178685918745796~4018997989`** | 실제 앱 ID (2026-08-08). **A5 가 지킨다** |
+| `ITSAppUsesNonExemptEncryption` | ✅ **`false`** | 2026-08-10 추가. **A6 이 지킨다** |
+| `NSUserTrackingUsageDescription` | ✅ **있다 (한/영)** | ★ 코드가 ATT 를 **실제로 부른다** (§2.6). **A7 이 짝을 지킨다** |
+| `PrivacyInfo.xcprivacy` | ✅ **있고 Xcode 타깃에 등록됨** | 파일만 있고 미등록이던 것을 2026-08-10 에 고쳤다. **A8 이 지킨다** |
+| `Assets.xcassets/AppIcon` | ✅ **보라 균열** (`resources/icon-1024.png`) | 2026-08-10 교체. `icons:check` 가 해시로 지킨다 |
+| `Assets.xcassets/Splash` | ✅ **교체됨** (3장 동일) | ″ |
 
-**손댈 것이 예전 판보다 늘었다.** §2.5 · §5.3 · §5.6 셋이 제출 전 필수다.
+**제출 전 필수 항목은 전부 닫혔다.** 남은 것은 App Store Connect 화면 입력뿐이다 (§5).
 
 ---
 
@@ -295,17 +329,39 @@ developer.apple.com → **Certificates, IDs & Profiles → Identifiers → +**
 | IDFA 를 읽어 **개인 맞춤 광고**를 요청한다 | **필수** | 심사 지침 **5.1.2(i)**: *"You must receive explicit permission from users via the App Tracking Transparency APIs to track their activity."* [확인 2026-08-07] |
 | IDFA 를 읽지 않고 **비개인화(제한) 광고**만 받는다 | **불필요** | 구글 문서가 *"If you decide to include App Tracking Transparency…"* 로 **선택지로** 쓴다. 동의가 없으면 제한 광고가 나간다 [확인 2026-08-07] |
 
-**이 프로젝트의 현재 선택: ATT 를 요청하지 않는다.** [실측 2026-08-07]
+### ⛔ 아래 "요청하지 않는다"는 **2026-08-08 에 뒤집혔다** — 정정
+
+**이 프로젝트의 현재 선택: ATT 를 요청한다.** [실측 **2026-08-10**]
+
+`FE/src/native/ads.js:initAds()` 가 **UMP 동의 다음 순서로** iOS 에서
+`AdMob.requestTrackingAuthorization()` 을 부른다. 그래서:
+
+| 무엇 | 답 |
+|---|---|
+| `Info.plist` · `ko.lproj` 의 `NSUserTrackingUsageDescription` | ✅ **있어야 한다** (한/영 둘 다) |
+| `PrivacyInfo.xcprivacy` 의 `NSPrivacyTracking` | ✅ **`true`** |
+| App Privacy 의 **"Used to Track You"** | ✅ **예** (§5.3.1) |
+| 개인정보 처리방침 | ✅ 추적을 말해야 한다 |
+
+> ★★ **A7 이 문구와 호출의 짝을 양방향으로 지킨다.** 문구만 있으면 심사자가
+> "추적을 하는가"를 되묻고, 호출만 있으면 **프롬프트가 뜨지 않고 즉시 거부로
+> 떨어진다.** 둘은 **언제나 함께 들어오고 함께 빠진다.**
+
+**아래 문단은 ATT 를 끄기로 되돌리는 날을 위해 남긴다** — 그때 §5.3 의 넷을
+같은 커밋에서 함께 되돌린다.
+
+<details><summary>ATT 를 요청하지 않던 시절의 판정 (2026-08-07)</summary>
 
 `FE/src/native/ads.js` 는 UMP 동의(`requestConsentInfo` · `canRequestAds`)만 다루고
-**`requestTrackingAuthorization()` 을 부르는 코드가 한 줄도 없다.**
-그래서 `Info.plist` 에 `NSUserTrackingUsageDescription` 이 **없는 것이 맞고**,
-그 이유가 그 파일의 주석에 적혀 있다.
+**`requestTrackingAuthorization()` 을 부르는 코드가 한 줄도 없었다.**
+그래서 `Info.plist` 에 `NSUserTrackingUsageDescription` 이 **없는 것이 맞았다.**
 
 | | 대가 |
 |---|---|
 | 얻는 것 | 첫 실행 프롬프트가 하나 줄어든다 · App Privacy 의 **"Used to Track You" 를 "아니오"로 답할 수 있다** · `PrivacyInfo.xcprivacy` 가 단순해진다 (§5.3) |
 | 잃는 것 | **비개인화 광고만 나가서 eCPM 이 떨어진다** [추정]. `55` §1.2 의 $8~15 는 이 제한을 감안하지 않은 값이고, `56` §1.4 의 광고 콘텐츠 등급 G 제한과 **겹쳐서** 더 내려간다 |
+
+</details>
 
 > ★★★ **쓰지 않는 권한 문구를 넣지 않는다.**
 > `NSUserTrackingUsageDescription` 만 넣고 ATT 를 호출하지 않으면, 심사자가
@@ -440,11 +496,29 @@ App Store Connect → **앱 → +** → 신규 앱
 | 항목 | 값 |
 |---|---|
 | 플랫폼 | iOS |
-| 이름 | **균열의 방주** (30자) **(한국 기준 — 로마자 표기 결정은 53 §6.4)** |
+| 이름 | ★ **`RIFT ARK`** — 전부 대문자 (2026-08-10 실제 등록값) |
 | 기본 언어 | 한국어 **(영어권 확대 시 기본 언어를 바꿀지는 53 §6.1)** |
 | 번들 ID | `com.superdimension.app` (§2.3 에서 등록한 것) |
 | SKU | `RIFTARK001` (내부 식별자 · 아무 문자열) |
 | 사용자 액세스 | 전체 액세스 |
+
+> ★★★ **두 스토어의 이름이 다르고, 그것이 맞다** (2026-08-10).
+>
+> | | 스토어 등록명 | 기기 홈 화면 |
+> |---|---|---|
+> | **App Store** | `RIFT ARK` (로케일 하나) | `RIFT ARK` — `Info.plist:CFBundleDisplayName` |
+> | **Google Play** | `균열의 방주` | ko `균열의 방주` · en `Rift Ark` |
+>
+> 심사가 대조하는 것은 **그 스토어의 등록명 ↔ 그 기기의 홈 화면 이름**이지
+> **두 스토어 사이가 아니다.** Apple 은 Play 와 맞추라고 요구하지 않는다.
+>
+> ⚠ **그래서 `ko.lproj/InfoPlist.strings` 에 `CFBundleDisplayName` 을 넣지 않았다.**
+> App Store 등록명이 `RIFT ARK` 하나뿐인데 한국어 기기에만 `균열의 방주` 를 띄우면
+> **그 로케일에서 둘이 어긋난다.** → **등록명에 한국어 현지화를 추가하는 날
+> 그 파일에 `CFBundleDisplayName` 을 함께 넣는다. 둘은 한 쌍이다.**
+>
+> ★ **대소문자까지 맞춘다.** 등록명이 전부 대문자라 `CFBundleDisplayName` 도
+> `RIFT ARK` 다. 등록명을 바꾸는 날 그 한 줄도 같이 바꾼다.
 
 > ★ **앱 생성 화면에서는 가격을 묻지 않는다.** Play 와 다른 점이다 —
 > Play 는 **앱 만들기 시점에 무료/유료를 고르고 무료→유료가 영구히 막힌다**
@@ -502,10 +576,14 @@ App Store Connect → 앱 → **앱 개인정보 보호 → 시작하기**
 
 | Apple 카테고리 | 세부 항목 | 용도 | Linked to You | Used to Track You |
 |---|---|---|---|---|
-| **Identifiers** | Device ID (광고 식별자 · App set ID) | Third-Party Advertising · Analytics | **Not Linked** [추정 — 계정이 없다] | §5.3.3 |
-| **Usage Data** | Product Interaction · **Advertising Data** (본 광고) | Third-Party Advertising · Analytics | Not Linked | §5.3.3 |
+| **Identifiers** | Device ID (광고 식별자 · App set ID) | Third-Party Advertising · Analytics | **Not Linked** [추정 — 계정이 없다] | ★ **예** |
+| **Usage Data** | Product Interaction · **Advertising Data** (본 광고) | Third-Party Advertising · Analytics | Not Linked | ★ **예** |
 | **Diagnostics** | Crash Data · Performance Data | Analytics · App Functionality | Not Linked | 아니오 |
-| **Location** | **Coarse Location** (IP 기반 추정) | Third-Party Advertising · Analytics | Not Linked | §5.3.3 |
+| **Location** | **Coarse Location** (IP 기반 추정) | Third-Party Advertising · Analytics | Not Linked | ★ **예** |
+
+> ★★★ **"Used to Track You" 가 예인 이유는 ATT 를 켰기 때문이다** (2026-08-10 정정).
+> 이 표는 원래 §5.3.3 을 가리키며 답을 미루고 있었고, 그 §5.3.3 은 "ATT 를 쓰지
+> 않으므로 네 곳 모두 아니오"라고 답했다. **그 전제가 2026-08-08 에 뒤집혔다** (§2.6).
 
 > ⚠ **"or your third-party partners" 가 함정이다.** 4개월간 이 문항의 답이 "No"
 > 였던 이유는 **플러그인 8종이 전부 네트워크를 타지 않아서**였다 (§1.1).
@@ -516,7 +594,17 @@ App Store Connect → 앱 → **앱 개인정보 보호 → 시작하기**
 > 기기 밖으로 나가지 않는다. **방침에 그 구분을 명시해야 심사자가 두 종류의
 > 데이터를 섞어 읽지 않는다** (`56` §4.5 의 3항).
 
-#### 5.3.2 `PrivacyInfo.xcprivacy` — **아직 파일 자체가 없다** [실측 2026-08-07]
+#### 5.3.2 `PrivacyInfo.xcprivacy` — ✅ 있고, **Xcode 타깃에도 등록됐다** [실측 2026-08-10]
+
+> ★★★ **파일을 만드는 것으로 끝나지 않았다.** 2026-08-08 에 파일이 생겼지만
+> `App.xcodeproj/project.pbxproj` 에 참조가 없어 **IPA 에 들어가지 않았고**,
+> 그 상태로 TestFlight 빌드가 여러 번 올라갔다. 2026-08-10 에 타깃 등록을 마쳤다.
+>
+> **아래 본문의 "아직 없다"는 낡았다.** 지금 파일은 **ATT 를 켠 버전**이다
+> (`NSPrivacyTracking = true` · §2.6) — 아래 예시 XML 은 ATT 없는 버전이므로
+> **그대로 복사하지 않는다.** 정본은 저장소의 실제 파일이다.
+>
+> ★ **`A8` 이 이제 이것을 지킨다** (`check:prod`) — pbxproj 에 참조가 없으면 빌드를 멈춘다.
 
 2024-05-01 이후 업로드되는 iOS 앱은 **Required Reason API** 사용을 Privacy Manifest
 에 선언해야 한다 [확인]. 누락하면 업로드는 되지만 **ITMS-91053 (Missing API
@@ -601,27 +689,34 @@ declaration)** 경고 메일이 오고 이후 심사에서 막힌다.
 | ④ | Play 데이터 보안 (다른 스토어지만 **같은 사실**) | `56` §4.2 |
 
 **"Used to Track You" 의 답은 ①②③④ 가 전부 같아야 한다.**
-ATT 를 쓰지 않는 지금은 **네 곳 모두 "추적하지 않음"** 이다.
-ATT 를 켜는 날 **네 곳을 같은 커밋에서 바꾼다.**
+★ **ATT 를 켠 지금은 네 곳 모두 "추적함"** 이다 (2026-08-08 · §2.6).
+ATT 를 끄기로 되돌리는 날 **네 곳을 같은 커밋에서 되돌린다.**
+
+> ⚠ **①(개인정보 처리방침)이 제일 뒤처지기 쉽다.** ②③ 은 파일과 화면이라
+> 눈에 띄는데 방침은 **별도 저장소**(`riftark-privacy`)에 있어 같은 커밋에
+> 들어오지 않는다. **제출 전에 그 페이지를 열어 추적을 말하고 있는지 확인한다** —
+> 넷 중 하나만 다르면 그것이 5.1.1 반려다.
 
 > ★★★ **같은 사실을 여덟 곳에 적어 두고 하나만 안 고치는 것** — 이 저장소가
 > 이름을 붙여 놓은 단일 실패 유형이고, 여기가 그 함정이 가장 크게 벌어진 자리다
 > (`56` §4.1). **§9 의 체크리스트가 이것들을 한 묶음으로 다룬다.**
 
-### 5.4 ★ 스크린샷 — iPad 를 지원할 것인가부터 정한다
+### 5.4 ✅ 스크린샷 — **iPhone 전용으로 확정** (2026-08-10)
 
-현재 `TARGETED_DEVICE_FAMILY = "1,2"` 라 **iPhone + iPad 앱**이다.
-→ **iPad 스크린샷도 필수가 된다.**
+`TARGETED_DEVICE_FAMILY = 1` 로 낮췄다 (사용자 결정). → **iPad 스크린샷이 필요 없다.**
 
 | 안 | 방법 | 대가 |
 |---|---|---|
-| **A. iPhone 전용으로 낮춘다** | Xcode 빌드 설정 `TARGETED_DEVICE_FAMILY = "1"` | iPad 사용자가 못 받는다. **스크린샷 세트가 하나로 준다** |
-| **B. iPad 도 지원한다** | 현행 유지 | iPad 스크린샷 세트를 더 만들고, **iPad 에서 UI 가 깨지지 않는지 확인해야 한다** (실기 없으면 확인 불가) |
+| ✅ **A. iPhone 전용** ← **택함** | `TARGETED_DEVICE_FAMILY = 1` | iPad 사용자가 못 받는다. **스크린샷 세트가 하나로 준다** |
+| B. iPad 도 지원한다 | `"1,2"` 유지 | iPad 스크린샷 세트를 더 만들고, **iPad 에서 UI 가 깨지지 않는지 확인해야 한다** (실기 없으면 확인 불가) |
 
-> **권장: 첫 출시는 A(iPhone 전용).** iPad 는 UI 검증을 할 수 없는 상태에서
-> 지원한다고 선언하는 것이 위험하다. 게임은 `Phaser.Scale.RESIZE` + `viewport.js` 로
-> 4:3 에서도 성립하도록 설계돼 있지만(`02-design/18` §1.1), **성립한다고 검증한 적은 없다.**
-> 나중에 iPad 를 켜는 것은 언제든 가능하다.
+> **A 를 택한 이유:** iPad 는 UI 검증을 할 수 없는 상태에서 지원한다고 선언하는 것이
+> 위험하다. 게임은 `Phaser.Scale.RESIZE` + `viewport.js` 로 4:3 에서도 성립하도록
+> 설계돼 있지만(`02-design/18` §1.1), **성립한다고 검증한 적은 없다.**
+> **나중에 iPad 를 켜는 것은 언제든 가능하다** — 빌드 설정 한 줄 + 새 빌드다.
+>
+> ⚠ `Info.plist` 의 `UISupportedInterfaceOrientations~ipad` 와 `UIRequiresFullScreen`
+> 은 **남겨 두었다.** iPhone 전용에서는 무해하고, iPad 를 다시 켜는 날 그대로 필요하다.
 
 **iPhone 스크린샷 (가로 · 최소 1장, 권장 8장)**
 
@@ -694,9 +789,18 @@ Single-player offline game.
 > 심사자가 테스트 광고를 보면 정책 위반이고, **그 상태로 승인되면 실제 광고가
 > 영원히 안 뜬다** (`56` §7.3).
 
-### 5.6 ★★★ 아이콘과 스플래시가 아직 Capacitor 기본값이다 [실측 2026-08-07]
+### 5.6 ✅ 아이콘과 스플래시 — **교체 완료** (2026-08-10)
 
-**제출 전 필수 항목이다. 그리고 `npm run verify` 가 이것을 잡지 못한다.**
+> **아래는 무엇이 문제였고 어떻게 고쳤는지의 기록이다.** 조치는 끝났고,
+> **이제 `npm run icons` 가 iOS 까지 쓰고 `npm run icons:check` 가 iOS 까지 본다.**
+>
+> ★★★ **크기가 아니라 내용 해시를 대조한다.** Capacitor 기본 아이콘도 1024×1024
+> 라서 크기 검사는 그것을 **통과시킨다** — 실제로 4개월 통과시켰다. `resources/`
+> 원본과 바이트가 같은지 물어야 "교체했는가"에 답이 된다. 이 검사는 둘을 함께
+> 잡는다: ① 한 번도 교체하지 않음 ② `npm run icons` 로 원본만 새로 만들고
+> iOS 복사를 잊음.
+
+**[2026-08-07 시점의 문제 기록]**
 
 | 파일 | 현재 내용 | 있어야 할 것 |
 |---|---|---|
@@ -720,15 +824,17 @@ cp resources/splash-2732.png ios/App/App/Assets.xcassets/Splash.imageset/splash-
 | 알파 채널 | `tools/gen-app-icons.mjs` 가 `flatten()` 으로 알파를 지워 저장한다 [실측] — **1024 아이콘에 알파가 있으면 업로드 단계에서 반려된다** |
 | 스플래시 3장 | `Contents.json` 이 1x/2x/3x 세 칸을 요구하고 기본값도 **세 장이 동일 파일**이다 [실측]. 같은 그림을 세 번 넣으면 된다 |
 
-> ★★★ **왜 4개월 동안 아무도 몰랐나 — 검사기가 안드로이드만 본다.**
+> ★★★ **왜 4개월 동안 아무도 몰랐나 — 검사기가 안드로이드만 봤다.**
 > `npm run icons:check`(= `verify` 의 한 단계)는 `android/app/src/main/res/mipmap-*`
-> 만 검사하고, `tools/gen-app-icons.mjs` 는 **iOS 자산 카탈로그에 아무것도 쓰지
-> 않는다** [실측]. 그래서 **아이콘이 Capacitor 기본값인 채로 `verify` 가 전항
-> 통과한다.** 안드로이드 아이콘은 2026-08-07 에 고쳐졌고 iOS 는 **같은 날 잊혔다.**
+> 만 검사했고, `tools/gen-app-icons.mjs` 는 **iOS 자산 카탈로그에 아무것도 쓰지
+> 않았다**. 그래서 **아이콘이 Capacitor 기본값인 채로 `verify` 가 전항 통과했다.**
+> 안드로이드 아이콘은 2026-08-07 에 고쳐졌고 iOS 는 **같은 날 잊혔다.**
 > 이 저장소의 이름 붙은 실패 유형 그대로다 — *만들었는데 아무도 못 쓰는 것.*
 >
-> → **`icons:check` 에 iOS 두 경로를 더하는 것이 진짜 해결이다.** 그 전까지는
-> §9 체크리스트의 손 확인이 유일한 방어다.
+> ✅ **2026-08-10 에 진짜 해결을 했다.** `gen-app-icons.mjs` 에 `IOS_COPIES` 가
+> 생겨 생성 경로가 iOS 4장을 쓰고, `--check` 가 그 4장을 `resources/` 원본과
+> **해시로** 대조한다. 검사기는 **실제로 깨뜨려 확인했다** — 기본 아이콘을
+> 되돌리면 종료 코드 1 로 멈춘다.
 
 ---
 
@@ -913,20 +1019,30 @@ git tag ios-v1.0.0 && git push origin ios-v1.0.0
 
 ### 7.1 제출 전 확인
 
-- [ ] TestFlight 빌드가 실기에서 정상
-- [ ] 스크린샷 · 설명 · 키워드 · 지원 URL · 개인정보 URL
+**★ 코드 쪽은 이제 기계가 답한다.** `npm run check:prod` 와 `npm run icons:check`
+두 명령이 아래 표의 항목을 전부 검사한다 — **손으로 확인하던 다섯 줄이 사라졌다.**
+
+| 검사 | 무엇을 대신 봐 주는가 | 상태 [2026-08-10] |
+|---|---|---|
+| A5 | `GADApplicationIdentifier` 가 실제 앱 ID 인가 | ✅ |
+| A6 | `ITSAppUsesNonExemptEncryption` 이 있는가 | ✅ |
+| A7 | ATT 문구와 호출이 짝인가 | ✅ |
+| A8 | `PrivacyInfo.xcprivacy` 가 Xcode 타깃에 있는가 | ✅ |
+| A3 | `ads.json:testMode = false` 인가 | ✅ |
+| `icons:check` | 아이콘·스플래시가 Capacitor 기본값이 아닌가 | ✅ |
+
+**기계가 볼 수 없는 것 — App Store Connect 화면과 별도 저장소에 있다:**
+
+- [ ] TestFlight 빌드가 실기에서 정상 (**아이콘이 하늘색 X 가 아닌지 눈으로**)
+- [ ] 스크린샷 8장 (2868×1320) · 설명 · 키워드 · 지원 URL · 개인정보 URL
 - [ ] ★ 스토어 문구·이미지 어디에도 **"광고 없음"이 남아 있지 않다** (§5.2 · `57` §3)
-- [ ] ★ 앱 개인정보 = **수집함** (§5.3.1) — 광고 없는 1.0 이면 "수집 안 함"
-- [ ] ★ `PrivacyInfo.xcprivacy` 존재 + Xcode 타깃 포함 (§5.3.2)
-- [ ] ★ 개인정보 처리방침이 **광고 버전으로 교체**됐다 (`56` §4.5)
+- [ ] ★ 앱 개인정보 = **수집함** · **Used to Track You = 예** (§5.3.1)
+- [ ] ★ **개인정보 처리방침이 추적을 말하는가** — 별도 저장소라 같은 커밋에 안 온다 (§5.3.3)
 - [ ] ★ 연령 등급 설문 — **광고 노출 = 있음** (§4.2)
 - [ ] ★ **가격: 무료(Tier 0)** — 유료 앱 계약은 필요 없다 (§2.4 · §8.1)
-- [ ] 판매 국가 선택
-- [ ] 심사 메모에 **가로 전용 · 슬롯 선택 · 광고 위치** 명시 (§5.5)
-- [ ] 수출 규정: `ITSAppUsesNonExemptEncryption = false` (§2.5)
-- [ ] ★ `GADApplicationIdentifier` 가 **실제 앱 ID** 다 (테스트 ID 아님 · §2.5)
-- [ ] ★ `ads.json:testMode = false` (§5.5)
-- [ ] ★ **아이콘·스플래시가 Capacitor 기본값이 아니다** (§5.6)
+- [ ] 판매 국가 선택 (**EU 를 켜면 DSA 거래자 지위** — 53 §5.4)
+- [ ] 심사 메모에 **가로 전용 · 슬롯 선택 · 광고 위치** 명시 (§5.5) — **한/영 둘 다**
+- [ ] 등록명 `RIFT ARK` 가 `CFBundleDisplayName` 과 **대소문자까지 같은가** (§5.1)
 
 ### 7.2 자주 반려되는 항목 — 이 게임에 해당하는 것
 
@@ -1024,13 +1140,13 @@ App Store Connect → **가격 및 사용 가능 여부** → **무료(Tier 0)**
 - [ ] **개인 vs 법인 결정** (§2.2) — EU 를 켤 거면 DSA 거래자 공개도 함께 판단 (53 §5.4)
 - [ ] Bundle ID 등록 · **Capability 전부 끔** (§2.3)
 - [ ] ⛔ **유료 앱 계약을 맺지 않는다** (§2.4)
-- [ ] `Info.plist` — `ITSAppUsesNonExemptEncryption = false` (§2.5)
-- [ ] **ATT 결정** (§2.6) — 지금은 "요청하지 않는다". 바꾸면 §5.3 넷을 함께 바꾼다
+- [x] `Info.plist` — `ITSAppUsesNonExemptEncryption = false` (§2.5) ✅ 2026-08-10 · **A6**
+- [x] **ATT 결정** (§2.6) — ★ **"요청한다"** (2026-08-08). §5.3 의 넷이 전부 "추적함"
 - [ ] App Store Connect API 키 발급 · `.p8` 안전 보관 (§3)
-- [ ] **iPad 지원 여부 결정** (§5.4) — 권장: 첫 출시는 iPhone 전용
+- [x] **iPad 지원 여부 결정** (§5.4) — ✅ **iPhone 전용** (2026-08-10)
 - [ ] 앱 생성 · 앱 정보 · 설명 · **키워드에서 "광고없음" 제외** (§5.1–5.2)
-- [ ] 스크린샷 (§5.4 · ⑤ 문서 · `57`)
-- [ ] ★ **아이콘 · 스플래시 교체** (§5.6) — `verify` 가 잡지 않는다
+- [ ] 스크린샷 (§5.4 · ⑤ 문서 · `57`) — `asset/generated/store/ios/` 8장 준비됨
+- [x] ★ **아이콘 · 스플래시 교체** (§5.6) ✅ 2026-08-10 · **`icons:check` 가 이제 잡는다**
 - [ ] 연령 등급 설문 (§4)
 - [ ] 심사 메모 한/영 (§5.5)
 - [ ] Codemagic App Store Connect 통합 등록 (§6.2)
@@ -1041,10 +1157,10 @@ App Store Connect → **가격 및 사용 가능 여부** → **무료(Tier 0)**
 
 ### 광고를 켜는 릴리스에서만 — ★ 넷을 한 커밋에서 (§5.3.3)
 
-- [ ] AdMob iOS 앱 등록 · 보상형 광고 단위 생성 · 지급/세금 설정 (§2.4 · `56` §1)
-- [ ] `Info.plist` — `GADApplicationIdentifier` 를 **실제 앱 ID** 로 · `SKAdNetworkItems` 추가
-- [ ] `PrivacyInfo.xcprivacy` 작성 + **Xcode 타깃 포함** (§5.3.2)
-- [ ] App Privacy = **수집함** (§5.3.1)
+- [x] AdMob iOS 앱 등록 · 보상형 광고 단위 생성 ✅ 2026-08-08 — **지급/세금 설정은 아직** (§2.4)
+- [x] `Info.plist` — `GADApplicationIdentifier` 를 **실제 앱 ID** 로 ✅ · **A5** — ⚠ `SKAdNetworkItems` 는 **아직 없다** (`56` §2.5)
+- [x] `PrivacyInfo.xcprivacy` 작성 ✅ 08-08 + **Xcode 타깃 포함** ✅ 08-10 · **A8**
+- [ ] App Privacy = **수집함** · **Used to Track You = 예** (§5.3.1)
 - [ ] 개인정보 처리방침 한/영 교체 (`56` §4.5)
 - [ ] 연령 등급 설문 — **광고 노출 = 있음** (§4.2)
 - [ ] 스토어 문구·스크린샷에서 **"광고 없음" 전량 제거** (§5.2 · `57` §3)
@@ -1073,12 +1189,13 @@ App Store Connect → **가격 및 사용 가능 여부** → **무료(Tier 0)**
 | **앱이 실행 즉시 죽는다** | ★ **`GADApplicationIdentifier` 누락 또는 `~`/`/` 혼동.** 앱 ID 는 물결(`~`), 광고 단위 ID 는 슬래시(`/`) 다 (`56` §1.2 · §2.5) |
 | **광고가 영원히 안 뜬다** | 앱 ID 를 `ads.json:units` 에 넣었다 · 동의 폼 미게시로 `canRequestAds` 가 false (`56` §3.1) · `enabled=false` |
 | **광고 버튼이 "로딩 중"으로 굳는다** | ★ 중도 이탈 시 `showRewardVideoAd()` 가 resolve 되지 않는다. `native/ads.js` 의 이벤트 경주가 그것을 막는다 (`56` §5.3 ①) |
-| **ITMS-91053 (Missing API declaration) 메일** | ★ **Privacy Manifest 누락 또는 번들 미포함** (§5.3.2 · §6.4 ②) |
+| **ITMS-91053 (Missing API declaration) 메일** | ★ **Privacy Manifest 누락 또는 번들 미포함** (§5.3.2 · §6.4 ②). **2026-08-10 이전 빌드가 전부 이 상태였다** — 메일함을 확인할 것. 지금은 `A8` 이 막는다 |
 | **무료 앱인데 계약을 요구한다** | Paid Applications Agreement 를 실수로 Request 했다 → "Pending User Info" (§2.4) |
 | 스크린샷 규격 거부 | 요구 픽셀 크기가 바뀌었다. 업로드 화면의 안내를 그대로 따른다 |
 | 1024 아이콘 업로드 거부 | **알파 채널이 있다.** `resources/icon-1024.png` 는 이미 flatten 돼 있다 (§5.6) |
-| **홈 화면 아이콘이 하늘색 X 다** | ★ iOS 자산 카탈로그가 Capacitor 기본값이다 (§5.6). `icons:check` 는 안드로이드만 본다 |
-| iPad 스크린샷을 요구함 | `TARGETED_DEVICE_FAMILY = "1,2"` 때문. §5.4 |
+| **홈 화면 아이콘이 하늘색 X 다** | ★ iOS 자산 카탈로그가 Capacitor 기본값이다 (§5.6). ✅ **2026-08-10 부터 `icons:check` 가 iOS 도 해시로 본다** |
+| **홈 화면 이름이 스토어 등록명과 다르다** | ★ `CFBundleDisplayName` 은 **로케일별**이다. `ko.lproj/InfoPlist.strings` 에 이름을 넣었는데 등록명에 한국어 현지화가 없으면 **한국어 기기에서만** 어긋난다 (§5.1) |
+| iPad 스크린샷을 요구함 | `TARGETED_DEVICE_FAMILY` 가 `"1,2"` 다. ✅ 지금은 `1` — §5.4 |
 | **2.1 반려 (심사자가 진행 못함)** | 가로 전용 · 슬롯 선택을 심사 메모에 안 적었다 (§5.5) — 또는 광고 SDK 때문에 부팅 크래시 |
 | **2.3 반려 (메타데이터)** | 스크린샷이 실제 게임 화면이 아니다 · **"광고 없음"이 남아 있다** (§5.2 · §7.2) |
 | **5.1.1 반려 (개인정보)** | 방침 · App Privacy · Privacy Manifest 가 서로 다른 말을 한다 (§5.3.3) |
