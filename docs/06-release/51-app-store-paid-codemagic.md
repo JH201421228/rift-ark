@@ -697,8 +697,33 @@ SDK 이고 우리 코드가 아니며, `NSPrivacyTracking` 이 false 인데 수�
 | 줄끝 | LF · BOM 없음 |
 | 최상위 키 | `NSPrivacyAccessedAPITypes` · `NSPrivacyCollectedDataTypes` · `NSPrivacyTracking` · `NSPrivacyTrackingDomains` (알파벳 순) |
 
-> ★ **`A10` 이 주석과 낯선 최상위 키를 막는다.** Apple 이 반려 사유로 쓰는 말이
-> *"unexpected keys or values"* 라, 모르는 키도 함께 잡는다.
+##### ★★★ 그것도 아니었다 — 진짜 원인은 **키 이름 오타** (빌드 14 · 2026-08-11)
+
+```
+우리 파일   <key>NSPrivacyAccessedAPI____Reasons</key>
+Apple 정본  <key>NSPrivacyAccessedAPITypeReasons</key>     ← `Type` 이 빠졌다
+```
+
+Apple 이 쓰는 반려 문구가 *"unexpected keys or values"* 인데 **그 키가 이것**이었다.
+2026-08-08 에 파일을 만들 때부터 틀려 있었고, 번들 밖에 있던 동안 드러나지 않았다.
+
+> ★★★ **세 번 중 두 번을 헛짚었다.** 추적 도메인(12→13)과 XML 주석(13→14)을
+> 고쳤는데 둘 다 원인이 아니었다. **둘 다 "이 한 가지가 맞는가"를 묻는 부분
+> 대조였고, 부분 대조는 나머지 전부를 통과로 보이게 한다.**
+>
+> ★★ **그리고 이것은 사람이 검토해서 잡을 수 있는 오타가 아니다.**
+> `NSPrivacyAccessedAPIReasons` 와 `NSPrivacyAccessedAPITypeReasons` 는
+> 읽어서 구분되지 않는다 — 세 번 다 이 줄을 눈으로 지나쳤다.
+
+**→ `A10` 을 부분 대조에서 전수 대조로 바꿨다:**
+
+| 무엇 | 어떻게 |
+|---|---|
+| **모든 `<key>`** | privacy manifest 의 유효 키 **10개** 화이트리스트와 대조. 하나라도 밖이면 실패 |
+| `NSPrivacyAccessedAPIType` 값 | Apple 의 5개 범주에 있는가 |
+| 사유 코드 | **그 범주의** 허용 코드인가 (`CA92.1` 은 UserDefaults, `DDA9.1` 은 FileTimestamp) |
+| 사유 0개 | 키 이름 오타면 사유가 0개로 보인다 — 그것도 잡는다 |
+| XML 주석 | 그대로 막는다 (원인은 아니었지만 정본 예시에 없다) |
 
 2024-05-01 이후 업로드되는 iOS 앱은 **Required Reason API** 사용을 Privacy Manifest
 에 선언해야 한다 [확인]. 누락하면 업로드는 되지만 **ITMS-91053 (Missing API
