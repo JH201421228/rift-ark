@@ -51,6 +51,16 @@ const CLEAN_IOS_PLIST = (id = "ca-app-pub-1234567890123456~2222222222") =>
     `  <key>ITSAppUsesNonExemptEncryption</key><false/>\n` +
     `</dict></plist>`;
 const CLEAN_IOS_PBXPROJ = `objects = { AAAA /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; }; };`;
+/** 추적하지 않는 정상 매니페스트 — 우리 1차 코드는 네트워크를 타지 않는다. */
+const CLEAN_IOS_PRIVACY = (tracking = false, domains = []) =>
+    `<plist><dict>\n` +
+    `  <key>NSPrivacyTracking</key><${tracking ? "true" : "false"}/>\n` +
+    (domains.length
+        ? `  <key>NSPrivacyTrackingDomains</key><array>${domains
+              .map((d) => `<string>${d}</string>`)
+              .join("")}</array>\n`
+        : "") +
+    `</dict></plist>`;
 
 function run({
     sources = new Map(),
@@ -60,9 +70,20 @@ function run({
     manifest = CLEAN_MANIFEST(),
     iosPlist = CLEAN_IOS_PLIST(),
     iosPbxproj = CLEAN_IOS_PBXPROJ,
+    iosPrivacy = CLEAN_IOS_PRIVACY(),
     stale = [],
 }) {
-    return analyze({ sources, bundle, capacitor, ads, manifest, iosPlist, iosPbxproj, stale });
+    return analyze({
+        sources,
+        bundle,
+        capacitor,
+        ads,
+        manifest,
+        iosPlist,
+        iosPbxproj,
+        iosPrivacy,
+        stale,
+    });
 }
 const joined = (r) => r.errors.join("\n");
 
@@ -443,10 +464,32 @@ describe("A5–A8 iOS 제출 배선", () => {
         expect(joined(run({ iosPbxproj: "objects = { };" }))).toMatch(/A8 .*IPA 에 들어가지 않는다/);
     });
 
+    it("A9 NSPrivacyTracking 이 true 인데 도메인이 비면 잡는다 — ITMS-91056 그 자체", () => {
+        // ★ 2026-08-10 빌드 12 가 정확히 이 상태로 "잘못된 바이너리"가 됐다.
+        expect(joined(run({ iosPrivacy: CLEAN_IOS_PRIVACY(true, []) }))).toMatch(
+            /A9 .*NSPrivacyTracking 이 true 인데/
+        );
+        // 도메인이 있으면 통과한다 (다만 우리는 그 길을 택하지 않는다 — 아래 주석)
+        expect(
+            joined(run({ iosPrivacy: CLEAN_IOS_PRIVACY(true, ["googleads.g.doubleclick.net"]) }))
+        ).not.toMatch(/A9/);
+    });
+
+    it("A9 반대 방향 — tracking 이 false 인데 도메인이 있으면 잡는다", () => {
+        expect(joined(run({ iosPrivacy: CLEAN_IOS_PRIVACY(false, ["example.com"]) }))).toMatch(
+            /A9 .*false 인데/
+        );
+    });
+
+    it("A9 지금 저장소의 조합(false · 도메인 키 없음)은 통과한다", () => {
+        expect(joined(run({ iosPrivacy: CLEAN_IOS_PRIVACY(false, []) }))).not.toMatch(/A9/);
+    });
+
     it("읽지 못한 iOS 파일은 조용히 통과시키지 않는다", () => {
-        const r = run({ iosPlist: null, iosPbxproj: null });
+        const r = run({ iosPlist: null, iosPbxproj: null, iosPrivacy: null });
         expect(r.warnings.join()).toMatch(/A5 .*검사하지 못했다/);
         expect(r.warnings.join()).toMatch(/A8 .*검사하지 못했다/);
+        expect(r.warnings.join()).toMatch(/A9 .*검사하지 못했다/);
     });
 });
 
