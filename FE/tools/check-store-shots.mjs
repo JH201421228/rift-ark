@@ -89,6 +89,17 @@ const SETS = [
         width: 2868,
         height: 1320,
     },
+    /**
+     * ★ 6.5형 — App Store Connect 의 6.5인치 슬롯이 받는 크기 (2026-08-10).
+     *   그 칸은 2688×1242 / 2778×1284 만 받고 6.9형 이미지를 거부한다.
+     *   두 세트는 **같은 `raw/` 에서 나온다** — 그림이 갈라질 수 없다.
+     */
+    {
+        dir: path.join(LANGUAGE_ROOT, "ios"),
+        name: (id) => `ios-65-${id}.png`,
+        width: 2778,
+        height: 1284,
+    },
 ];
 
 async function checkCopy() {
@@ -217,6 +228,9 @@ async function checkImage(file, expected) {
 await checkCopy();
 await checkFreshness();
 
+/** 폴더 하나를 여러 세트가 공유하므로, 폴더 감사는 폴더당 한 번만 한다. */
+const dirsAudited = new Set();
+
 for (const set of SETS) {
     let names = [];
     try {
@@ -229,9 +243,23 @@ for (const set of SETS) {
         if (!names.includes(name))
             errors.push(`${path.relative(ROOT, path.join(set.dir, name))} 없음`);
     }
-    const unexpected = names.filter((name) => !expectedNames.includes(name));
-    if (unexpected.length) {
-        errors.push(`${path.relative(ROOT, set.dir)} 에 예상 밖 PNG: ${unexpected.join(", ")}`);
+    /**
+     * ★★ "예상 밖 파일" 은 **그 폴더를 쓰는 모든 세트**를 합쳐서 판정한다
+     *   (2026-08-10). iOS 는 6.9형과 6.5형이 `ios/` 하나를 공유하므로, 세트별로
+     *   따로 물으면 **서로가 서로를 예상 밖이라고 신고한다** — 실제로 6.5형을
+     *   추가하자마자 양쪽이 동시에 실패했다. 폴더가 세트의 단위가 아니다.
+     */
+    if (!dirsAudited.has(set.dir)) {
+        dirsAudited.add(set.dir);
+        const namesOwnedByThisDir = new Set(
+            SETS.filter((s) => s.dir === set.dir).flatMap((s) =>
+                Array.from({ length: 8 }, (_, i) => s.name(i + 1))
+            )
+        );
+        const unexpected = names.filter((name) => !namesOwnedByThisDir.has(name));
+        if (unexpected.length) {
+            errors.push(`${path.relative(ROOT, set.dir)} 에 예상 밖 PNG: ${unexpected.join(", ")}`);
+        }
     }
     for (const name of expectedNames.filter((item) => names.includes(item))) {
         await checkImage(path.join(set.dir, name), set);
