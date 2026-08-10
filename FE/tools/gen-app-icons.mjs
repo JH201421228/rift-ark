@@ -36,13 +36,15 @@
  *   node tools/gen-app-icons.mjs --check  # 존재·크기만 검사 (CI)
  */
 import sharp from "sharp";
-import { mkdir, writeFile, access } from "node:fs/promises";
+import { mkdir, writeFile, access, readFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const RES = join(ROOT, "android/app/src/main/res");
 const OUT_STORE = join(ROOT, "resources");
+const IOS_ASSETS = join(ROOT, "ios/App/App/Assets.xcassets");
 
 /**
  * 게임 팔레트.
@@ -68,6 +70,32 @@ const MIPMAP = [
     ["mipmap-xhdpi", 96, 216],
     ["mipmap-xxhdpi", 144, 324],
     ["mipmap-xxxhdpi", 192, 432],
+];
+
+/**
+ * iOS 자산 카탈로그 — `[대상 경로, resources/ 안의 원본]`.
+ *
+ * ★★★ **아이콘이 안드로이드에서 고쳐지고 iOS 에서 4개월 더 기본값이었다**
+ *   (2026-08-07 → 2026-08-10). 그리고 그 4개월 동안 `npm run verify` 는
+ *   **전항 통과했다** — 이 검사기가 `android/.../mipmap-*` 만 보고 있었기 때문이다.
+ *   저장소의 이름 붙은 실패 유형 그대로다: *만들었는데 아무도 못 쓰는 것.*
+ *
+ * ★★ **크기만 보지 않고 내용 해시를 대조한다.** Capacitor 기본 아이콘도 1024×1024
+ *   이라 크기 검사는 그것을 통과시킨다 — 실제로 통과시켰다. 원본과 바이트가
+ *   같은지 물어야 "교체했는가"에 답이 된다. 이 검사는 두 가지를 한꺼번에 잡는다:
+ *   ① 한 번도 교체하지 않은 경우 ② `npm run icons` 로 원본만 새로 만들고
+ *   iOS 로 복사하는 것을 잊은 경우.
+ *
+ * ★ 스플래시 3장이 같은 파일인 것은 정상이다 — `Contents.json` 이 1x/2x/3x
+ *   세 칸을 요구하고, Capacitor 기본값도 같은 그림 세 장이었다.
+ *
+ * ⚠ **파일 이름을 바꾸지 않는다.** `Contents.json` 이 이 이름들을 가리킨다.
+ */
+const IOS_COPIES = [
+    ["AppIcon.appiconset/AppIcon-512@2x.png", "icon-1024.png"],
+    ["Splash.imageset/splash-2732x2732.png", "splash-2732.png"],
+    ["Splash.imageset/splash-2732x2732-1.png", "splash-2732.png"],
+    ["Splash.imageset/splash-2732x2732-2.png", "splash-2732.png"],
 ];
 
 const RIFT_SHEET = join(ROOT, "public/assets/structures/rift-idle.png");
@@ -271,12 +299,34 @@ async function main() {
                 bad++;
             }
         }
+        /**
+         * ★★★ iOS 자산 카탈로그가 `resources/` 원본과 **바이트가 같은가.**
+         *   위 §IOS_COPIES 주석 참조 — 크기만 보면 Capacitor 기본값이 통과한다.
+         */
+        for (const [rel, src] of IOS_COPIES) {
+            const p = join(IOS_ASSETS, rel);
+            const s = join(OUT_STORE, src);
+            try {
+                const [a, b] = await Promise.all([readFile(p), readFile(s)]);
+                const h = (buf) => createHash("sha256").update(buf).digest("hex");
+                if (h(a) !== h(b)) {
+                    console.error(
+                        `✗ ios/App/App/Assets.xcassets/${rel} 가 resources/${src} 와 다르다 ` +
+                            `— Capacitor 기본값이 남아 있거나 원본 갱신 후 복사를 잊었다`
+                    );
+                    bad++;
+                }
+            } catch {
+                console.error(`✗ ios/App/App/Assets.xcassets/${rel} 또는 resources/${src} 없음`);
+                bad++;
+            }
+        }
         if (bad) {
             console.error(`
 아이콘 ${bad}건 불일치 — node tools/gen-app-icons.mjs 로 다시 만들라`);
             process.exit(1);
         }
-        console.log("아이콘 전 밀도 + 스토어 원본 알파 확인 — 정상");
+        console.log("아이콘 전 밀도 + 스토어 원본 알파 + iOS 자산 카탈로그 확인 — 정상");
         return;
     }
 
@@ -332,7 +382,24 @@ async function main() {
     await writeFile(join(OUT_STORE, "splash-2732.png"), await splashPng(2732, 2732));
     console.log("  resources/ 에 스토어 원본 4종");
 
-    console.log("\n완료. `npx cap sync android` 는 아이콘을 덮어쓰지 않는다 (res/ 는 그대로 둔다).");
+    /* ── iOS 자산 카탈로그 ──
+     *
+     * ★★★ **예전에는 이 절이 없었다.** 그래서 `npm run icons` 가 안드로이드와
+     *   `resources/` 만 갱신했고, iOS 는 손으로 복사하지 않으면 영원히 Capacitor
+     *   기본값이었다 — 실제로 4개월 그랬다 (§IOS_COPIES).
+     *
+     * ★ `resources/` 원본을 **그대로 복사**한다. 여기서 다시 렌더하지 않는다 —
+     *   그러면 같은 그림을 두 경로로 만들게 되고, 이 저장소의 단일 실패 유형인
+     *   *같은 사실을 두 곳에 적기* 가 된다. `--check` 도 같은 전제로 해시를 본다.
+     */
+    for (const [rel, src] of IOS_COPIES) {
+        const dst = join(IOS_ASSETS, rel);
+        await mkdir(dirname(dst), { recursive: true });
+        await writeFile(dst, await readFile(join(OUT_STORE, src)));
+    }
+    console.log(`  iOS 자산 카탈로그 ${IOS_COPIES.length}장`);
+
+    console.log("\n완료. `npx cap sync android|ios` 는 아이콘을 덮어쓰지 않는다.");
 }
 
 main().catch((e) => {
