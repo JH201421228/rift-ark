@@ -674,6 +674,32 @@ SDK 이고 우리 코드가 아니며, `NSPrivacyTracking` 이 false 인데 수�
 > ★ **`A9` 가 이 규칙을 지킨다** — 양방향이다 (true+빈 도메인 · false+도메인 있음).
 > 되돌리면 **20분 빌드 뒤 업로드에서 죽는 대신 빌드 전에 멈춘다.**
 
+##### ★★★ 그런데 그것으로도 안 됐다 — **주석이 남아 있었다** (빌드 13)
+
+`NSPrivacyTracking = false` 로 고친 빌드 13 이 **똑같은 ITMS-91056** 으로 떨어졌다.
+구조는 정본과 완전히 같았고, 레퍼런스 예시들과 다른 점이 하나 남아 있었다 —
+**803자짜리 한국어 XML 주석**이다. 걷어내니 **4,366 바이트 → 594 바이트**가 됐다.
+
+> 표준 XML 파서라면 주석은 무해하다. 그러나 **그것이 참이라는 근거가 우리에게 없고**,
+> 이 파일에서 주석으로 얻는 것보다 **업로드가 막히는 비용이 압도적으로 크다.**
+>
+> ★★ **이 저장소의 규약은 "지식은 대상 옆에 둔다" 인데, 대상이 주석을 못 받는
+> 파일이면 옆 파일이 그 자리다.** 설명 전문은
+> **`FE/ios/App/App/PrivacyInfo.README.md`** 로 옮겼다 (Xcode 타깃에 없으므로
+> 번들에 들어가지 않는다).
+
+**지금 파일의 형태 — Xcode 가 만드는 정본 그대로다:**
+
+| | |
+|---|---|
+| 주석 | **0개** |
+| 비ASCII | **0자** |
+| 줄끝 | LF · BOM 없음 |
+| 최상위 키 | `NSPrivacyAccessedAPITypes` · `NSPrivacyCollectedDataTypes` · `NSPrivacyTracking` · `NSPrivacyTrackingDomains` (알파벳 순) |
+
+> ★ **`A10` 이 주석과 낯선 최상위 키를 막는다.** Apple 이 반려 사유로 쓰는 말이
+> *"unexpected keys or values"* 라, 모르는 키도 함께 잡는다.
+
 2024-05-01 이후 업로드되는 iOS 앱은 **Required Reason API** 사용을 Privacy Manifest
 에 선언해야 한다 [확인]. 누락하면 업로드는 되지만 **ITMS-91053 (Missing API
 declaration)** 경고 메일이 오고 이후 심사에서 막힌다.
@@ -1262,7 +1288,7 @@ App Store Connect → **가격 및 사용 가능 여부** → **무료(Tier 0)**
 | **광고가 영원히 안 뜬다** | 앱 ID 를 `ads.json:units` 에 넣었다 · 동의 폼 미게시로 `canRequestAds` 가 false (`56` §3.1) · `enabled=false` |
 | **광고 버튼이 "로딩 중"으로 굳는다** | ★ 중도 이탈 시 `showRewardVideoAd()` 가 resolve 되지 않는다. `native/ads.js` 의 이벤트 경주가 그것을 막는다 (`56` §5.3 ①) |
 | **ITMS-91053 (Missing API declaration) 메일** | ★ **Privacy Manifest 누락 또는 번들 미포함** (§5.3.2 · §6.4 ②). **2026-08-10 이전 빌드가 전부 이 상태였다** — 메일함을 확인할 것. 지금은 `A8` 이 막는다 |
-| ★★★ **ITMS-91056 (Invalid privacy manifest) · "잘못된 바이너리"** | **`NSPrivacyTracking` 이 true 인데 `NSPrivacyTrackingDomains` 가 비었다** (2026-08-10 빌드 12). ⛔ **도메인을 채워서 통과시키지 마라** — 그 도메인은 ATT 거부 사용자에게 실제로 차단되어 비개인화 광고까지 막는다. 정답은 `false` 다 (§5.3.2). 지금은 `A9` 가 막는다 |
+| ★★★ **ITMS-91056 (Invalid privacy manifest) · "잘못된 바이너리"** | **두 번 당했다** (§5.3.2). ① 빌드 12 — `NSPrivacyTracking` 이 true 인데 도메인이 비었다. ⛔ **도메인을 채워서 통과시키지 마라**: 그 도메인은 ATT 거부 사용자에게 실제로 차단되어 비개인화 광고까지 막는다 → 정답은 `false`. ② 빌드 13 — 고쳤는데도 같은 에러. 원인은 **파일 안의 XML 주석**이었다 → 주석을 0개로. 지금은 `A9`·`A10` 이 막는다 |
 | **빌드 상태가 "잘못된 바이너리"** | 업로드는 됐고 **자동 검증에서 떨어졌다.** 사유는 상태값이 아니라 **메일**(`ITMS-9xxxx`)·TestFlight 빌드 상세·ASC 알림에 있다 |
 | **무료 앱인데 계약을 요구한다** | Paid Applications Agreement 를 실수로 Request 했다 → "Pending User Info" (§2.4) |
 | **"심사에 추가할 수 없음"** | ★★ 필수 필드가 비었다. 2026-08-10 에 실제로 막은 둘: **저작권** · **앱 개인정보 페이지의 방침 URL** → §5.2.1 |

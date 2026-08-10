@@ -481,8 +481,27 @@ describe("A5–A8 iOS 제출 배선", () => {
         );
     });
 
-    it("A9 지금 저장소의 조합(false · 도메인 키 없음)은 통과한다", () => {
-        expect(joined(run({ iosPrivacy: CLEAN_IOS_PRIVACY(false, []) }))).not.toMatch(/A9/);
+    it("A10 .xcprivacy 안의 XML 주석을 잡는다", () => {
+        // ★ 빌드 13 이 tracking=false 로 고친 뒤에도 ITMS-91056 으로 떨어졌고,
+        //   레퍼런스와 다른 점은 803자짜리 한국어 주석 하나뿐이었다.
+        const withComment = `<plist><!-- 설명 --><dict>
+  <key>NSPrivacyTracking</key><false/>
+</dict></plist>`;
+        expect(joined(run({ iosPrivacy: withComment }))).toMatch(/A10 .*XML 주석이 있다/);
+    });
+
+    it("A10 Apple 이 모르는 최상위 키를 잡는다", () => {
+        const bogus =
+            `<plist><dict>
+  <key>NSPrivacyTracking</key><false/>
+` +
+            `  <key>NSPrivacyMadeUpKey</key><true/>
+</dict></plist>`;
+        expect(joined(run({ iosPrivacy: bogus }))).toMatch(/A10 .*모르는 키/);
+    });
+
+    it("A9·A10 지금 저장소의 조합(false · 도메인 없음 · 주석 없음)은 통과한다", () => {
+        expect(joined(run({ iosPrivacy: CLEAN_IOS_PRIVACY(false, []) }))).not.toMatch(/A9|A10/);
     });
 
     it("읽지 못한 iOS 파일은 조용히 통과시키지 않는다", () => {
