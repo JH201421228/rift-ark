@@ -1185,6 +1185,7 @@ App Store Connect → **가격 및 사용 가능 여부** → **무료(Tier 0)**
 | `pod install` 실패 | `npx cap sync ios` 를 **먼저** 돌려야 한다. yaml 순서 확인 (§6.4) |
 | 서명 실패 | Bundle ID 가 §2.3 에서 등록되지 않았거나, API 키 권한이 App Manager 미만 |
 | TestFlight 가 빌드를 거부 | **빌드 번호 중복.** `agvtool` 단계 확인 (§6.4) |
+| ★★★ **"Failed to publish App.ipa to App Store Connect"** | **빌드 번호 중복이고, 원인은 `get-latest-app-store-build-number` 의 폴백이다** (2026-08-10, v1.0.4). 그 폴백은 **0 → 빌드 번호 1** 을 만드는데 1 은 2026-08-09 빌드가 소진했다. 게다가 `2>/dev/null` 이 진짜 실패 이유를 지워서 **20분 빌드가 맨 마지막 업로드에서 알아볼 수 없는 문구 하나로 죽는다.** → 폴백을 **단조 증가하는 `$BUILD_NUMBER`** 로 바꾸고 stderr 를 살렸다. **폴백은 자기 역할이 끝났다는 것을 모른다** — 첫 빌드에만 옳은 값을 영구 기본값으로 두지 않는다 |
 | "Missing Compliance" | `ITSAppUsesNonExemptEncryption` 누락 (§2.5) |
 | **앱이 실행 즉시 죽는다** | ★ **`GADApplicationIdentifier` 누락 또는 `~`/`/` 혼동.** 앱 ID 는 물결(`~`), 광고 단위 ID 는 슬래시(`/`) 다 (`56` §1.2 · §2.5) |
 | **광고가 영원히 안 뜬다** | 앱 ID 를 `ads.json:units` 에 넣었다 · 동의 폼 미게시로 `canRequestAds` 가 false (`56` §3.1) · `enabled=false` |
