@@ -59,6 +59,7 @@
  *   A7  ATT 문구와 `requestTrackingAuthorization()` 호출이 **한쪽만** 있다
  *   A8  `PrivacyInfo.xcprivacy` 가 `project.pbxproj` 에 없다 → IPA 미포함 (ITMS-91053)
  *   A9  `NSPrivacyTracking` 과 `NSPrivacyTrackingDomains` 가 어긋난다 (ITMS-91056)
+ *   A10 `.xcprivacy` 에 XML 주석 / 낯선 최상위 키가 있다 (ITMS-91056)
  *
  * ★ 검사 범위는 **번들**이다 — `dist/index.html` · `dist/assets/*.js` · `*.css`.
  *   `public/` 에서 복사된 에셋(아틀라스 · 오디오 · PNG)은 빌드가 만든 코드가 아니고,
@@ -965,6 +966,42 @@ export function analyze({
      *   (SDK 는 자기 매니페스트에 자기 도메인을 선언하고 Xcode 가 병합한다).
      */
     if (iosPrivacy !== null) {
+        /* A10 — 이 파일은 **주석을 받지 못한다.**
+         *
+         * ★★★ 2026-08-10: `NSPrivacyTracking` 을 false 로 고친 빌드 13 이
+         *   **똑같이 ITMS-91056 으로 떨어졌다.** 구조는 정본과 같았고, 레퍼런스
+         *   예시들과 다른 점은 **803자짜리 한국어 XML 주석** 하나였다.
+         *   걷어내자 4,366 바이트 → 594 바이트가 됐다.
+         *
+         *   표준 XML 파서라면 주석은 무해하다. 그러나 **그것이 참이라는 근거가
+         *   우리에게 없고**, 이 파일에서 주석으로 얻는 것보다 업로드가 막히는
+         *   비용이 압도적으로 크다. 설명은 `PrivacyInfo.README.md` 가 갖는다.
+         */
+        if (iosPrivacy.includes("<!--")) {
+            errors.push(
+                `A10 ${IOS_PRIVACY} 에 XML 주석이 있다 — 이 파일은 주석을 받지 못한다. ` +
+                    `ITMS-91056 의 유력한 원인이었다 (빌드 13). ` +
+                    `설명은 옆의 PrivacyInfo.README.md 에 적는다`
+            );
+        }
+        /* A10 — 낯선 최상위 키. Apple 은 "예상 밖 키/값" 을 그대로 반려 사유로 쓴다. */
+        const KNOWN_TOP_KEYS = new Set([
+            "NSPrivacyTracking",
+            "NSPrivacyTrackingDomains",
+            "NSPrivacyCollectedDataTypes",
+            "NSPrivacyAccessedAPITypes",
+        ]);
+        const topKeys = [...iosPrivacy.matchAll(/<key>([^<]+)<\/key>/g)].map((m) => m[1]);
+        const unknownTop = topKeys.filter(
+            (k) => k.startsWith("NSPrivacy") && !KNOWN_TOP_KEYS.has(k) && !k.includes("DataType") && !k.includes("AccessedAPI")
+        );
+        if (unknownTop.length) {
+            errors.push(
+                `A10 ${IOS_PRIVACY} 에 Apple 이 모르는 키가 있다: ${unknownTop.join(", ")} — ` +
+                    `"예상 밖 키/값" 은 ITMS-91056 의 사유 그 자체다`
+            );
+        }
+
         const tracking = /<key>NSPrivacyTracking<\/key>\s*<true\s*\/>/.test(iosPrivacy);
         const domainsBlock = iosPrivacy.match(
             /<key>NSPrivacyTrackingDomains<\/key>\s*<array\s*(\/>|>([\s\S]*?)<\/array>)/
