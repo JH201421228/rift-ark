@@ -58,6 +58,7 @@
  *   A6  iOS `Info.plist` 에 `ITSAppUsesNonExemptEncryption` 이 없다 (Missing Compliance)
  *   A7  ATT 문구와 `requestTrackingAuthorization()` 호출이 **한쪽만** 있다
  *   A8  `PrivacyInfo.xcprivacy` 가 `project.pbxproj` 에 없다 → IPA 미포함 (ITMS-91053)
+ *   A9  `NSPrivacyTracking` 과 `NSPrivacyTrackingDomains` 가 어긋난다 (ITMS-91056)
  *
  * ★ 검사 범위는 **번들**이다 — `dist/index.html` · `dist/assets/*.js` · `*.css`.
  *   `public/` 에서 복사된 에셋(아틀라스 · 오디오 · PNG)은 빌드가 만든 코드가 아니고,
@@ -95,6 +96,7 @@ export const ANDROID_MANIFEST = "android/app/src/main/AndroidManifest.xml";
  */
 export const IOS_INFO_PLIST = "ios/App/App/Info.plist";
 export const IOS_PBXPROJ = "ios/App/App.xcodeproj/project.pbxproj";
+export const IOS_PRIVACY = "ios/App/App/PrivacyInfo.xcprivacy";
 /** 구글 공식 테스트 값. 배포 빌드에 이것이 남으면 수익이 0 이다 (`56 §1.3`). */
 export const GOOGLE_TEST_APP_ID = "ca-app-pub-3940256099942544~3347511713";
 /** AdMob id 는 `~`(앱) 와 `/`(광고 단위)로만 갈린다 — 앞 16자리는 같다. */
@@ -577,6 +579,7 @@ export function analyze({
     manifest = null,
     iosPlist = null,
     iosPbxproj = null,
+    iosPrivacy = null,
     stale = [],
 }) {
     const errors = [];
@@ -947,6 +950,47 @@ export function analyze({
      *   업로드 며칠 뒤 오는 `ITMS-91053` 메일이다. 실제로 그 상태로 TestFlight
      *   빌드가 여러 번 올라갔다 (2026-08-10 발견).
      */
+    /* A9 — Privacy Manifest 의 **추적 선언 정합성.**
+     *
+     * ★★★ Apple 규칙: `NSPrivacyTracking` 이 true 면 `NSPrivacyTrackingDomains`
+     *   가 비어 있으면 안 된다. 어기면 업로드가 **ITMS-91056 (Invalid privacy
+     *   manifest)** 으로 떨어지고 빌드 상태가 "잘못된 바이너리"가 된다
+     *   (2026-08-10, 빌드 12 에서 실제로 당했다).
+     *
+     * ⚠ **도메인을 채워서 통과시키지 마라.** 이 키는 선언이 아니라 **동작**이다 —
+     *   여기 적힌 도메인은 ATT 를 허용하지 않은 사용자에게 네트워크 요청이
+     *   실패한다. 구글 광고 도메인을 적으면 ATT 거부 사용자에게 **비개인화
+     *   광고까지 막히고**, 개인정보 처리방침의 "거부해도 광고는 계속 표시됩니다"
+     *   가 거짓이 된다. 우리 1차 코드는 네트워크를 타지 않으므로 정답은 false 다
+     *   (SDK 는 자기 매니페스트에 자기 도메인을 선언하고 Xcode 가 병합한다).
+     */
+    if (iosPrivacy !== null) {
+        const tracking = /<key>NSPrivacyTracking<\/key>\s*<true\s*\/>/.test(iosPrivacy);
+        const domainsBlock = iosPrivacy.match(
+            /<key>NSPrivacyTrackingDomains<\/key>\s*<array\s*(\/>|>([\s\S]*?)<\/array>)/
+        );
+        const domainCount = (domainsBlock?.[2]?.match(/<string>/g) ?? []).length;
+        if (tracking && domainCount === 0) {
+            errors.push(
+                `A9 ${IOS_PRIVACY} 의 NSPrivacyTracking 이 true 인데 ` +
+                    `NSPrivacyTrackingDomains 가 비어 있다 — 업로드가 ITMS-91056 으로 ` +
+                    `거부되고 빌드가 "잘못된 바이너리"가 된다. ` +
+                    `⚠ 도메인을 채워서 통과시키지 마라: 그 도메인은 ATT 거부 사용자에게 ` +
+                    `**실제로 차단**되어 비개인화 광고까지 막는다. 우리 1차 코드는 ` +
+                    `네트워크를 타지 않으므로 false 가 정답이다`
+            );
+        }
+        if (!tracking && domainCount > 0) {
+            errors.push(
+                `A9 ${IOS_PRIVACY} 의 NSPrivacyTracking 이 false 인데 ` +
+                    `NSPrivacyTrackingDomains 에 도메인이 ${domainCount}개 있다 — ` +
+                    `Apple 은 도메인이 있으면 tracking 이 true 여야 한다고 본다`
+            );
+        }
+    } else {
+        warnings.push(`A9 ${IOS_PRIVACY} 를 읽지 못해 추적 선언을 검사하지 못했다`);
+    }
+
     if (iosPbxproj !== null) {
         if (!iosPbxproj.includes("PrivacyInfo.xcprivacy")) {
             errors.push(
@@ -1048,8 +1092,14 @@ export async function loadProject(root = ROOT) {
     } catch {
         /* analyze 가 경고한다 */
     }
+    let iosPrivacy = null;
+    try {
+        iosPrivacy = await readFile(path.join(root, IOS_PRIVACY), "utf8");
+    } catch {
+        /* analyze 가 경고한다 */
+    }
     const stale = await staleAgainstBundle(root, sources);
-    return { sources, bundle, capacitor, ads, manifest, iosPlist, iosPbxproj, stale };
+    return { sources, bundle, capacitor, ads, manifest, iosPlist, iosPbxproj, iosPrivacy, stale };
 }
 
 /* ══════════════════════ CLI ══════════════════════ */
