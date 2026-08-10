@@ -490,7 +490,7 @@ describe("A5–A8 iOS 제출 배선", () => {
         expect(joined(run({ iosPrivacy: withComment }))).toMatch(/A10 .*XML 주석이 있다/);
     });
 
-    it("A10 Apple 이 모르는 최상위 키를 잡는다", () => {
+    it("A10 Apple 이 모르는 키를 잡는다 — 위치를 가리지 않는다", () => {
         const bogus =
             `<plist><dict>
   <key>NSPrivacyTracking</key><false/>
@@ -498,6 +498,53 @@ describe("A5–A8 iOS 제출 배선", () => {
             `  <key>NSPrivacyMadeUpKey</key><true/>
 </dict></plist>`;
         expect(joined(run({ iosPrivacy: bogus }))).toMatch(/A10 .*모르는 키/);
+    });
+
+    /* ★★★ 실제로 세 번(빌드 12·13·14) ITMS-91056 을 만든 오타.
+     *   `NSPrivacyAccessedAPIReasons` 와 `NSPrivacyAccessedAPITypeReasons` 는
+     *   **읽어서 구분되지 않는다.** 사람이 검토해서 잡을 수 있는 종류가 아니다. */
+    const API_BLOCK = (reasonsKey = "NSPrivacyAccessedAPITypeReasons", reason = "CA92.1", cat = "NSPrivacyAccessedAPICategoryUserDefaults") =>
+        `<plist><dict>
+` +
+        `  <key>NSPrivacyAccessedAPITypes</key>
+  <array>
+    <dict>
+` +
+        `      <key>NSPrivacyAccessedAPIType</key><string>${cat}</string>
+` +
+        `      <key>${reasonsKey}</key><array><string>${reason}</string></array>
+` +
+        `    </dict>
+  </array>
+` +
+        `  <key>NSPrivacyTracking</key><false/>
+</dict></plist>`;
+
+    it("A10 ★ NSPrivacyAccessedAPIReasons 오타를 잡는다 (Type 이 빠진 것)", () => {
+        expect(joined(run({ iosPrivacy: API_BLOCK("NSPrivacyAccessedAPIReasons") }))).toMatch(
+            /A10 .*NSPrivacyAccessedAPIReasons/
+        );
+        // 올바른 키는 통과한다
+        expect(joined(run({ iosPrivacy: API_BLOCK() }))).not.toMatch(/A10/);
+    });
+
+    it("A10 다른 범주의 사유 코드를 잡는다", () => {
+        // DDA9.1 은 FileTimestamp 의 사유이지 UserDefaults 의 것이 아니다
+        expect(joined(run({ iosPrivacy: API_BLOCK(undefined, "DDA9.1") }))).toMatch(
+            /A10 .*사유가 아닌 코드/
+        );
+    });
+
+    it("A10 없는 API 범주를 잡는다", () => {
+        expect(
+            joined(run({ iosPrivacy: API_BLOCK(undefined, "CA92.1", "NSPrivacyAccessedAPICategoryMadeUp") }))
+        ).toMatch(/A10 .*Apple 의 범주가 아니다/);
+    });
+
+    it("A10 저장소의 실제 .xcprivacy 파일이 통과한다", async () => {
+        const { readFile } = await import("node:fs/promises");
+        const real = await readFile("ios/App/App/PrivacyInfo.xcprivacy", "utf8");
+        expect(joined(run({ iosPrivacy: real }))).not.toMatch(/A9|A10/);
     });
 
     it("A9·A10 지금 저장소의 조합(false · 도메인 없음 · 주석 없음)은 통과한다", () => {
