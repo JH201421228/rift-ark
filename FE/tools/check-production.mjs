@@ -54,6 +54,10 @@
  *   A2  `units.*` 가 광고 단위 id 형식(`/`)이 아니다 — 앱 id(`~`) 를 넣었다
  *   A3  `ads.json:testMode` 가 true 인 채로 배포된다 (심사자가 테스트 광고를 본다)
  *   A4  매니페스트의 AdMob `APPLICATION_ID` 가 없다 / 형식이 틀렸다 / 아직 테스트 앱 id 다
+ *   A5  iOS `Info.plist` 의 `GADApplicationIdentifier` — A4 의 iOS 짝                ★ `51 §2.5`
+ *   A6  iOS `Info.plist` 에 `ITSAppUsesNonExemptEncryption` 이 없다 (Missing Compliance)
+ *   A7  ATT 문구와 `requestTrackingAuthorization()` 호출이 **한쪽만** 있다
+ *   A8  `PrivacyInfo.xcprivacy` 가 `project.pbxproj` 에 없다 → IPA 미포함 (ITMS-91053)
  *
  * ★ 검사 범위는 **번들**이다 — `dist/index.html` · `dist/assets/*.js` · `*.css`.
  *   `public/` 에서 복사된 에셋(아틀라스 · 오디오 · PNG)은 빌드가 만든 코드가 아니고,
@@ -81,6 +85,16 @@ export const DIST_DIR = "dist";
 export const CAPACITOR_CONFIG = "capacitor.config.json";
 export const ADS_JSON = "src/game/data/ads.json";
 export const ANDROID_MANIFEST = "android/app/src/main/AndroidManifest.xml";
+/**
+ * ★★★ iOS 쪽 배선 (2026-08-10 추가).
+ *
+ *   A1–A4 는 **안드로이드만 보고 있었다.** 그 비대칭은 이 저장소의 이름 붙은
+ *   실패 유형이고, 같은 날 아이콘에서 실제로 값을 치렀다 — `icons:check` 가
+ *   `mipmap-*` 만 보는 동안 iOS 아이콘이 4개월간 Capacitor 기본값이었다.
+ *   **한쪽 플랫폼만 보는 검사기의 '통과' 는 아무것도 보증하지 않는다.**
+ */
+export const IOS_INFO_PLIST = "ios/App/App/Info.plist";
+export const IOS_PBXPROJ = "ios/App/App.xcodeproj/project.pbxproj";
 /** 구글 공식 테스트 값. 배포 빌드에 이것이 남으면 수익이 0 이다 (`56 §1.3`). */
 export const GOOGLE_TEST_APP_ID = "ca-app-pub-3940256099942544~3347511713";
 /** AdMob id 는 `~`(앱) 와 `/`(광고 단위)로만 갈린다 — 앞 16자리는 같다. */
@@ -561,6 +575,8 @@ export function analyze({
     capacitor = null,
     ads = null,
     manifest = null,
+    iosPlist = null,
+    iosPbxproj = null,
     stale = [],
 }) {
     const errors = [];
@@ -867,6 +883,82 @@ export function analyze({
         warnings.push(`A4 ${ANDROID_MANIFEST} 를 읽지 못해 AdMob 앱 id 를 검사하지 못했다`);
     }
 
+    /* ── A5–A7 iOS 제출 배선 ────────────────────────────────────────────
+     *
+     * ★★★ **전부 조용히 실패한다.** 빌드는 성공하고, TestFlight 에 올라가고,
+     *   실기에서 게임이 정상으로 돈다 — 그런데 심사에 못 들어가거나 경고 메일이
+     *   온다. 사람이 제출 직전에 눈으로 확인하는 것이 유일한 방어였고,
+     *   2026-08-10 에 셋 중 둘이 실제로 빠져 있었다.
+     */
+    if (iosPlist !== null) {
+        /* A5 — 앱 id. 안드로이드의 A4 와 같은 사고이고 결과도 같다: 부팅 즉시 사망 */
+        const m = iosPlist.match(/<key>GADApplicationIdentifier<\/key>\s*<string>([^<]*)<\/string>/);
+        const appId = m?.[1];
+        if (!appId) {
+            errors.push(
+                `A5 ${IOS_INFO_PLIST} 에 GADApplicationIdentifier 가 없다 — ` +
+                    `SDK 가 초기화 시점에 예외를 던져 **광고를 꺼도 앱이 시작하자마자 죽는다**`
+            );
+        } else if (!AD_APP_ID.test(appId)) {
+            errors.push(
+                `A5 ${IOS_INFO_PLIST} 의 GADApplicationIdentifier 가 앱 id 형식이 아니다: ` +
+                    `${JSON.stringify(appId)} — 앱 id 는 물결(\`~\`)이다`
+            );
+        } else if (appId.startsWith("ca-app-pub-3940256099942544") && ads?.enabled === true) {
+            errors.push(
+                `A5 ${IOS_INFO_PLIST} 의 GADApplicationIdentifier 가 아직 **구글 공식 테스트 앱 id** 다 — ` +
+                    `광고를 켠 채 배포하면 이 앱의 노출이 내 AdMob 계정에 집계되지 않는다`
+            );
+        }
+
+        /* A6 — 수출 규정. 없으면 빌드가 "Missing Compliance" 로 심사에 못 들어간다 */
+        if (!/<key>ITSAppUsesNonExemptEncryption<\/key>/.test(iosPlist)) {
+            errors.push(
+                `A6 ${IOS_INFO_PLIST} 에 ITSAppUsesNonExemptEncryption 이 없다 — ` +
+                    `제출할 때마다 수출 규정을 되묻고, 답하지 않은 빌드는 ` +
+                    `**"Missing Compliance" 로 심사에 들어가지 못한다**`
+            );
+        }
+
+        /* A7 — ATT 문구와 호출은 **언제나 함께 들어오고 함께 빠진다** */
+        const hasAttString = /<key>NSUserTrackingUsageDescription<\/key>/.test(iosPlist);
+        const callsAtt = [...sources.values()].some((s) => s.includes("requestTrackingAuthorization"));
+        if (callsAtt && !hasAttString) {
+            errors.push(
+                `A7 코드가 requestTrackingAuthorization() 을 부르는데 ${IOS_INFO_PLIST} 에 ` +
+                    `NSUserTrackingUsageDescription 이 없다 — iOS 는 프롬프트를 띄우지 않고 ` +
+                    `**즉시 거부로 떨어진다.** 개인 맞춤 광고가 영원히 안 나간다`
+            );
+        } else if (!callsAtt && hasAttString) {
+            errors.push(
+                `A7 ${IOS_INFO_PLIST} 에 NSUserTrackingUsageDescription 이 있는데 코드가 ` +
+                    `requestTrackingAuthorization() 을 부르지 않는다 — **쓰지 않는 권한 문구**다. ` +
+                    `심사자가 "추적을 하는가"를 되묻고 App Privacy 의 추적 답과 대조된다`
+            );
+        }
+    } else {
+        warnings.push(`A5 ${IOS_INFO_PLIST} 를 읽지 못해 iOS 배선을 검사하지 못했다`);
+    }
+
+    /* A8 — `PrivacyInfo.xcprivacy` 가 **Xcode 타깃에 들어 있는가.**
+     *
+     * ★★★ 파일을 아무리 잘 써도 `project.pbxproj` 에 참조가 없으면 **IPA 에 안
+     *   들어간다.** CI 는 아무 경고도 내지 않고 빌드는 성공한다 — 유일한 신호는
+     *   업로드 며칠 뒤 오는 `ITMS-91053` 메일이다. 실제로 그 상태로 TestFlight
+     *   빌드가 여러 번 올라갔다 (2026-08-10 발견).
+     */
+    if (iosPbxproj !== null) {
+        if (!iosPbxproj.includes("PrivacyInfo.xcprivacy")) {
+            errors.push(
+                `A8 ${IOS_PBXPROJ} 에 PrivacyInfo.xcprivacy 참조가 없다 — ` +
+                    `파일이 디스크에 있어도 **IPA 에 들어가지 않는다.** 빌드는 성공하고 ` +
+                    `며칠 뒤 ITMS-91053 (Missing API declaration) 메일이 온다`
+            );
+        }
+    } else {
+        warnings.push(`A8 ${IOS_PBXPROJ} 를 읽지 못해 Privacy Manifest 포함 여부를 검사하지 못했다`);
+    }
+
     /* ── 참고 (실패는 아니지만 사람이 봐야 하는 것) ── */
     if (!markers.length) {
         warnings.push(
@@ -944,8 +1036,20 @@ export async function loadProject(root = ROOT) {
     } catch {
         /* analyze 가 경고한다 */
     }
+    let iosPlist = null;
+    try {
+        iosPlist = await readFile(path.join(root, IOS_INFO_PLIST), "utf8");
+    } catch {
+        /* analyze 가 경고한다 */
+    }
+    let iosPbxproj = null;
+    try {
+        iosPbxproj = await readFile(path.join(root, IOS_PBXPROJ), "utf8");
+    } catch {
+        /* analyze 가 경고한다 */
+    }
     const stale = await staleAgainstBundle(root, sources);
-    return { sources, bundle, capacitor, ads, manifest, stale };
+    return { sources, bundle, capacitor, ads, manifest, iosPlist, iosPbxproj, stale };
 }
 
 /* ══════════════════════ CLI ══════════════════════ */

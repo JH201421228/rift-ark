@@ -39,15 +39,30 @@ const CLEAN_MANIFEST = (id = "ca-app-pub-1234567890123456~2222222222") =>
     `  android:name="com.google.android.gms.ads.APPLICATION_ID"\n` +
     `  android:value="${id}" />\n</application></manifest>`;
 
+/**
+ * iOS 쪽 정상 상태.
+ * ★ ATT 문구를 **일부러 넣지 않는다** — A7 은 문구와 호출이 짝인지를 보는데,
+ *   기본 `sources` 가 빈 Map 이라 호출이 없다. 문구만 넣으면 전 테스트가
+ *   A7 로 붉어진다. 짝의 양쪽은 아래 A7 테스트가 직접 만든다.
+ */
+const CLEAN_IOS_PLIST = (id = "ca-app-pub-1234567890123456~2222222222") =>
+    `<plist><dict>\n` +
+    `  <key>GADApplicationIdentifier</key><string>${id}</string>\n` +
+    `  <key>ITSAppUsesNonExemptEncryption</key><false/>\n` +
+    `</dict></plist>`;
+const CLEAN_IOS_PBXPROJ = `objects = { AAAA /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; }; };`;
+
 function run({
     sources = new Map(),
     bundle = CLEAN_BUNDLE(),
     capacitor = CLEAN_CAP,
     ads = CLEAN_ADS(),
     manifest = CLEAN_MANIFEST(),
+    iosPlist = CLEAN_IOS_PLIST(),
+    iosPbxproj = CLEAN_IOS_PBXPROJ,
     stale = [],
 }) {
-    return analyze({ sources, bundle, capacitor, ads, manifest, stale });
+    return analyze({ sources, bundle, capacitor, ads, manifest, iosPlist, iosPbxproj, stale });
 }
 const joined = (r) => r.errors.join("\n");
 
@@ -365,6 +380,73 @@ describe("번들 규칙 — 일부러 깨뜨린 번들", () => {
         expect(
             run({ sources: new Map([["src/a.js", "export const a = 1;"]]) }).warnings.join()
         ).toMatch(/마커를 하나도 뽑지 못했다|DEV 전용 문구를 하나도 뽑지 못했다/);
+    });
+});
+
+/* ═════════════════ A5–A8 iOS 제출 배선 ═════════════════
+ *
+ * ★★★ 넷 다 **빌드가 성공한 채로** 실패한다. TestFlight 에 올라가고 실기에서
+ *   게임이 정상으로 돈다 — 그런데 심사에 못 들어가거나 경고 메일이 온다.
+ *   2026-08-10 에 A6 과 A8 이 실제로 빠져 있었고, `verify` 는 전항 통과였다.
+ */
+describe("A5–A8 iOS 제출 배선", () => {
+    const ATT_CALL = new Map([["src/native/ads.js", "await AdMob.requestTrackingAuthorization();"]]);
+    const withAttString = (s) =>
+        s.replace("</dict>", "  <key>NSUserTrackingUsageDescription</key><string>ads</string>\n</dict>");
+
+    it("A5 GADApplicationIdentifier 가 없거나 · 형식이 틀리거나 · 테스트 id 면 잡는다", () => {
+        expect(joined(run({ iosPlist: "<plist><dict></dict></plist>" }))).toMatch(
+            /A5 .*GADApplicationIdentifier 가 없다/
+        );
+        // 앱 id(`~`) 자리에 광고 단위 id(`/`) 를 넣는 것이 이 사고의 실제 모양이다
+        expect(
+            joined(run({ iosPlist: CLEAN_IOS_PLIST("ca-app-pub-1234567890123456/3333333333") }))
+        ).toMatch(/A5 .*앱 id 형식이 아니다/);
+        expect(
+            joined(run({ iosPlist: CLEAN_IOS_PLIST("ca-app-pub-3940256099942544~1458002511") }))
+        ).toMatch(/A5 .*테스트 앱 id/);
+    });
+
+    it("A5 광고를 끈 상태에서는 테스트 id 를 탓하지 않는다", () => {
+        // 켜지 않은 배선의 테스트 값은 정상이다. 켤 때 A5 가 잡는다.
+        const r = run({
+            ads: { enabled: false, testMode: false, units: {} },
+            iosPlist: CLEAN_IOS_PLIST("ca-app-pub-3940256099942544~1458002511"),
+        });
+        expect(joined(r)).not.toMatch(/A5/);
+    });
+
+    it("A6 ITSAppUsesNonExemptEncryption 이 없으면 잡는다", () => {
+        const noKey = CLEAN_IOS_PLIST().replace(
+            "  <key>ITSAppUsesNonExemptEncryption</key><false/>\n",
+            ""
+        );
+        expect(joined(run({ iosPlist: noKey }))).toMatch(/A6 .*Missing Compliance/);
+    });
+
+    it("A7 ATT 문구와 호출은 한쪽만 있으면 잡는다 — 양방향", () => {
+        // 호출은 있는데 문구가 없다 → 프롬프트가 안 뜨고 즉시 거부
+        expect(joined(run({ sources: ATT_CALL }))).toMatch(/A7 .*즉시 거부/);
+        // 문구는 있는데 호출이 없다 → 쓰지 않는 권한 문구
+        expect(joined(run({ iosPlist: withAttString(CLEAN_IOS_PLIST()) }))).toMatch(
+            /A7 .*쓰지 않는 권한 문구/
+        );
+        // 둘 다 있으면 통과한다 (지금 저장소의 상태)
+        expect(
+            joined(run({ sources: ATT_CALL, iosPlist: withAttString(CLEAN_IOS_PLIST()) }))
+        ).not.toMatch(/A7/);
+    });
+
+    it("A8 PrivacyInfo.xcprivacy 가 pbxproj 에 없으면 잡는다", () => {
+        // ★ 파일이 디스크에 있는지가 아니라 **Xcode 타깃에 있는지**를 묻는다.
+        //   디스크에만 있던 4일 동안 빌드는 계속 성공했다.
+        expect(joined(run({ iosPbxproj: "objects = { };" }))).toMatch(/A8 .*IPA 에 들어가지 않는다/);
+    });
+
+    it("읽지 못한 iOS 파일은 조용히 통과시키지 않는다", () => {
+        const r = run({ iosPlist: null, iosPbxproj: null });
+        expect(r.warnings.join()).toMatch(/A5 .*검사하지 못했다/);
+        expect(r.warnings.join()).toMatch(/A8 .*검사하지 못했다/);
     });
 });
 
