@@ -4,8 +4,8 @@
 
 **한국어** · [English](#english)
 
-최종 수정일: 2026-08-08
-애플리케이션: 균열의 방주 (패키지 `com.superdimension.app`)
+최종 수정일: 2026-08-10
+애플리케이션: 균열의 방주 / RIFT ARK (패키지 `com.superdimension.app`)
 개발자: 박주헌
 문의: 741u741@gmail.com
 
@@ -26,7 +26,7 @@ Google 이 수집하고 처리합니다. 아래 2항이 그 내용입니다.
 | 항목 | 내용 | 목적 |
 |---|---|---|
 | IP 주소 | 기기의 IP 주소 (대략적인 지역 추정에 사용될 수 있음) | 광고 게재, 분석, 부정행위 방지 |
-| 광고 식별자 | Android 광고 ID, App set ID | 광고 게재, 빈도 제한, 부정행위 방지 |
+| 광고 식별자 | **Android**: 광고 ID, App set ID<br>**iOS**: 광고 식별자(IDFA) — 5항의 추적 허용을 선택하신 경우에만 | 광고 게재, 빈도 제한, 부정행위 방지 |
 | 앱 상호작용 정보 | 앱 실행, 탭, 광고 시청 등 | 광고 게재, 분석 |
 | 진단 정보 | 실행 시간, 응답 지연, 전력 사용량 등 | 분석 |
 
@@ -62,8 +62,20 @@ Google 의 데이터 처리에 관한 상세는 다음을 참고하십시오.
 - **미국 일부 주**: 해당 지역 사용자에게는 Google User Messaging Platform 을 통해
   옵트아웃 선택지가 제공되며, 옵트아웃 시 제한된 데이터 처리가 적용되어
   개인화되지 않은 광고만 게재됩니다.
+- **iOS 추적 허용 (App Tracking Transparency)**: iOS 에서는 앱을 처음 실행할 때
+  *"추적을 허용하시겠습니까?"* 라는 시스템 창이 **한 번** 뜹니다. 이는 위 UMP 동의와
+  별개이며, UMP 동의가 필요 없는 지역(대한민국 포함)에서도 표시됩니다.
+  - **허용하시면** 광고 식별자(IDFA)가 관련성 높은 광고를 고르는 데 사용됩니다.
+  - **허용하지 않으시면** IDFA 가 사용되지 않으며, **광고는 계속 표시되지만
+    개인화되지 않습니다.** 광고가 사라지는 것은 아닙니다.
+  - 어느 쪽을 고르셔도 **게임의 모든 기능을 그대로, 끝까지 이용하실 수 있습니다.**
+    허용을 조건으로 게임 내 보상을 드리지 않습니다.
+  - 허용 여부는 **설정 > 개인정보 보호 및 보안 > 추적** 에서 언제든 바꾸실 수 있습니다.
+  - 위 UMP 동의를 거부하셔서 광고가 게재되지 않는 경우에는, 추적 허용을 **묻지
+    않습니다.**
 - **광고 식별자 초기화**: Android 는 **설정 > Google > 광고**에서 광고 ID 를
   초기화하거나 삭제할 수 있습니다. 삭제하면 개인화 광고가 중단됩니다.
+  iOS 는 위 **추적** 설정에서 끄시면 IDFA 접근이 차단됩니다.
 - **광고를 보지 않는 선택**: 보상형 광고는 전적으로 선택 사항입니다. 결과 화면에서
   직접 누를 때만 재생되며, 전면 광고와 배너 광고는 없습니다. **광고를 한 번도 보지
   않아도 100 스테이지 전부를 진행할 수 있습니다.**
@@ -98,7 +110,7 @@ Google 의 데이터 처리에 관한 상세는 다음을 참고하십시오.
 
 [한국어](#korean) · **English**
 
-Last updated: 2026-08-08
+Last updated: 2026-08-10
 Application: RIFT ARK (package `com.superdimension.app`)
 Developer: 박주헌
 Contact: 741u741@gmail.com
@@ -120,7 +132,7 @@ following and transmits it to Google:
 | Item | Detail | Purpose |
 |---|---|---|
 | IP address | The device's IP address (may be used to estimate approximate location) | Ad serving, analytics, fraud prevention |
-| Advertising identifiers | Android advertising ID, App set ID | Ad serving, frequency capping, fraud prevention |
+| Advertising identifiers | **Android**: advertising ID, App set ID<br>**iOS**: the advertising identifier (IDFA) — only if you allow tracking, see section 5 | Ad serving, frequency capping, fraud prevention |
 | App interactions | App launches, taps, ad views | Ad serving, analytics |
 | Diagnostics | Launch time, response latency, energy usage | Analytics |
 
@@ -159,9 +171,23 @@ For details on how Google processes this data:
 - **Certain US states**: users in those states are offered an opt-out through
   Google's User Messaging Platform. Opting out applies restricted data processing,
   and only non-personalised ads are served.
+- **iOS tracking permission (App Tracking Transparency)**: on iOS, the system shows
+  an *"Allow tracking?"* prompt **once**, on first launch. This is separate from the
+  UMP consent above and appears in every region, including those (such as South
+  Korea) where UMP consent is not required.
+  - **If you allow it**, your advertising identifier (IDFA) is used to select more
+    relevant ads.
+  - **If you decline**, the IDFA is not used and **ads still appear — they are simply
+    not personalised.** Declining does not remove ads.
+  - Either way, **every feature of the game remains fully available**. We never offer
+    in-game rewards in exchange for allowing tracking.
+  - You can change this at any time in **Settings > Privacy & Security > Tracking**.
+  - If you declined ads through the UMP consent above, we do **not** ask for tracking
+    permission at all.
 - **Resetting your advertising ID**: on Android you can reset or delete the
   advertising ID under **Settings > Google > Ads**. Deleting it stops personalised
-  advertising.
+  advertising. On iOS, turning off **Tracking** in the settings above blocks access
+  to the IDFA.
 - **Choosing not to watch ads**: rewarded ads are entirely optional. They play only
   when you tap the button on the results screen. There are no interstitial ads and
   no banner ads. **You can complete all 100 stages without ever watching one.**
