@@ -984,22 +984,88 @@ export function analyze({
                     `설명은 옆의 PrivacyInfo.README.md 에 적는다`
             );
         }
-        /* A10 — 낯선 최상위 키. Apple 은 "예상 밖 키/값" 을 그대로 반려 사유로 쓴다. */
-        const KNOWN_TOP_KEYS = new Set([
+        /* A10 — **모든 `<key>` 를 화이트리스트로 대조한다.**
+         *
+         * ★★★ 2026-08-10~11: ITMS-91056 으로 **세 번** 떨어졌다 (빌드 12·13·14).
+         *   진짜 원인은 **키 이름의 오타 한 곳**이었다:
+         *
+         *     우리 파일   NSPrivacyAccessedAPI____Reasons
+         *     Apple 정본  NSPrivacyAccessedAPIType Reasons     ← `Type` 이 빠져 있었다
+         *
+         *   2026-08-08 에 파일을 만들 때부터 틀려 있었고, 타깃 미등록으로 번들 밖에
+         *   있던 동안에는 아무도 몰랐다. 그 사이 추적 설정과 XML 주석을 고치느라
+         *   빌드를 두 번 더 태웠다 — **둘 다 원인이 아니었다.**
+         *
+         * ★★ **앞의 두 검사(A10 주석 · A9 추적)는 부분 대조였다.** "이 한 가지가
+         *   맞는가"를 물으면 나머지 전부가 통과로 보인다. 그래서 이제 **모든 키를
+         *   전수 대조**한다 — 아래 목록이 privacy manifest 의 유효 키 **전부**다.
+         *   목록에 없는 키가 하나라도 있으면 그것이 곧 ITMS-91056 이다.
+         *
+         * ★ 눈으로는 절대 못 잡는다. `NSPrivacyAccessedAPIReasons` 와
+         *   `NSPrivacyAccessedAPITypeReasons` 는 읽어서 구분되지 않는다.
+         */
+        const VALID_KEYS = new Set([
             "NSPrivacyTracking",
             "NSPrivacyTrackingDomains",
             "NSPrivacyCollectedDataTypes",
+            "NSPrivacyCollectedDataType",
+            "NSPrivacyCollectedDataTypeLinked",
+            "NSPrivacyCollectedDataTypeTracking",
+            "NSPrivacyCollectedDataTypePurposes",
             "NSPrivacyAccessedAPITypes",
+            "NSPrivacyAccessedAPIType",
+            "NSPrivacyAccessedAPITypeReasons",
         ]);
-        const topKeys = [...iosPrivacy.matchAll(/<key>([^<]+)<\/key>/g)].map((m) => m[1]);
-        const unknownTop = topKeys.filter(
-            (k) => k.startsWith("NSPrivacy") && !KNOWN_TOP_KEYS.has(k) && !k.includes("DataType") && !k.includes("AccessedAPI")
-        );
-        if (unknownTop.length) {
+        const allKeys = [...iosPrivacy.matchAll(/<key>([^<]*)<\/key>/g)].map((m) => m[1].trim());
+        const unknownKeys = [...new Set(allKeys.filter((k) => !VALID_KEYS.has(k)))];
+        if (unknownKeys.length) {
             errors.push(
-                `A10 ${IOS_PRIVACY} 에 Apple 이 모르는 키가 있다: ${unknownTop.join(", ")} — ` +
-                    `"예상 밖 키/값" 은 ITMS-91056 의 사유 그 자체다`
+                `A10 ${IOS_PRIVACY} 에 Apple 이 모르는 키가 있다: ${unknownKeys.join(", ")} — ` +
+                    `"unexpected keys or values" 가 ITMS-91056 의 사유 그 자체다. ` +
+                    `⚠ 비슷한 이름에 속지 마라: 사유 배열의 키는 ` +
+                    `**NSPrivacyAccessedAPITypeReasons** 이고 NSPrivacyAccessedAPIReasons 가 아니다`
             );
+        }
+
+        /* A10 — **사유 코드가 그 API 범주의 것인가.**
+         *   범주마다 허용 코드가 다르다. 다른 범주의 코드를 쓰면 ITMS-91055 다.
+         *   출처: Apple "Describing use of required reason API".
+         */
+        const API_REASONS = {
+            NSPrivacyAccessedAPICategoryFileTimestamp: ["DDA9.1", "C617.1", "3B52.1", "0A2A.1"],
+            NSPrivacyAccessedAPICategorySystemBootTime: ["35F9.1", "8FFB.1", "3D61.1"],
+            NSPrivacyAccessedAPICategoryDiskSpace: ["85F4.1", "E174.1", "7D9E.1", "B728.1"],
+            NSPrivacyAccessedAPICategoryActiveKeyboards: ["3EC4.1", "54BD.1"],
+            NSPrivacyAccessedAPICategoryUserDefaults: ["CA92.1", "1C8F.1", "C56D.1", "AC6B.1"],
+        };
+        for (const block of iosPrivacy.matchAll(
+            /<key>NSPrivacyAccessedAPIType<\/key>\s*<string>([^<]*)<\/string>([\s\S]*?)(?=<key>NSPrivacyAccessedAPIType<\/key>|<\/array>\s*<key>|<\/dict>\s*<\/plist>)/g
+        )) {
+            const category = block[1].trim();
+            const allowed = API_REASONS[category];
+            if (!allowed) {
+                errors.push(
+                    `A10 ${IOS_PRIVACY} 의 NSPrivacyAccessedAPIType 이 Apple 의 범주가 아니다: ` +
+                        `${JSON.stringify(category)}`
+                );
+                continue;
+            }
+            const reasons = [...block[2].matchAll(/<string>([^<]*)<\/string>/g)].map((m) =>
+                m[1].trim()
+            );
+            const bad = reasons.filter((r) => !allowed.includes(r));
+            if (bad.length) {
+                errors.push(
+                    `A10 ${IOS_PRIVACY} 의 ${category} 에 그 범주의 사유가 아닌 코드가 있다: ` +
+                        `${bad.join(", ")} — 허용: ${allowed.join(", ")}`
+                );
+            }
+            if (!reasons.length) {
+                errors.push(
+                    `A10 ${IOS_PRIVACY} 의 ${category} 에 사유가 하나도 없다 — ` +
+                        `NSPrivacyAccessedAPITypeReasons 키 이름을 확인하라 (오타면 사유가 0개로 보인다)`
+                );
+            }
         }
 
         const tracking = /<key>NSPrivacyTracking<\/key>\s*<true\s*\/>/.test(iosPrivacy);
